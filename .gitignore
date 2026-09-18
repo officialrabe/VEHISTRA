@@ -1,0 +1,38 @@
+## Build-Ausgaben
+bin/
+obj/
+Release/
+publish/
+artifacts/
+*.user
+*.suo
+.vs/
+.idea/
+.vscode/
+
+## NuGet
+*.nupkg
+packages/
+
+## Logs
+*.log
+Logs/
+
+## Code Signing - NIEMALS ins Repository!
+*.pfx
+*.p12
+*.snk
+signing/
+codesign/
+
+## Lokale Konfiguration mit Verbindungsdaten
+appsettings.Local.json
+*.local.json
+connection.local.*
+
+## Betriebssystem
+.DS_Store
+Thumbs.db
+
+## Installer-Ausgaben
+tools/Installer/Output/

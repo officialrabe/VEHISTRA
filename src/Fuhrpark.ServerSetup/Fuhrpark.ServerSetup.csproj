@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Fuhrpark.ServerSetup</RootNamespace>
+    <AssemblyName>FuhrparkServerSetup</AssemblyName>
+    <AssemblyTitle>Fuhrpark Server Setup</AssemblyTitle>
+    <Description>Assistent zur Einrichtung des Fuhrpark-Servers. Entwickelt von LSP Virtual Services.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fuhrpark.Domain\Fuhrpark.Domain.csproj" />
+    <ProjectReference Include="..\Fuhrpark.Application\Fuhrpark.Application.csproj" />
+    <ProjectReference Include="..\Fuhrpark.Infrastructure\Fuhrpark.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+</Project>
