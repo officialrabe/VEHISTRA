@@ -85,7 +85,7 @@ public class UpdateDetectionTests : IDisposable
         var result = await database.Service<IUpdateService>().CheckForUpdateAsync(_updateDirectory, Token);
 
         result.IsUpdateAvailable.ShouldBeFalse();
-        result.Message.ShouldContain("aktuell");
+        result.Message!.ShouldContain("aktuell");
     }
 
     [Fact]
@@ -121,7 +121,7 @@ public class UpdateDetectionTests : IDisposable
 
         result.IsUpdateAvailable.ShouldBeFalse();
         result.UpdatePathReachable.ShouldBeFalse();
-        result.Message.ShouldContain("nicht erreichbar");
+        result.Message!.ShouldContain("nicht erreichbar");
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class UpdateDetectionTests : IDisposable
         var result = await database.Service<IUpdateService>().CheckForUpdateAsync(_updateDirectory, Token);
 
         result.IsUpdateAvailable.ShouldBeFalse();
-        result.Message.ShouldContain("latest.json");
+        result.Message!.ShouldContain("latest.json");
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class UpdateDetectionTests : IDisposable
         var result = await database.Service<IUpdateService>().CheckForUpdateAsync(_updateDirectory, Token);
 
         result.IsUpdateAvailable.ShouldBeFalse();
-        result.Message.ShouldContain("Vehistra-Update.exe");
+        result.Message!.ShouldContain("Vehistra-Update.exe");
     }
 
     [Fact]

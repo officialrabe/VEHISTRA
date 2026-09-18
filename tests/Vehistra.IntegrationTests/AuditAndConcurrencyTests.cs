@@ -196,7 +196,7 @@ public class ConcurrencyTests
         database.SignInAsAdministrator();
 
         var vehicle = await TestData.AddVehicleAsync(database.Db, cancellationToken: Token);
-        var first = vehicle.RowVersion.ToArray();
+        var first = vehicle.RowVersion!.ToArray();
 
         vehicle.Color = "Silber";
         await database.Db.SaveChangesAsync(Token);
