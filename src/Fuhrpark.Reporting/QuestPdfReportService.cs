@@ -15,7 +15,7 @@ public sealed class QuestPdfReportService : IReportService
     {
         // QuestPDF Community-Lizenz (kostenfrei fuer Unternehmen unterhalb der Umsatzgrenze).
         QuestPDF.Settings.License = LicenseType.Community;
-        QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
+        QuestPDF.Settings.ThrowOnMissingTextGlyphs = false;
     }
 
     public Task<byte[]> CreateWorkshopReportAsync(

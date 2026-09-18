@@ -1,0 +1,11 @@
+<Project>
+
+  <!--
+    Die WPF-Projekte binden System.IO nicht implizit ein. Die Ergaenzung erfolgt hier,
+    weil die Eigenschaft UseWPF erst nach dem Import von Directory.Build.props gesetzt ist.
+  -->
+  <ItemGroup Condition="'$(UseWPF)' == 'true' AND '$(ImplicitUsings)' == 'enable'">
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+</Project>

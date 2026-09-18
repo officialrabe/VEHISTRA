@@ -88,7 +88,7 @@ public sealed class WarningLevelToBrushConverter : IValueConverter
 public sealed class WarningLevelToTextConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value as WarningLevel? switch
+        (value as WarningLevel?) switch
         {
             WarningLevel.Ok => "OK",
             WarningLevel.Hinweis => "Hinweis",
@@ -202,7 +202,7 @@ public sealed class SeverityToBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var key = value as NotificationSeverity? switch
+        var key = (value as NotificationSeverity?) switch
         {
             NotificationSeverity.Kritisch => Background ? "CriticalBackgroundBrush" : "CriticalBrush",
             NotificationSeverity.Warnung => Background ? "WarnBackgroundBrush" : "WarnBrush",
@@ -223,7 +223,7 @@ public sealed class DamageStatusToBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var key = value as DamageStatus? switch
+        var key = (value as DamageStatus?) switch
         {
             DamageStatus.Geschlossen => Background ? "OkBackgroundBrush" : "OkBrush",
             DamageStatus.Repariert => Background ? "OkBackgroundBrush" : "OkBrush",
@@ -248,7 +248,7 @@ public sealed class DamagePriorityToBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var key = value as DamagePriority? switch
+        var key = (value as DamagePriority?) switch
         {
             DamagePriority.Kritisch => Background ? "CriticalBackgroundBrush" : "CriticalBrush",
             DamagePriority.Hoch => Background ? "WarnBackgroundBrush" : "WarnBrush",
@@ -270,7 +270,7 @@ public sealed class WorkshopStatusToBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var key = value as WorkshopOrderStatus? switch
+        var key = (value as WorkshopOrderStatus?) switch
         {
             WorkshopOrderStatus.Abgeholt => Background ? "OkBackgroundBrush" : "OkBrush",
             WorkshopOrderStatus.Fertig => Background ? "OkBackgroundBrush" : "OkBrush",
@@ -295,7 +295,7 @@ public sealed class PlateStatusToBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var key = value as LicensePlateStatus? switch
+        var key = (value as LicensePlateStatus?) switch
         {
             LicensePlateStatus.Verfuegbar => Background ? "OkBackgroundBrush" : "OkBrush",
             LicensePlateStatus.Reserviert => Background ? "InfoBackgroundBrush" : "InfoBrush",
