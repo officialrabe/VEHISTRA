@@ -25,6 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  VERSION: 1.0.0
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -104,8 +105,48 @@ jobs:
 
           Write-Host "Alle vier Programme wurden erzeugt."
 
+      # Die Installationspakete erwarten die Anleitungen unterhalb des
+      # Veroeffentlichungsordners - genau wie CreateRelease.ps1 es vorsieht.
       - name: Anleitungen als PDF erzeugen
-        run: dotnet run --project tools/DocBuilder/Vehistra.DocBuilder.csproj --configuration Release -- docs artifacts/docs 1.0.0
+        run: dotnet run --project tools/DocBuilder/Vehistra.DocBuilder.csproj --configuration Release -- docs artifacts/publish/Dokumentation ${{ env.VERSION }}
+
+      - name: Inno Setup einrichten
+        run: choco install innosetup --yes --no-progress
+
+      - name: Installationspakete bauen
+        shell: pwsh
+        run: |
+          $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+
+          if (-not (Test-Path $iscc)) {
+            Write-Host "::error::Inno Setup wurde nicht gefunden: $iscc"
+            exit 1
+          }
+
+          $quelle = Join-Path $PWD 'artifacts/publish'
+          $ziel   = Join-Path $PWD 'artifacts/installer'
+
+          New-Item -ItemType Directory -Path $ziel -Force | Out-Null
+
+          foreach ($skript in @('Vehistra-Setup.iss', 'Vehistra-Update.iss')) {
+            & $iscc "/DAppVersion=${{ env.VERSION }}" "/DSourceDir=$quelle" "/DOutputDir=$ziel" "tools/Installer/$skript"
+
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::error::Das Uebersetzen von $skript ist fehlgeschlagen."
+              exit $LASTEXITCODE
+            }
+          }
+
+      - name: Pruefsummen erzeugen
+        shell: pwsh
+        run: |
+          $zeilen = Get-ChildItem artifacts/installer -Filter *.exe | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          }
+
+          $zeilen | Set-Content artifacts/installer/checksums.sha256 -Encoding ascii
+          $zeilen | ForEach-Object { Write-Host $_ }
 
       - name: Programme als Artefakt ablegen
         uses: actions/upload-artifact@v4
@@ -118,8 +159,15 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vehistra-anleitungen
-          path: artifacts/docs/
+          path: artifacts/publish/Dokumentation/
           retention-days: 14
+
+      - name: Installationspakete als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-installer
+          path: artifacts/installer/
+          retention-days: 30
 
   secrets:
     name: Keine Geheimnisse im Repository

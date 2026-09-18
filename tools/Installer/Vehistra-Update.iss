@@ -101,7 +101,7 @@ var
   Key: String;
 begin
   Result := '';
-  Key := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#AppId}_is1';
+  Key := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#AppIdRaw}_is1';
 
   if not RegQueryStringValue(HKEY_LOCAL_MACHINE, Key, 'InstallLocation', Result) then
     RegQueryStringValue(HKEY_CURRENT_USER, Key, 'InstallLocation', Result);

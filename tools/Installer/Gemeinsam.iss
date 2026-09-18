@@ -28,7 +28,10 @@
 #define AppCopyright       "© LSP Virtual Services"
 #define AppExeName         "Vehistra.exe"
 #define AppMutexName       "Global\LSPVirtualServices.Vehistra"
+; In [Setup] wird die doppelte Klammer benoetigt - Inno macht daraus ein "{".
 #define AppId              "{{8D3B4E21-7C4A-4E2F-9B6D-5A1C0E7F3D42}"
+; Fuer Zeichenketten im [Code]-Abschnitt, wo nicht entschluesselt wird.
+#define AppIdRaw           "{8D3B4E21-7C4A-4E2F-9B6D-5A1C0E7F3D42}"
 
 ; Veraenderliche Daten liegen niemals unterhalb von "Program Files".
 #define CommonDataDir      "{commonappdata}\LSP Virtual Services\Vehistra"
