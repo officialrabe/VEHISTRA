@@ -34,6 +34,12 @@
     <InformationalVersion>1.0.0</InformationalVersion>
   </PropertyGroup>
 
+  <!-- xunit.v3 laeuft auf der Microsoft Testing Platform; "dotnet test" muss darauf umgestellt werden. -->
+  <PropertyGroup>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>portable</DebugType>
     <Optimize>true</Optimize>

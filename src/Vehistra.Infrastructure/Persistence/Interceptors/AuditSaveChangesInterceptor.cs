@@ -150,11 +150,22 @@ public sealed class AuditSaveChangesInterceptor : SaveChangesInterceptor
 
             if (SensitiveProperties.Contains(name))
             {
-                // Aenderung wird vermerkt, der Wert selbst niemals.
-                if (entry.State == EntityState.Modified && property.IsModified)
+                // Dass das Feld gesetzt oder geaendert wurde, wird vermerkt -
+                // der Wert selbst niemals, auch nicht in gehashter Form.
+                switch (entry.State)
                 {
-                    oldValues[name] = "***";
-                    newValues[name] = "***";
+                    case EntityState.Added:
+                        newValues[name] = "***";
+                        break;
+
+                    case EntityState.Deleted:
+                        oldValues[name] = "***";
+                        break;
+
+                    case EntityState.Modified when property.IsModified:
+                        oldValues[name] = "***";
+                        newValues[name] = "***";
+                        break;
                 }
 
                 continue;

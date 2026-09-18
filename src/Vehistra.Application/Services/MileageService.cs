@@ -63,10 +63,15 @@ public sealed class MileageService : IMileageService
             .FirstOrDefaultAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        if (!isCorrection && lastMileage is { } last && mileage < last)
+        // Auch der am Fahrzeug gefuehrte Stand zaehlt: Fahrzeuge koennen mit einem
+        // Anfangskilometerstand angelegt oder importiert werden, ohne dass es dazu
+        // bereits einen Historieneintrag gibt.
+        var reference = Math.Max(lastMileage ?? 0, vehicle.CurrentMileage);
+
+        if (!isCorrection && reference > 0 && mileage < reference)
         {
             throw new BusinessRuleException(
-                $"Der neue Kilometerstand ({mileage:N0} km) liegt unter dem zuletzt erfassten Wert ({last:N0} km). " +
+                $"Der neue Kilometerstand ({mileage:N0} km) liegt unter dem zuletzt erfassten Wert ({reference:N0} km). " +
                 "Bitte den Wert pruefen oder die Eingabe als Korrektur kennzeichnen.");
         }
 

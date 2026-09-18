@@ -30,13 +30,6 @@ public static class DependencyInjection
         services.AddSingleton<FileSystemDocumentStorage>();
         services.AddSingleton<IDocumentStorage>(sp => sp.GetRequiredService<FileSystemDocumentStorage>());
 
-        services.AddScoped<AuditSaveChangesInterceptor>(sp => new AuditSaveChangesInterceptor(
-            sp.GetRequiredService<ICurrentUserService>(),
-            sp.GetRequiredService<IClock>(),
-            sp.GetRequiredService<ApplicationVersionProvider>().Version));
-
-        services.AddScoped<ConcurrencyTokenInterceptor>();
-
         services.AddDbContext<VehistraDbContext>((sp, options) =>
         {
             options.UseSqlServer(connectionStringFactory(sp), sql =>
@@ -65,6 +58,13 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddVehistraInfrastructureServices(this IServiceCollection services)
     {
+        services.AddScoped<AuditSaveChangesInterceptor>(sp => new AuditSaveChangesInterceptor(
+            sp.GetRequiredService<ICurrentUserService>(),
+            sp.GetRequiredService<IClock>(),
+            sp.GetRequiredService<ApplicationVersionProvider>().Version));
+
+        services.AddScoped<ConcurrencyTokenInterceptor>();
+
         services.AddScoped<IAuditWriter, AuditWriter>();
         services.AddScoped<MigrationLockManager>();
         services.AddScoped<IBackupService, BackupService>();
