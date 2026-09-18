@@ -1,0 +1,105 @@
+<UserControl x:Class="Fuhrpark.Client.Views.MaintenanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="_Wartung eintragen" Style="{StaticResource PrimaryButtonStyle}" MinWidth="150"
+                  Command="{Binding RecordMaintenanceCommand}"
+                  Visibility="{Binding CanManage, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="_Fahrzeugakte öffnen" Margin="8,0,0,0" Command="{Binding OpenVehicleCommand}" />
+          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
+          <Button Content="Export CSV" Command="{Binding ExportCommand}" CommandParameter="csv"
+                  Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="Export XLSX" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="xlsx"
+                  Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <CheckBox Content="nur kritische" IsChecked="{Binding OnlyCritical}" VerticalAlignment="Center" />
+          <Button Content="_Aktualisieren" Margin="12,0,0,0" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" Margin="12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="3*" />
+        <ColumnDefinition Width="12" />
+        <ColumnDefinition Width="2*" />
+      </Grid.ColumnDefinitions>
+
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Text="FÄLLIGE WARTUNGEN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+        <DataGrid x:Name="DueGrid" Grid.Row="1" ItemsSource="{Binding DueItems}"
+                  SelectedItem="{Binding SelectedDueItem}">
+          <DataGrid.InputBindings>
+            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
+                          CommandParameter="{Binding SelectedItem, ElementName=DueGrid}" />
+          </DataGrid.InputBindings>
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="Status" Width="120">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <Border Style="{StaticResource BadgeStyle}"
+                          Background="{Binding Level, Converter={StaticResource WarningLevelToBackground}}">
+                    <TextBlock Text="{Binding Level, Converter={StaticResource WarningLevelToText}}" FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{Binding Level, Converter={StaticResource WarningLevelToBrush}}" />
+                  </Border>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Fahrzeug" Binding="{Binding VehicleDisplay}" Width="*"
+                                FontWeight="SemiBold" />
+            <DataGridTextColumn Header="Wartung" Binding="{Binding RuleName}" Width="180" />
+            <DataGridTextColumn Header="Fällig am" Binding="{Binding DueDate, StringFormat=dd.MM.yyyy}" Width="110" />
+            <DataGridTextColumn Header="Fällig bei km" Binding="{Binding DueMileage, StringFormat=N0}" Width="120" />
+            <DataGridTextColumn Header="Aktueller Stand" Binding="{Binding CurrentMileage, StringFormat=N0}"
+                                Width="130" />
+            <DataGridTextColumn Header="Hinweis" Binding="{Binding Description}" Width="2*" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+
+      <Grid Grid.Column="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="WARTUNGSREGELN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8"
+                    Visibility="{Binding CanManage, Converter={StaticResource BoolToVisibility}}">
+          <Button Content="Neu" Command="{Binding CreateRuleCommand}" MinWidth="70" />
+          <Button Content="Bearbeiten" Margin="6,0,0,0" Command="{Binding EditRuleCommand}" MinWidth="90" />
+          <Button Content="Entfernen" Margin="6,0,0,0" Command="{Binding DeleteRuleCommand}" MinWidth="90" />
+        </StackPanel>
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Name}" Width="*" />
+            <DataGridTextColumn Header="Intervall"
+                                Binding="{Binding IntervalType, Converter={StaticResource EnumToText}}" Width="140" />
+            <DataGridTextColumn Header="Monate" Binding="{Binding IntervalMonths}" Width="80" />
+            <DataGridTextColumn Header="Kilometer" Binding="{Binding IntervalKilometers, StringFormat=N0}"
+                                Width="100" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </Grid>
+  </Grid>
+</UserControl>

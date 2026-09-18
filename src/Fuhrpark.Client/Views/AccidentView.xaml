@@ -1,0 +1,89 @@
+<UserControl x:Class="Fuhrpark.Client.Views.AccidentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="_Unfall erfassen" Style="{StaticResource PrimaryButtonStyle}" MinWidth="140"
+                  Command="{Binding CreateCommand}"
+                  Visibility="{Binding CanCreate, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="_Bearbeiten" Margin="8,0,0,0" Command="{Binding EditCommand}"
+                  Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="Ab_schließen" Margin="8,0,0,0" Command="{Binding CloseAccidentCommand}"
+                  Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
+          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
+          <Button Content="Unfallbericht _drucken" Command="{Binding PrintReportCommand}" MinWidth="170"
+                  Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="_Fahrzeugakte" Margin="8,0,0,0" Command="{Binding OpenVehicleCommand}" />
+          <Button Content="Export CSV" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="csv"
+                  Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <CheckBox Content="nur offene" IsChecked="{Binding OnlyOpen}" VerticalAlignment="Center" />
+          <Button Content="_Aktualisieren" Margin="12,0,0,0" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <DataGrid x:Name="AccidentGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Accidents}"
+              SelectedItem="{Binding SelectedAccident}">
+      <DataGrid.InputBindings>
+        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}"
+                      CommandParameter="{Binding SelectedItem, ElementName=AccidentGrid}" />
+      </DataGrid.InputBindings>
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Unfallnummer" Binding="{Binding AccidentNumber}" Width="140"
+                            FontWeight="SemiBold" />
+        <DataGridTextColumn Header="Fahrzeug" Binding="{Binding VehicleDisplay}" Width="*" />
+        <DataGridTextColumn Header="Fahrer" Binding="{Binding DriverName}" Width="160" />
+        <DataGridTextColumn Header="Datum / Uhrzeit" Binding="{Binding OccurredAt, StringFormat=dd.MM.yyyy HH:mm}"
+                            Width="150" />
+        <DataGridTextColumn Header="Ort" Binding="{Binding Location}" Width="2*" />
+        <DataGridTextColumn Header="Unfallart" Binding="{Binding Type, Converter={StaticResource EnumToText}}"
+                            Width="230" />
+        <DataGridTextColumn Header="Polizei" Binding="{Binding PoliceInvolved, Converter={StaticResource BoolToYesNo}}"
+                            Width="90" />
+        <DataGridTextColumn Header="Personenschaden"
+                            Binding="{Binding PersonalInjury, Converter={StaticResource BoolToYesNo}}" Width="140" />
+        <DataGridTemplateColumn Header="Status" Width="100">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Border>
+                <Border.Style>
+                  <Style TargetType="Border" BasedOn="{StaticResource BadgeStyle}">
+                    <Setter Property="Background" Value="{StaticResource OkBackgroundBrush}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsOpen}" Value="True">
+                        <Setter Property="Background" Value="{StaticResource WarnBackgroundBrush}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Border.Style>
+                <TextBlock FontSize="11">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+                      <Setter Property="Text" Value="abgeschlossen" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsOpen}" Value="True">
+                          <Setter Property="Text" Value="offen" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+</UserControl>

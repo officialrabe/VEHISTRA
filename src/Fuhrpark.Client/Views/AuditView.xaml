@@ -1,0 +1,71 @@
+<UserControl x:Class="Fuhrpark.Client.Views.AuditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <WrapPanel>
+        <TextBlock Text="Von:" VerticalAlignment="Center" Margin="0,0,6,0" Style="{StaticResource MutedTextStyle}" />
+        <DatePicker SelectedDate="{Binding From}" Width="130" />
+        <TextBlock Text="Bis:" VerticalAlignment="Center" Margin="12,0,6,0" Style="{StaticResource MutedTextStyle}" />
+        <DatePicker SelectedDate="{Binding To}" Width="130" />
+
+        <ComboBox Width="170" Margin="12,0,0,0" ItemsSource="{Binding UserNames}" SelectedItem="{Binding UserFilter}"
+                  IsEditable="True" ToolTip="Benutzer" />
+        <ComboBox Width="170" Margin="8,0,0,0" ItemsSource="{Binding EntityNames}"
+                  SelectedItem="{Binding EntityFilter}" IsEditable="True" ToolTip="Entität" />
+        <ComboBox Width="170" Margin="8,0,0,0" ItemsSource="{Binding ActionValues}"
+                  SelectedItem="{Binding ActionFilter}" ToolTip="Aktion">
+          <ComboBox.ItemTemplate>
+            <DataTemplate>
+              <TextBlock Text="{Binding Converter={StaticResource EnumToText}}" />
+            </DataTemplate>
+          </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <TextBox Width="200" Margin="8,0,0,0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                 ToolTip="Volltextsuche in den protokollierten Werten" />
+
+        <Button Content="_Suchen" Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
+                Command="{Binding ApplyFilterCommand}" />
+        <Button Content="_Zurücksetzen" Margin="8,0,0,0" Command="{Binding ResetFilterCommand}" />
+        <Button Content="_Export CSV" Margin="8,0,0,0" Command="{Binding ExportCommand}" />
+      </WrapPanel>
+    </Border>
+
+    <DataGrid Grid.Row="1" Margin="12" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Zeitpunkt" Binding="{Binding Timestamp, StringFormat=dd.MM.yyyy HH:mm:ss}"
+                            Width="160" />
+        <DataGridTextColumn Header="Benutzer" Binding="{Binding UserName}" Width="140" />
+        <DataGridTextColumn Header="Computer" Binding="{Binding ComputerName}" Width="140" />
+        <DataGridTextColumn Header="Aktion" Binding="{Binding Action, Converter={StaticResource EnumToText}}"
+                            Width="140" />
+        <DataGridTextColumn Header="Entität" Binding="{Binding EntityName}" Width="150" />
+        <DataGridTextColumn Header="Datensatz" Binding="{Binding EntityDisplay}" Width="200" />
+        <DataGridTextColumn Header="Alte Werte" Binding="{Binding OldValues}" Width="*" />
+        <DataGridTextColumn Header="Neue Werte" Binding="{Binding NewValues}" Width="*" />
+        <DataGridTextColumn Header="Zusatz" Binding="{Binding AdditionalInfo}" Width="180" />
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <Border Grid.Row="2" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="12,6">
+      <Grid>
+        <TextBlock VerticalAlignment="Center" Style="{StaticResource PageSubtitleStyle}"
+                   Text="Audit-Einträge werden ausschließlich angelegt und können über die Anwendung nicht verändert werden." />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="◀ Zurück" Command="{Binding PreviousPageCommand}" MinWidth="90" />
+          <Button Content="Weiter ▶" Margin="8,0,0,0" Command="{Binding NextPageCommand}" MinWidth="90" />
+          <Button Content="_Aktualisieren" Margin="8,0,0,0" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

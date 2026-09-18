@@ -115,6 +115,10 @@ public sealed class VehicleHeader
     public int OpenDamageCount { get; init; }
 
     public bool IsRetired { get; init; }
+
+    /// <summary>Anzeigebezeichnung fuer Kopfzeilen und Dialoge.</summary>
+    public string DisplayTitle =>
+        $"{(string.IsNullOrWhiteSpace(LicensePlate) ? InternalNumber : LicensePlate)} · {Manufacturer} {Model}".Trim();
 }
 
 /// <summary>Eintrag der Fahrzeughistorie (Timeline).</summary>

@@ -1,0 +1,188 @@
+<UserControl x:Class="Fuhrpark.Client.Views.Dialogs.DamageEditDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="880">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}" Padding="18,12">
+      <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitleStyle}" />
+    </Border>
+
+    <ScrollViewer Grid.Row="1" MaxHeight="560" VerticalScrollBarVisibility="Auto" Padding="18">
+      <StackPanel>
+        <GroupBox Header="Fahrzeug und Zeitpunkt">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="2*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="2*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Fahrzeug *" Style="{StaticResource FieldLabelStyle}" />
+              <ComboBox ItemsSource="{Binding Vehicles}" SelectedItem="{Binding SelectedVehicle}"
+                        DisplayMemberPath="DisplayName" IsTextSearchEnabled="True" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Fahrer" Style="{StaticResource FieldLabelStyle}" />
+              <ComboBox ItemsSource="{Binding Drivers}" SelectedItem="{Binding SelectedDriver}"
+                        DisplayMemberPath="DisplayName" />
+            </StackPanel>
+            <StackPanel Grid.Column="4">
+              <TextBlock Text="Datum / Uhrzeit" Style="{StaticResource FieldLabelStyle}" />
+              <DatePicker SelectedDate="{Binding OccurredAt}" />
+            </StackPanel>
+            <StackPanel Grid.Column="6">
+              <TextBlock Text="Kilometerstand" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding Mileage, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+            </StackPanel>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Schaden">
+          <StackPanel>
+            <TextBlock Text="Beschreibung *" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" MinHeight="70"
+                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+
+            <Grid Margin="0,12,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Schadensbereich" Style="{StaticResource FieldLabelStyle}" />
+                <ComboBox ItemsSource="{Binding Areas}" SelectedItem="{Binding Area}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource EnumToText}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Kategorie" Style="{StaticResource FieldLabelStyle}" />
+                <ComboBox ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}"
+                          DisplayMemberPath="Name" />
+              </StackPanel>
+              <StackPanel Grid.Column="4">
+                <TextBlock Text="Priorität" Style="{StaticResource FieldLabelStyle}" />
+                <ComboBox ItemsSource="{Binding Priorities}" SelectedItem="{Binding Priority}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource EnumToText}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Grid.Column="6">
+                <TextBlock Text="Status" Style="{StaticResource FieldLabelStyle}" />
+                <ComboBox ItemsSource="{Binding StatusValues}" SelectedItem="{Binding Status}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource EnumToText}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+              <CheckBox Content="Fahrzeug ist fahrbereit" IsChecked="{Binding IsDriveable}" Margin="0,0,20,0" />
+              <CheckBox Content="Reparatur notwendig" IsChecked="{Binding RepairRequired}" Margin="0,0,20,0" />
+              <CheckBox Content="Versicherungsfall" IsChecked="{Binding IsInsuranceCase}" />
+            </StackPanel>
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Reparatur und Kosten">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="2*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Werkstatt" Style="{StaticResource FieldLabelStyle}" />
+              <ComboBox ItemsSource="{Binding Workshops}" SelectedItem="{Binding SelectedWorkshop}"
+                        DisplayMemberPath="Name" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Repariert am" Style="{StaticResource FieldLabelStyle}" />
+              <DatePicker SelectedDate="{Binding RepairedAt}" />
+            </StackPanel>
+            <StackPanel Grid.Column="4">
+              <TextBlock Text="Kostenschätzung" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding CostEstimate, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+            </StackPanel>
+            <StackPanel Grid.Column="6">
+              <TextBlock Text="Tatsächliche Kosten" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding CostActual, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+            </StackPanel>
+            <StackPanel Grid.Column="8">
+              <TextBlock Text="Schadennummer Versicherung" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding InsuranceClaimNumber, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Fotos und Dokumente">
+          <StackPanel>
+            <Button Content="_Fotos / Dokumente hinzufügen" HorizontalAlignment="Left" MinWidth="220"
+                    Command="{Binding AddPhotoCommand}" />
+            <DataGrid x:Name="AttachmentGrid" ItemsSource="{Binding Attachments}" MaxHeight="140" Margin="0,10,0,0">
+              <DataGrid.InputBindings>
+                <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenAttachmentCommand}"
+                              CommandParameter="{Binding SelectedItem, ElementName=AttachmentGrid}" />
+              </DataGrid.InputBindings>
+              <DataGrid.Columns>
+                <DataGridTextColumn Header="Titel" Binding="{Binding Title}" Width="*" />
+                <DataGridTextColumn Header="Datei" Binding="{Binding OriginalFileName}" Width="2*" />
+                <DataGridTextColumn Header="Größe" Binding="{Binding FileSizeBytes,
+                                                             Converter={StaticResource FileSize}}" Width="100" />
+              </DataGrid.Columns>
+            </DataGrid>
+          </StackPanel>
+        </GroupBox>
+
+        <TextBlock Text="Bemerkung" Style="{StaticResource FieldLabelStyle}" Margin="0,4,0,2" />
+        <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" MinHeight="54" AcceptsReturn="True"
+                 TextWrapping="Wrap" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="{StaticResource CriticalBackgroundBrush}" Padding="18,8"
+            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Grid.Row="3" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="18,12">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="_Speichern" Style="{StaticResource PrimaryButtonStyle}" MinWidth="130" IsDefault="True"
+                Command="{Binding ConfirmCommand}" />
+        <Button Content="Abbre_chen" Margin="8,0,0,0" IsCancel="True" Command="{Binding CancelCommand}" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

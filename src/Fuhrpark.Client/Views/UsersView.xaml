@@ -1,0 +1,95 @@
+<UserControl x:Class="Fuhrpark.Client.Views.UsersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="_Neuer Benutzer" Style="{StaticResource PrimaryButtonStyle}" MinWidth="140"
+                  Command="{Binding CreateCommand}" />
+          <Button Content="_Bearbeiten" Margin="8,0,0,0" Command="{Binding EditCommand}" />
+          <Button Content="Aktiv / _Inaktiv" Margin="8,0,0,0" Command="{Binding ToggleActiveCommand}" />
+          <Button Content="Passwort _zurücksetzen" Margin="8,0,0,0" MinWidth="180"
+                  Command="{Binding ResetPasswordCommand}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <CheckBox Content="inaktive anzeigen" IsChecked="{Binding IncludeInactive}" VerticalAlignment="Center" />
+          <Button Content="_Aktualisieren" Margin="12,0,0,0" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <DataGrid Grid.Row="1" Margin="12" ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}">
+      <DataGrid.InputBindings>
+        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" />
+      </DataGrid.InputBindings>
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Benutzername" Binding="{Binding UserName}" Width="160" FontWeight="SemiBold" />
+        <DataGridTextColumn Header="Nachname" Binding="{Binding LastName}" Width="*" />
+        <DataGridTextColumn Header="Vorname" Binding="{Binding FirstName}" Width="*" />
+        <DataGridTextColumn Header="Personalnummer" Binding="{Binding PersonnelNumber}" Width="140" />
+        <DataGridTextColumn Header="E-Mail" Binding="{Binding Email}" Width="*" />
+        <DataGridTemplateColumn Header="Rollen" Width="2*">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <ItemsControl ItemsSource="{Binding UserRoles}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Border Style="{StaticResource BadgeStyle}" Margin="0,1,4,1"
+                            Background="{StaticResource SurfaceSunkenBrush}">
+                      <TextBlock Text="{Binding Role.DisplayName}" FontSize="10" />
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Letzter Login" Binding="{Binding LastLoginAt, StringFormat=dd.MM.yyyy HH:mm}"
+                            Width="150" />
+        <DataGridTemplateColumn Header="Status" Width="100">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Border>
+                <Border.Style>
+                  <Style TargetType="Border" BasedOn="{StaticResource BadgeStyle}">
+                    <Setter Property="Background" Value="{StaticResource OkBackgroundBrush}" />
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsActive}" Value="False">
+                        <Setter Property="Background" Value="{StaticResource InactiveBackgroundBrush}" />
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Border.Style>
+                <TextBlock FontSize="11">
+                  <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+                      <Setter Property="Text" Value="aktiv" />
+                      <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                          <Setter Property="Text" Value="inaktiv" />
+                        </DataTrigger>
+                      </Style.Triggers>
+                    </Style>
+                  </TextBlock.Style>
+                </TextBlock>
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+</UserControl>

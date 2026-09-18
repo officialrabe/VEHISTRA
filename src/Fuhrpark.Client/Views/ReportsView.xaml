@@ -1,0 +1,115 @@
+<UserControl x:Class="Fuhrpark.Client.Views.ReportsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid Margin="18">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*" />
+      <ColumnDefinition Width="18" />
+      <ColumnDefinition Width="420" />
+    </Grid.ColumnDefinitions>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <StackPanel>
+        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,14">
+          <StackPanel>
+            <TextBlock Text="WERKSTATTBERICHT" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                       Text="Auftrag an die Werkstatt auf einer Seite DIN A4. Der Bericht enthält Fahrzeug- und Fahrerdaten, die Checkliste der häufigen Arbeiten, 15 Zeilen für Schäden und auszuführende Arbeiten sowie den Rückmeldebereich der Werkstatt." />
+            <StackPanel Orientation="Horizontal">
+              <Button Content="_Blanko-Werkstattbericht" MinWidth="200"
+                      Command="{Binding BlankWorkshopReportCommand}" />
+              <Button Content="Werkstattbericht für _Fahrzeug" Style="{StaticResource PrimaryButtonStyle}"
+                      MinWidth="230" Margin="10,0,0,0" Command="{Binding WorkshopReportForVehicleCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,14">
+          <StackPanel>
+            <TextBlock Text="UNFALL- / SCHADENSBERICHT" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                       Text="Zwei Seiten DIN A4: Seite 1 mit Fahrzeug-, Fahrer-, Unfall- und Polizeiangaben, Seite 2 mit Rasterfeld für die Unfallskizze und Fahrzeugschema zum Einkreisen der beschädigten Stellen." />
+            <StackPanel Orientation="Horizontal">
+              <Button Content="_Blanko-Unfallbericht" MinWidth="200" Command="{Binding BlankAccidentReportCommand}" />
+              <Button Content="Unfallbericht für _Fahrzeug" Style="{StaticResource PrimaryButtonStyle}"
+                      MinWidth="230" Margin="10,0,0,0" Command="{Binding AccidentReportForVehicleCommand}" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,14">
+          <StackPanel>
+            <TextBlock Text="FAHRZEUGAKTE" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                       Text="Alle Stammdaten eines Fahrzeugs inklusive Hauptuntersuchungen, Schäden, Werkstattvorgängen sowie Fahrer- und Kennzeichenhistorie." />
+            <Button Content="Fahrzeugakte _erstellen" MinWidth="200" HorizontalAlignment="Left"
+                    Command="{Binding VehicleFileCommand}" />
+          </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}">
+          <StackPanel>
+            <TextBlock Text="LISTEN ALS PDF" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
+                       Text="Auswertungen im Querformat, geeignet für Besprechungen und Ablage." />
+            <WrapPanel>
+              <Button Content="Fahrzeugliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="Vehicles" />
+              <Button Content="Fahrerliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="Drivers" />
+              <Button Content="TÜV-Liste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="Inspections" />
+              <Button Content="Wartungsliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="Maintenance" />
+              <Button Content="Schadensliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="Damages" />
+              <Button Content="Unfallliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="Accidents" />
+              <Button Content="Werkstattliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="WorkshopOrders" />
+              <Button Content="Kennzeichenliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="LicensePlates" />
+              <Button Content="Ausgemusterte Fahrzeuge" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="RetiredVehicles" />
+            </WrapPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border Style="{StaticResource ToolbarStyle}">
+          <TextBlock Text="FAHRZEUG AUSWÄHLEN" FontWeight="SemiBold" FontSize="11" />
+        </Border>
+
+        <TextBox Grid.Row="1" Margin="10" Text="{Binding VehicleSearch, UpdateSourceTrigger=PropertyChanged,
+                                                        Delay=250}"
+                 ToolTip="Fahrzeug suchen" />
+
+        <DataGrid Grid.Row="2" ItemsSource="{Binding Vehicles}" SelectedItem="{Binding SelectedVehicle}"
+                  BorderThickness="0">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Kennzeichen" Binding="{Binding LicensePlate}" Width="120" />
+            <DataGridTextColumn Header="Interne Nr." Binding="{Binding InternalNumber}" Width="90" />
+            <DataGridTextColumn Header="Fahrzeug" Width="*">
+              <DataGridTextColumn.Binding>
+                <MultiBinding StringFormat="{}{0} {1}">
+                  <Binding Path="Manufacturer" />
+                  <Binding Path="Model" />
+                </MultiBinding>
+              </DataGridTextColumn.Binding>
+            </DataGridTextColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

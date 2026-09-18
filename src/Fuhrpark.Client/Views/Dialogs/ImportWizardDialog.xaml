@@ -1,0 +1,121 @@
+<UserControl x:Class="Fuhrpark.Client.Views.Dialogs.ImportWizardDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="940">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}" Padding="18,12">
+      <StackPanel>
+        <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitleStyle}" />
+        <TextBlock Style="{StaticResource PageSubtitleStyle}" TextWrapping="Wrap"
+                   Text="1. Datei auswählen  ·  2. Spalten zuordnen  ·  3. Prüfen  ·  4. Importieren. Bestehende Datensätze werden niemals stillschweigend überschrieben." />
+      </StackPanel>
+    </Border>
+
+    <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,0,0,1" Padding="18,10">
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="_Datei auswählen" Command="{Binding ChooseFileCommand}" MinWidth="150" />
+          <Button Content="_Prüfen" Margin="8,0,0,0" Command="{Binding ValidateCommand}" MinWidth="120" />
+          <TextBlock Text="{Binding FilePath}" VerticalAlignment="Center" Margin="14,0,0,0"
+                     Style="{StaticResource MutedTextStyle}" TextTrimming="CharacterEllipsis" MaxWidth="420" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <CheckBox Content="Bestehende Datensätze aktualisieren" IsChecked="{Binding UpdateExisting}"
+                    VerticalAlignment="Center" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="2" Margin="18">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+
+      <TextBlock Text="SPALTENZUORDNUNG" Style="{StaticResource FieldLabelStyle}" />
+      <DataGrid Grid.Row="1" ItemsSource="{Binding Mappings}" IsReadOnly="False" MaxHeight="200">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Spalte in der Datei" Binding="{Binding SourceColumn}" Width="*"
+                              IsReadOnly="True" />
+          <DataGridComboBoxColumn Header="Zielfeld" Width="*"
+                                  SelectedItemBinding="{Binding TargetField, UpdateSourceTrigger=PropertyChanged}">
+            <DataGridComboBoxColumn.ElementStyle>
+              <Style TargetType="ComboBox">
+                <Setter Property="ItemsSource"
+                        Value="{Binding DataContext.TargetFields,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}" />
+              </Style>
+            </DataGridComboBoxColumn.ElementStyle>
+            <DataGridComboBoxColumn.EditingElementStyle>
+              <Style TargetType="ComboBox">
+                <Setter Property="ItemsSource"
+                        Value="{Binding DataContext.TargetFields,
+                                RelativeSource={RelativeSource AncestorType=UserControl}}" />
+              </Style>
+            </DataGridComboBoxColumn.EditingElementStyle>
+          </DataGridComboBoxColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,14,0,6">
+        <TextBlock Text="VORSCHAU UND PRÜFERGEBNIS" Style="{StaticResource FieldLabelStyle}" />
+        <TextBlock Margin="16,0,0,0" Style="{StaticResource MutedTextStyle}">
+          <Run Text="Zeilen gesamt: " /><Run Text="{Binding TotalRows, Mode=OneWay}" />
+          <Run Text="  ·  gültig: " /><Run Text="{Binding Validation.ValidRows, Mode=OneWay}" />
+          <Run Text="  ·  fehlerhaft: " /><Run Text="{Binding Validation.InvalidRows, Mode=OneWay}" />
+          <Run Text="  ·  neu: " /><Run Text="{Binding Validation.NewRecords, Mode=OneWay}" />
+          <Run Text="  ·  vorhanden: " /><Run Text="{Binding Validation.ExistingRecords, Mode=OneWay}" />
+        </TextBlock>
+      </StackPanel>
+
+      <Grid Grid.Row="3">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="12" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <DataGrid ItemsSource="{Binding Preview}" AutoGenerateColumns="True" IsReadOnly="True" />
+
+        <DataGrid Grid.Column="2" ItemsSource="{Binding Issues}">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Zeile" Binding="{Binding RowNumber}" Width="60" />
+            <DataGridTextColumn Header="Feld" Binding="{Binding Column}" Width="140" />
+            <DataGridTextColumn Header="Meldung" Binding="{Binding Message}" Width="*" />
+            <DataGridTextColumn Header="Fehler" Binding="{Binding IsError, Converter={StaticResource BoolToYesNo}}"
+                                Width="70" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </Grid>
+
+    <Border Grid.Row="3" Background="{StaticResource CriticalBackgroundBrush}" Padding="18,8"
+            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Grid.Row="4" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="18,12">
+      <Grid>
+        <ProgressBar Width="240" HorizontalAlignment="Left" VerticalAlignment="Center" Height="6"
+                     Value="{Binding Progress}" Maximum="100" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="_Import starten" Style="{StaticResource PrimaryButtonStyle}" MinWidth="150"
+                  IsDefault="True" Command="{Binding ConfirmCommand}" />
+          <Button Content="_Schließen" Margin="8,0,0,0" IsCancel="True" Command="{Binding CancelCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

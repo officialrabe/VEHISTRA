@@ -1,0 +1,267 @@
+<UserControl x:Class="Fuhrpark.Client.Views.Dialogs.VehicleEditDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="900">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}" Padding="18,12">
+      <StackPanel>
+        <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitleStyle}" />
+        <TextBlock Style="{StaticResource PageSubtitleStyle}"
+                   Text="Pflichtfelder: interne Fahrzeugnummer, Hersteller und Modell" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" MaxHeight="560" VerticalScrollBarVisibility="Auto" Padding="18">
+      <StackPanel>
+        <GroupBox Header="Identifikation">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Interne Fahrzeugnummer *" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding InternalNumber, UpdateSourceTrigger=PropertyChanged}" MaxLength="32" />
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Kennzeichen" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding LicensePlate, UpdateSourceTrigger=PropertyChanged}" MaxLength="16" />
+            </StackPanel>
+            <StackPanel Grid.Column="4">
+              <TextBlock Text="FIN / VIN" Style="{StaticResource FieldLabelStyle}" />
+              <TextBox Text="{Binding Vin, UpdateSourceTrigger=PropertyChanged}" MaxLength="24" />
+            </StackPanel>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Fahrzeug">
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Hersteller *" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Manufacturer, UpdateSourceTrigger=PropertyChanged}" MaxLength="64" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Modell *" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Model, UpdateSourceTrigger=PropertyChanged}" MaxLength="64" />
+              </StackPanel>
+              <StackPanel Grid.Column="4">
+                <TextBlock Text="Variante" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Variant, UpdateSourceTrigger=PropertyChanged}" MaxLength="64" />
+              </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,12,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Baujahr" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding BuildYear, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Erstzulassung" Style="{StaticResource FieldLabelStyle}" />
+                <DatePicker SelectedDate="{Binding FirstRegistration}" />
+              </StackPanel>
+              <StackPanel Grid.Column="4">
+                <TextBlock Text="Kraftstoffart" Style="{StaticResource FieldLabelStyle}" />
+                <ComboBox ItemsSource="{Binding FuelTypes}" SelectedItem="{Binding FuelType}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource EnumToText}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <StackPanel Grid.Column="6">
+                <TextBlock Text="Getriebe" Style="{StaticResource FieldLabelStyle}" />
+                <ComboBox ItemsSource="{Binding TransmissionTypes}" SelectedItem="{Binding Transmission}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                      <TextBlock Text="{Binding Converter={StaticResource EnumToText}}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,12,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Leistung (kW)" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding PowerKw, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Farbe" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Color, UpdateSourceTrigger=PropertyChanged}" MaxLength="32" />
+              </StackPanel>
+              <StackPanel Grid.Column="4">
+                <TextBlock Text="Sitzplätze" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Seats, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+              </StackPanel>
+              <StackPanel Grid.Column="6">
+                <TextBlock Text="HSN" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Hsn, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" />
+              </StackPanel>
+              <StackPanel Grid.Column="8">
+                <TextBlock Text="TSN" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding Tsn, UpdateSourceTrigger=PropertyChanged}" MaxLength="8" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Einsatz">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="12" />
+              <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock Text="Status" Style="{StaticResource FieldLabelStyle}" />
+              <ComboBox ItemsSource="{Binding Statuses}" SelectedItem="{Binding SelectedStatus}"
+                        DisplayMemberPath="Name" />
+
+              <TextBlock Text="Kilometerstand" Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+              <TextBox Text="{Binding CurrentMileage, UpdateSourceTrigger=PropertyChanged}"
+                       IsEnabled="{Binding IsNew}" />
+              <TextBlock Style="{StaticResource MutedTextStyle}" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"
+                         Text="Spätere Kilometerstände werden über die Kilometererfassung eingetragen und historisiert." />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+              <TextBlock Text="Fester Fahrer" Style="{StaticResource FieldLabelStyle}" />
+              <ComboBox ItemsSource="{Binding Drivers}" SelectedItem="{Binding SelectedDriver}"
+                        DisplayMemberPath="DisplayName" IsEnabled="{Binding IsNew}" />
+              <TextBlock Style="{StaticResource MutedTextStyle}" FontSize="11" Margin="0,3,0,0" TextWrapping="Wrap"
+                         Text="Ein Fahrerwechsel erfolgt über die Fahrzeugakte und wird historisiert." />
+            </StackPanel>
+
+            <StackPanel Grid.Column="4">
+              <TextBlock Text="Einsatzbereiche" Style="{StaticResource FieldLabelStyle}" />
+              <ItemsControl ItemsSource="{Binding CategorySelections}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate>
+                    <WrapPanel />
+                  </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSelected}" Margin="0,0,16,0" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Grid>
+        </GroupBox>
+
+        <GroupBox Header="Kaufmännisch">
+          <StackPanel>
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="2*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Kaufdatum" Style="{StaticResource FieldLabelStyle}" />
+                <DatePicker SelectedDate="{Binding PurchaseDate}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Kaufpreis (EUR)" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding PurchasePrice, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
+              </StackPanel>
+              <StackPanel Grid.Column="4" VerticalAlignment="Bottom">
+                <CheckBox Content="Leasingfahrzeug" IsChecked="{Binding IsLeased}" />
+              </StackPanel>
+            </Grid>
+
+            <Grid Margin="0,12,0,0" IsEnabled="{Binding IsLeased}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock Text="Leasinggesellschaft" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding LeasingCompany, UpdateSourceTrigger=PropertyChanged}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Vertragsnummer" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding LeasingContractNumber, UpdateSourceTrigger=PropertyChanged}" />
+              </StackPanel>
+              <StackPanel Grid.Column="4">
+                <TextBlock Text="Beginn" Style="{StaticResource FieldLabelStyle}" />
+                <DatePicker SelectedDate="{Binding LeasingStart}" />
+              </StackPanel>
+              <StackPanel Grid.Column="6">
+                <TextBlock Text="Ende" Style="{StaticResource FieldLabelStyle}" />
+                <DatePicker SelectedDate="{Binding LeasingEnd}" />
+              </StackPanel>
+            </Grid>
+
+            <TextBlock Text="Bemerkung" Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+            <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" MinHeight="60"
+                     AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" />
+          </StackPanel>
+        </GroupBox>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="{StaticResource CriticalBackgroundBrush}" Padding="18,8"
+            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Grid.Row="3" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="18,12">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="_Speichern" Style="{StaticResource PrimaryButtonStyle}" MinWidth="130" IsDefault="True"
+                Command="{Binding ConfirmCommand}" />
+        <Button Content="Abbre_chen" Margin="8,0,0,0" IsCancel="True" Command="{Binding CancelCommand}" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>
