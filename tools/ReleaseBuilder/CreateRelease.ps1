@@ -61,7 +61,7 @@ param(
     [switch] $Mandatory,
 
     [ValidatePattern('^\d+\.\d+\.\d+$')]
-    [string] $MinimumVersion = '1.0.0',
+    [string] $MinimumVersion = '0.0.0',
 
     [string] $SignTool,
 

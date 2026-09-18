@@ -64,7 +64,7 @@ jobs:
           if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
             $version = '${{ inputs.version }}'
           } else {
-            # refs/tags/v1.0.0 -> 1.0.0
+            # refs/tags/v0.5.0 -> 0.5.0
             $version = '${{ github.ref_name }}' -replace '^v', ''
           }
 
@@ -73,13 +73,35 @@ jobs:
             exit 1
           }
 
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "Version: $version"
+          # Alles unterhalb 1.0.0 gilt als Vorabversion und wird von GitHub
+          # entsprechend gekennzeichnet, statt als "neueste Fassung" zu gelten.
+          $vorab = ([int]($version -split '\.')[0]) -eq 0
+          $bezeichnung = if ($vorab) { "Vehistra $version Beta" } else { "Vehistra $version" }
+
+          "version=$version"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "prerelease=$($vorab.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "name=$bezeichnung"        | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          Write-Host "Version: $version (Vorabversion: $vorab)"
 
       - name: Versionshinweise vorbereiten
         shell: pwsh
         run: |
           $version = '${{ steps.version.outputs.version }}'
+
+          $vorab = ([int]($version -split '\.')[0]) -eq 0
+
+          $hinweis = if ($vorab) {
+            @"
+
+          HINWEIS ZUR VORABVERSION
+          Dies ist eine Beta. Die Anwendung ist vollstaendig und getestet, aber
+          noch nicht im Dauerbetrieb erprobt. Setzen Sie sie zunaechst neben
+          Ihrem bisherigen Verfahren ein und pruefen Sie die Sicherung, bevor
+          Sie sich vollstaendig darauf verlassen.
+          Rueckmeldungen bitte an support@vehistra.dev
+          "@
+          } else { "" }
 
           @"
           VEHISTRA $version
@@ -104,6 +126,16 @@ jobs:
           - Windows 10 oder neuer (64 Bit)
           - .NET Desktop Runtime 10
           - Microsoft SQL Server Express auf dem Firmenserver
+
+          ANFANGEN MIT
+          - Dokumentation\SERVER-EINRICHTUNG-EINFACH.pdf auf dem Server
+          - Dokumentation\NEUEN-PC-IN-5-MINUTEN.pdf an den Arbeitsplaetzen
+
+          HINWEIS ZUR SIGNATUR
+          Die Pakete sind noch nicht signiert. Windows zeigt daher beim Start
+          eine SmartScreen-Warnung. Pruefen Sie die Pruefsumme aus
+          checksums.sha256, bevor Sie auf "Trotzdem ausfuehren" klicken.
+          $hinweis
           "@ | Set-Content release-notes.txt -Encoding utf8
 
       - name: Version bauen
@@ -151,8 +183,9 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: Vehistra ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.name }}
           body_path: release-notes.txt
+          prerelease: ${{ steps.version.outputs.prerelease }}
           draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft }}
           files: |
             Release/${{ steps.version.outputs.version }}/Vehistra-Setup.exe
