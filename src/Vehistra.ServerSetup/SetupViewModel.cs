@@ -662,7 +662,7 @@ public sealed partial class SetupViewModel : ObservableObject
 
         var target = string.IsNullOrWhiteSpace(ConfigurationPath)
             ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                "Fuhrpark-Firmenkonfiguration.fmcfg")
+                "Vehistra-Firmenkonfiguration.fmcfg")
             : ConfigurationPath;
 
         _connectionStore.ExportClientConfiguration(settings, target);

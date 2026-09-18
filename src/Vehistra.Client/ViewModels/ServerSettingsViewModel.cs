@@ -197,7 +197,7 @@ public sealed partial class ServerSettingsViewModel : ViewModelBase
     {
         var target = _dialogs.SaveFile(
             "Firmenkonfiguration (*.fmcfg)|*.fmcfg",
-            "Fuhrpark-Firmenkonfiguration.fmcfg",
+            "Vehistra-Firmenkonfiguration.fmcfg",
             "Firmenkonfiguration exportieren");
 
         if (string.IsNullOrWhiteSpace(target))

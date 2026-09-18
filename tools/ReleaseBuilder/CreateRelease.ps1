@@ -336,7 +336,7 @@ HINWEISE ZUM UPDATE
 Write-Host '     release-notes.txt'
 
 # Beispielkonfiguration - enthaelt NIEMALS Passwoerter
-$sampleConfig = Join-Path $releaseDir 'Fuhrpark-Firmenkonfiguration-Beispiel.fmcfg'
+$sampleConfig = Join-Path $releaseDir 'Vehistra-Firmenkonfiguration-Beispiel.fmcfg'
 
 @"
 {
@@ -356,7 +356,7 @@ $sampleConfig = Join-Path $releaseDir 'Fuhrpark-Firmenkonfiguration-Beispiel.fmc
 }
 "@ | Set-Content $sampleConfig -Encoding UTF8
 
-Write-Host '     Fuhrpark-Firmenkonfiguration-Beispiel.fmcfg'
+Write-Host '     Vehistra-Firmenkonfiguration-Beispiel.fmcfg'
 
 # ---------------------------------------------------------------------------
 # 9. Pruefsummen und latest.json

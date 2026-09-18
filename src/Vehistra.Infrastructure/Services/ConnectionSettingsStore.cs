@@ -149,7 +149,7 @@ public sealed class ConnectionSettingsStore : IConnectionSettingsStore
         };
     }
 
-    /// <summary>Aufbau der Datei Fuhrpark-Firmenkonfiguration.fmcfg.</summary>
+    /// <summary>Aufbau der Datei Vehistra-Firmenkonfiguration.fmcfg.</summary>
     private sealed class ClientConfigurationFile
     {
         public string FileType { get; set; } = "VehistraClientConfiguration";
