@@ -1,0 +1,161 @@
+# ---------------------------------------------------------------------------
+#  Vehistra - Übersetzen, Testen und Veröffentlichen
+#
+#  Läuft auf Windows, weil Vehistra eine Windows-Desktopanwendung ist. Die
+#  Projekte ließen sich dank EnableWindowsTargeting zwar auch unter Linux
+#  übersetzen, aber nur ein Windows-Lauf prüft das, was später ausgeliefert wird.
+#
+#  Entwickelt von LSP Virtual Services - vehistra.dev
+# ---------------------------------------------------------------------------
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Ein neuer Push auf denselben Branch macht den vorherigen Lauf überflüssig.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  build:
+    name: Übersetzen und testen
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+
+      - name: .NET SDK einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: NuGet-Pakete zwischenspeichern
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Pakete wiederherstellen
+        run: dotnet restore Vehistra.sln
+
+      - name: Projektmappe übersetzen
+        run: dotnet build Vehistra.sln --configuration Release --no-restore
+
+      - name: Tests ausführen
+        run: dotnet test --configuration Release --no-build
+
+      - name: Programme veröffentlichen
+        shell: pwsh
+        run: |
+          $projekte = @(
+            'src/Vehistra.Client/Vehistra.Client.csproj',
+            'src/Vehistra.Updater/Vehistra.Updater.csproj',
+            'src/Vehistra.ServerSetup/Vehistra.ServerSetup.csproj',
+            'src/Vehistra.ServerCheck/Vehistra.ServerCheck.csproj'
+          )
+
+          foreach ($projekt in $projekte) {
+            dotnet publish $projekt `
+              --configuration Release `
+              --runtime win-x64 `
+              --self-contained false `
+              --output artifacts/publish
+
+            # Ohne diese Prüfung zählt nur der Rückgabewert des letzten Aufrufs.
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "::error::Die Veröffentlichung von $projekt ist fehlgeschlagen."
+              exit $LASTEXITCODE
+            }
+          }
+
+      - name: Vollständigkeit der Programme prüfen
+        shell: pwsh
+        run: |
+          $erwartet = @(
+            'Vehistra.exe',
+            'Vehistra.Updater.exe',
+            'VehistraServerSetup.exe',
+            'VehistraServerCheck.exe'
+          )
+
+          $fehlend = $erwartet | Where-Object { -not (Test-Path "artifacts/publish/$_") }
+
+          if ($fehlend) {
+            Write-Host "::error::Folgende Programme fehlen: $($fehlend -join ', ')"
+            exit 1
+          }
+
+          Write-Host "Alle vier Programme wurden erzeugt."
+
+      - name: Anleitungen als PDF erzeugen
+        run: dotnet run --project tools/DocBuilder/Vehistra.DocBuilder.csproj --configuration Release -- docs artifacts/docs 1.0.0
+
+      - name: Programme als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-programme
+          path: artifacts/publish/
+          retention-days: 14
+
+      - name: Anleitungen als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-anleitungen
+          path: artifacts/docs/
+          retention-days: 14
+
+  secrets:
+    name: Keine Geheimnisse im Repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+
+      - name: Auf Zertifikate und Schlüsseldateien prüfen
+        run: |
+          # Ein Codesignaturzertifikat gehört niemals ins Repository.
+          treffer=$(git ls-files '*.pfx' '*.p12' '*.snk' '*.key' 'signing/*' 'codesign/*')
+
+          if [ -n "$treffer" ]; then
+            echo "::error::Zertifikats- oder Schlüsseldateien gefunden:"
+            echo "$treffer"
+            exit 1
+          fi
+
+          echo "Keine Zertifikats- oder Schlüsseldateien im Repository."
+
+      - name: Auf Klartextpasswörter in Konfigurationsdateien prüfen
+        run: |
+          # Passwörter dürfen weder in appsettings.json noch in anderen
+          # Konfigurationsdateien stehen - sie gehören ausschließlich
+          # DPAPI-verschlüsselt nach ProgramData.
+          treffer=$(git ls-files '*.json' '*.config' '*.xml' \
+            | grep -v '^assets/' \
+            | xargs -r grep -inE '"?(password|pwd|secret)"?\s*[:=]\s*"[^"]+"' 2>/dev/null || true)
+
+          if [ -n "$treffer" ]; then
+            echo "::error::Mögliche Zugangsdaten in Konfigurationsdateien gefunden:"
+            echo "$treffer"
+            exit 1
+          fi
+
+          echo "Keine Zugangsdaten in Konfigurationsdateien."
