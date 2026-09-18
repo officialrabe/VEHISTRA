@@ -1,0 +1,80 @@
+<UserControl x:Class="Vehistra.Client.Views.RolesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <StackPanel Orientation="Horizontal">
+        <Button Content="_Neue Rolle" Style="{StaticResource PrimaryButtonStyle}" MinWidth="130"
+                Command="{Binding CreateCommand}" />
+        <Button Content="_Bearbeiten" Margin="8,0,0,0" Command="{Binding EditCommand}" />
+        <Button Content="_Löschen" Margin="8,0,0,0" Command="{Binding DeleteCommand}" />
+        <Button Content="_Aktualisieren" Margin="8,0,0,0" Command="{Binding RefreshCommand}" />
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="1" Margin="12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="2*" />
+        <ColumnDefinition Width="12" />
+        <ColumnDefinition Width="3*" />
+      </Grid.ColumnDefinitions>
+
+      <DataGrid ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}">
+        <DataGrid.InputBindings>
+          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" />
+        </DataGrid.InputBindings>
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Rolle" Binding="{Binding DisplayName}" Width="*" FontWeight="SemiBold" />
+          <DataGridTextColumn Header="Schlüssel" Binding="{Binding Name}" Width="170" />
+          <DataGridTextColumn Header="Systemrolle"
+                              Binding="{Binding IsSystemRole, Converter={StaticResource BoolToYesNo}}" Width="110" />
+          <DataGridTextColumn Header="Beschreibung" Binding="{Binding Description}" Width="2*" />
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <Border Grid.Column="2" Style="{StaticResource CardStyle}" Padding="0">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+
+          <Border Style="{StaticResource ToolbarStyle}">
+            <TextBlock FontWeight="SemiBold" FontSize="11">
+              <Run Text="BERECHTIGUNGEN DER ROLLE " /><Run Text="{Binding SelectedRole.DisplayName, Mode=OneWay}" />
+            </TextBlock>
+          </Border>
+
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="14">
+            <ItemsControl ItemsSource="{Binding Permissions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Margin="0,0,0,14">
+                    <TextBlock Text="{Binding Group}" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding Permissions}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <StackPanel Orientation="Horizontal" Margin="0,2">
+                            <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                       Foreground="{StaticResource OkBrush}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding}" Margin="8,0,0,0" />
+                          </StackPanel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

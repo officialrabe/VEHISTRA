@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Vehistra.IntegrationTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vehistra.Domain\Vehistra.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Vehistra.Application\Vehistra.Application.csproj" />
+    <ProjectReference Include="..\..\src\Vehistra.Infrastructure\Vehistra.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Vehistra.Reporting\Vehistra.Reporting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+  </ItemGroup>
+
+</Project>

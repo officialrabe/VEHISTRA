@@ -1,7 +1,7 @@
 <Project>
 
   <!--
-    Gemeinsame Build-Einstellungen fuer alle Projekte der Fuhrparkmanagement-Solution.
+    Gemeinsame Build-Einstellungen fuer alle Projekte der Vehistra-Solution.
     Entwickelt durch LSP Virtual Services.
   -->
 
@@ -23,8 +23,10 @@
   <PropertyGroup>
     <Company>LSP Virtual Services</Company>
     <Authors>LSP Virtual Services</Authors>
-    <Product>Fuhrparkmanagement</Product>
+    <Product>Vehistra</Product>
     <Copyright>© LSP Virtual Services</Copyright>
+    <PackageProjectUrl>https://vehistra.dev</PackageProjectUrl>
+    <RepositoryUrl>https://vehistra.dev</RepositoryUrl>
     <NeutralLanguage>de-DE</NeutralLanguage>
     <VersionPrefix>1.0.0</VersionPrefix>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>

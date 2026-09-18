@@ -1,0 +1,70 @@
+<UserControl x:Class="Vehistra.Client.Views.InspectionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="_Fahrzeugakte öffnen" Command="{Binding OpenVehicleCommand}" MinWidth="150" />
+          <Button Content="_Prüfung eintragen" Margin="8,0,0,0" Command="{Binding AddInspectionCommand}"
+                  Visibility="{Binding CanManage, Converter={StaticResource BoolToVisibility}}" />
+          <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
+          <Button Content="Export CSV" Command="{Binding ExportCommand}" CommandParameter="csv"
+                  Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="Export XLSX" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="xlsx"
+                  Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="Export PDF" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="pdf"
+                  Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <TextBlock Text="Zeitraum:" VerticalAlignment="Center" Margin="0,0,8,0"
+                     Style="{StaticResource MutedTextStyle}" />
+          <ComboBox Width="180" ItemsSource="{Binding RangeOptions}" DisplayMemberPath="Display"
+                    SelectedValuePath="Days" SelectedValue="{Binding WithinDays}" />
+          <CheckBox Content="ausgemusterte einschließen" IsChecked="{Binding IncludeRetired}"
+                    VerticalAlignment="Center" Margin="12,0,0,0" />
+          <Button Content="_Aktualisieren" Margin="12,0,0,0" Command="{Binding RefreshCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <DataGrid x:Name="InspectionGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Items}"
+              SelectedItem="{Binding SelectedItem}">
+      <DataGrid.InputBindings>
+        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
+                      CommandParameter="{Binding SelectedItem, ElementName=InspectionGrid}" />
+      </DataGrid.InputBindings>
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Header="Status" Width="120">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Border Style="{StaticResource BadgeStyle}"
+                      Background="{Binding Level, Converter={StaticResource WarningLevelToBackground}}">
+                <TextBlock Text="{Binding Level, Converter={StaticResource WarningLevelToText}}" FontSize="11"
+                           FontWeight="SemiBold"
+                           Foreground="{Binding Level, Converter={StaticResource WarningLevelToBrush}}" />
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Fahrzeug" Binding="{Binding VehicleDisplay}" Width="*" FontWeight="SemiBold" />
+        <DataGridTextColumn Header="Kennzeichen" Binding="{Binding LicensePlate}" Width="130" />
+        <DataGridTextColumn Header="Letzte Prüfung" Binding="{Binding LastInspection, StringFormat=dd.MM.yyyy}"
+                            Width="140" />
+        <DataGridTextColumn Header="Nächste Fälligkeit" Binding="{Binding NextDue, StringFormat=dd.MM.yyyy}"
+                            Width="150" FontWeight="SemiBold" />
+        <DataGridTextColumn Header="Verbleibende Tage" Binding="{Binding DaysRemaining}" Width="150" />
+        <DataGridTextColumn Header="Letztes Ergebnis"
+                            Binding="{Binding LastResult, Converter={StaticResource EnumToText}}" Width="180" />
+        <DataGridTextColumn Header="Prüfstelle" Binding="{Binding TestCenter}" Width="200" />
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+</UserControl>

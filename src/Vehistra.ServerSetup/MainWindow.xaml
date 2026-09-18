@@ -1,0 +1,408 @@
+<Window x:Class="Vehistra.ServerSetup.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Vehistra – Server einrichten" Height="760" Width="1120"
+        MinHeight="680" MinWidth="980"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource SurfaceBrush}">
+
+  <Grid>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="300" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <!-- Schrittliste -->
+    <Border Background="{StaticResource SidebarBrush}">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="22,22,22,16">
+          <TextBlock Text="VEHISTRA" FontSize="16" FontWeight="SemiBold" Foreground="White" />
+          <TextBlock Text="Server einrichten" FontSize="12" Foreground="#FFB9C4D0" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <Border DockPanel.Dock="Bottom" Margin="22,12,22,18">
+          <StackPanel>
+            <TextBlock Text="Developed &amp; maintained by LSP Virtual Services" FontSize="11" Foreground="#FF8C99A8" />
+            <TextBlock Text="vehistra.dev" FontSize="11" Foreground="#FF8C99A8" Margin="0,2,0,0" />
+          </StackPanel>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+          <ItemsControl ItemsSource="{Binding Steps}" Margin="10,0,10,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border x:Name="Row" Padding="12,9" Margin="0,1" CornerRadius="3">
+                  <StackPanel Orientation="Horizontal">
+                    <Border x:Name="Bullet" Width="24" Height="24" CornerRadius="12" Background="#FF39485B"
+                            VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Number}" Foreground="White" FontSize="11" FontWeight="SemiBold"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock x:Name="Caption" Text="{Binding Title}" Foreground="#FFC7D0DA"
+                               VerticalAlignment="Center" Margin="12,0,0,0" TextWrapping="Wrap" MaxWidth="210" />
+                  </StackPanel>
+                </Border>
+                <DataTemplate.Triggers>
+                  <DataTrigger Value="True">
+                    <DataTrigger.Binding>
+                      <MultiBinding Converter="{StaticResource ActiveStep}">
+                        <Binding Path="Step" />
+                        <Binding Path="DataContext.CurrentStep"
+                                 RelativeSource="{RelativeSource AncestorType=Window}" />
+                      </MultiBinding>
+                    </DataTrigger.Binding>
+                    <Setter TargetName="Row" Property="Background" Value="{StaticResource SidebarActiveBrush}" />
+                    <Setter TargetName="Bullet" Property="Background" Value="{StaticResource AccentBrush}" />
+                    <Setter TargetName="Caption" Property="Foreground" Value="White" />
+                    <Setter TargetName="Caption" Property="FontWeight" Value="SemiBold" />
+                  </DataTrigger>
+                </DataTemplate.Triggers>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- Inhalt -->
+    <DockPanel Grid.Column="1">
+
+      <Border DockPanel.Dock="Top" Padding="28,22,28,16" BorderBrush="{StaticResource BorderBrush}"
+              BorderThickness="0,0,0,1">
+        <StackPanel>
+          <TextBlock Text="{Binding StepProgress}" Style="{StaticResource CaptionText}" Margin="0,0,0,2" />
+          <TextBlock Text="{Binding CurrentStepInfo.Title}" Style="{StaticResource HeadlineText}" />
+          <TextBlock Text="{Binding CurrentStepInfo.Description}" Foreground="{StaticResource MutedBrush}"
+                     Margin="0,5,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <!-- Fußzeile mit Navigation -->
+      <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}"
+              BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="28,14">
+        <Grid>
+          <TextBlock Text="© LSP Virtual Services · Support: support@vehistra.dev"
+                     VerticalAlignment="Center" FontSize="11" Foreground="{StaticResource MutedBrush}" />
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="_Beenden" Click="OnClose" Margin="0,0,8,0" />
+            <Button Content="_Zurück" Command="{Binding BackCommand}" IsEnabled="{Binding CanGoBack}"
+                    Margin="0,0,8,0" />
+            <Button Content="{Binding ExecuteCaption}" Command="{Binding ExecuteStepCommand}"
+                    Background="{StaticResource AccentBrush}" Foreground="White" FontWeight="SemiBold"
+                    MinWidth="180" Margin="0,0,8,0" />
+            <Button Content="_Weiter" Command="{Binding NextCommand}" MinWidth="130">
+              <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsLastStep}" Value="True">
+                      <Setter Property="IsEnabled" Value="False" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </Button.Style>
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Margin="28,20,28,12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+          <RowDefinition Height="130" />
+        </Grid.RowDefinitions>
+
+        <!-- Schrittbezogene Eingaben -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="290">
+          <Grid>
+
+            <!-- 1 Systemprüfung -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=SystemCheck}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Es wird geprüft, ob dieser Computer für den Fuhrparkserver geeignet ist. Für die Einrichtung werden Administratorrechte benötigt. Klicken Sie auf „System prüfen“." />
+            </StackPanel>
+
+            <!-- 2 SQL Server erkennen -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=DetectSqlServer}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Der Assistent sucht nach installierten SQL-Server-Instanzen. Dieses Programm installiert SQL Server nicht selbst – wenn keine Instanz gefunden wird, erhalten Sie eine Anleitung." />
+              <TextBlock Text="Gefundene Instanzen" Style="{StaticResource CaptionText}" />
+              <ListBox ItemsSource="{Binding Instances}" SelectedItem="{Binding SelectedInstance}"
+                       DisplayMemberPath="Display" Height="96"
+                       BorderBrush="{StaticResource BorderBrush}" />
+            </StackPanel>
+
+            <!-- 3 Verbindung testen -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=TestConnection}">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="16" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="Server und Instanz" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                  <TextBox Text="{Binding Server, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="Datenbankname" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                  <TextBox Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+              </Grid>
+
+              <TextBlock Text="Anmeldung am SQL Server" Style="{StaticResource CaptionText}" />
+              <RadioButton Content="Windows-Authentifizierung (empfohlen)" GroupName="Auth"
+                           IsChecked="{Binding UseWindowsAuthentication}" />
+              <RadioButton Content="SQL-Server-Anmeldung mit Benutzername und Passwort" GroupName="Auth"
+                           IsChecked="{Binding UseSqlAuthentication, Mode=OneWay}"
+                           Checked="OnSqlAuthenticationChecked" Margin="0,6,0,0" />
+
+              <Grid Margin="22,8,0,0"
+                    Visibility="{Binding UseSqlAuthentication, Converter={StaticResource BoolVisibility}}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="16" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                  <TextBlock Text="SQL-Benutzername" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                  <TextBox Text="{Binding SqlUserName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="SQL-Passwort" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                  <PasswordBox PasswordChanged="OnSqlPasswordChanged" />
+                </StackPanel>
+              </Grid>
+
+              <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{StaticResource MutedBrush}"
+                         TextWrapping="Wrap"
+                         Text="Hinweis: Das SQL-Passwort wird ausschließlich mit Windows DPAPI verschlüsselt gespeichert – niemals im Klartext und niemals in der Client-Konfigurationsdatei." />
+            </StackPanel>
+
+            <!-- 4 Datenbank -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=CreateDatabase}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Jetzt wird die Fuhrparkdatenbank angelegt. Ist bereits eine Datenbank vorhanden, wird sie weiterverwendet – es gehen keine Daten verloren." />
+              <TextBlock Text="Datenbankname" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}" Width="320"
+                       HorizontalAlignment="Left" />
+            </StackPanel>
+
+            <!-- 5 Datenbankstruktur -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=ApplyMigrations}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Alle Tabellen werden angelegt und die Stammdaten (Rollen, Berechtigungen, Fahrzeugstatus, Kategorien) eingerichtet. Vorhandene Daten bleiben erhalten." />
+            </StackPanel>
+
+            <!-- 6 Dokumentenordner -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=DocumentsFolder}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="In diesem Ordner speichert das Programm alle Fahrzeugdokumente (Fahrzeugscheine, Rechnungen, Fotos). Er sollte auf einem Datenlaufwerk liegen, das ins Backup einbezogen ist." />
+              <TextBlock Text="Ordner auf dem Server" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding DocumentsPath, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <!-- 7 Backupordner -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=BackupFolder}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Hier legt SQL Server die Datenbanksicherungen ab. Empfehlung: 7 tägliche, 4 wöchentliche und 12 monatliche Sicherungen aufbewahren." />
+              <TextBlock Text="Ordner auf dem Server" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding BackupPath, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <!-- 8 Updateordner -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=UpdateFolder}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Aus diesem Ordner holen sich die Arbeitsplätze neue Programmversionen. Der Assistent legt zusätzlich den Unterordner „Archive“ und die Datei „latest.json“ an." />
+              <TextBlock Text="Ordner auf dem Server" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding UpdatePath, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <!-- 9 Netzwerkfreigaben -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=NetworkShares}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Damit die Arbeitsplätze Dokumente und Updates erreichen, müssen die Ordner als Netzwerkfreigabe bereitstehen. Tragen Sie hier die UNC-Pfade ein, z. B. \\FUHRPARK-SRV01\Fuhrpark\Dokumente." />
+              <TextBlock Text="UNC-Pfad der Dokumentenfreigabe" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding DocumentsShare, UpdateSourceTrigger=PropertyChanged}" />
+              <TextBlock Text="UNC-Pfad der Updatefreigabe" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding UpdateShare, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <!-- 10 Administrator -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=Administrator}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Legen Sie das erste Benutzerkonto an. Dieses Konto besitzt alle Rechte und kann anschließend weitere Benutzer anlegen." />
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="16" />
+                  <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel>
+                  <TextBlock Text="Benutzername" Style="{StaticResource CaptionText}" />
+                  <TextBox Text="{Binding AdminUserName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                  <TextBlock Text="E-Mail (optional)" Style="{StaticResource CaptionText}" />
+                  <TextBox Text="{Binding AdminEmail, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="1">
+                  <TextBlock Text="Vorname" Style="{StaticResource CaptionText}" />
+                  <TextBox Text="{Binding AdminFirstName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="2">
+                  <TextBlock Text="Nachname" Style="{StaticResource CaptionText}" />
+                  <TextBox Text="{Binding AdminLastName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+
+                <StackPanel Grid.Row="2">
+                  <TextBlock Text="Passwort" Style="{StaticResource CaptionText}" />
+                  <PasswordBox x:Name="AdminPasswordBox" PasswordChanged="OnAdminPasswordChanged" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="2">
+                  <TextBlock Text="Passwort wiederholen" Style="{StaticResource CaptionText}" />
+                  <PasswordBox x:Name="AdminPasswordRepeatBox" PasswordChanged="OnAdminPasswordChanged" />
+                </StackPanel>
+              </Grid>
+              <TextBlock x:Name="PasswordMismatchText" Margin="0,8,0,0" FontSize="12"
+                         Foreground="{StaticResource CriticalBrush}" Visibility="Collapsed"
+                         Text="Achtung: Die beiden Passwörter stimmen nicht überein." />
+            </StackPanel>
+
+            <!-- 11 Abschlussprüfung -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=FinalCheck}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Zum Abschluss werden alle Einstellungen noch einmal überprüft und dauerhaft gespeichert." />
+            </StackPanel>
+
+            <!-- 12 Client-Konfiguration -->
+            <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
+                                             ConverterParameter=ClientConfiguration}">
+              <TextBlock TextWrapping="Wrap"
+                         Text="Zum Schluss wird eine Konfigurationsdatei (.fmcfg) erzeugt. Diese Datei enthält Servername, Datenbank und Ordnerpfade – aber keine Passwörter. Beim Einrichten eines neuen Arbeitsplatzes wird sie einfach ausgewählt." />
+              <TextBlock Text="Speicherort der Datei" Style="{StaticResource CaptionText}" />
+              <TextBox Text="{Binding ConfigurationPath, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+          </Grid>
+        </ScrollViewer>
+
+        <!-- Statusmeldung -->
+        <Border Grid.Row="1" Margin="0,14,0,0" Padding="12,9" Background="#FFEFF5FF"
+                BorderBrush="#FFBBD3FF" BorderThickness="1"
+                Visibility="{Binding StatusMessage, Converter={StaticResource TextVisibility}}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Status:" FontWeight="SemiBold" Margin="0,0,8,0" />
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- Fehlermeldung -->
+        <Border Grid.Row="2" Margin="0,10,0,0" Padding="12,9" Background="#FFFDECEC"
+                BorderBrush="#FFF1B4B4" BorderThickness="1"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource TextVisibility}}">
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="Fehler:" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}"
+                       Margin="0,0,8,0" />
+            <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap"
+                       Foreground="{StaticResource CriticalBrush}" />
+          </StackPanel>
+        </Border>
+
+        <!-- Prüfergebnisse -->
+        <Border Grid.Row="3" Margin="0,14,0,0" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Checks}" Margin="6">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid Margin="6,5">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border x:Name="Badge" Padding="7,2" CornerRadius="2" VerticalAlignment="Top"
+                            Background="#FFE5F3E6" BorderBrush="{StaticResource OkBrush}" BorderThickness="1">
+                      <TextBlock x:Name="BadgeText" Text="OK" FontSize="11" FontWeight="SemiBold"
+                                 Foreground="{StaticResource OkBrush}" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                      <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding Hint}" TextWrapping="Wrap" FontSize="12"
+                                 Foreground="{StaticResource MutedBrush}" Margin="0,3,0,0"
+                                 Visibility="{Binding Hint, Converter={StaticResource TextVisibility}}" />
+                    </StackPanel>
+                  </Grid>
+                  <DataTemplate.Triggers>
+                    <DataTrigger Binding="{Binding IsSuccessful}" Value="False">
+                      <Setter TargetName="Badge" Property="Background" Value="#FFFDECEC" />
+                      <Setter TargetName="Badge" Property="BorderBrush" Value="{StaticResource CriticalBrush}" />
+                      <Setter TargetName="BadgeText" Property="Text" Value="ZU TUN" />
+                      <Setter TargetName="BadgeText" Property="Foreground" Value="{StaticResource CriticalBrush}" />
+                    </DataTrigger>
+                  </DataTemplate.Triggers>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+        </Border>
+
+        <!-- Protokoll -->
+        <Border Grid.Row="4" Margin="0,12,0,0" Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="Protokoll der Einrichtung" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{StaticResource MutedBrush}" Margin="10,7,10,2" />
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+              <ItemsControl ItemsSource="{Binding Log}" Margin="10,0,10,8">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="11"
+                               Foreground="{StaticResource MutedBrush}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </DockPanel>
+        </Border>
+
+      </Grid>
+    </DockPanel>
+
+    <!-- Wartehinweis -->
+    <Border Grid.ColumnSpan="2" Background="#99000000"
+            Visibility="{Binding IsBusy, Converter={StaticResource BoolVisibility}}">
+      <Border Background="White" Padding="34,26" HorizontalAlignment="Center" VerticalAlignment="Center"
+              BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <StackPanel>
+          <TextBlock Text="Bitte warten …" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" />
+          <TextBlock Text="Der Schritt wird ausgeführt." Foreground="{StaticResource MutedBrush}"
+                     Margin="0,6,0,0" HorizontalAlignment="Center" />
+          <ProgressBar IsIndeterminate="True" Height="6" Width="240" Margin="0,14,0,0" />
+        </StackPanel>
+      </Border>
+    </Border>
+
+  </Grid>
+</Window>

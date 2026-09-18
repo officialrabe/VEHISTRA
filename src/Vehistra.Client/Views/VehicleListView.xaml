@@ -1,0 +1,186 @@
+<UserControl x:Class="Vehistra.Client.Views.VehicleListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- Aktionen -->
+    <Border Style="{StaticResource ToolbarStyle}">
+      <StackPanel Orientation="Horizontal">
+        <Button Content="_Neues Fahrzeug" Style="{StaticResource PrimaryButtonStyle}" MinWidth="140"
+                Command="{Binding CreateCommand}"
+                Visibility="{Binding CanCreate, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="_Bearbeiten" Margin="8,0,0,0" Command="{Binding EditCommand}"
+                Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="_Öffnen" Margin="8,0,0,0" Command="{Binding OpenCommand}" />
+        <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
+        <Button Content="_Status ändern" Command="{Binding ChangeStatusCommand}"
+                Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="_Kilometerstand" Margin="8,0,0,0" Command="{Binding AddMileageCommand}"
+                Visibility="{Binding CanEditMileage, Converter={StaticResource BoolToVisibility}}" />
+        <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
+        <Button Content="_Importieren" Command="{Binding ImportCommand}"
+                Visibility="{Binding CanImport, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="Export CSV" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="csv"
+                Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="Export XLSX" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="xlsx"
+                Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="Export PDF" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="pdf"
+                Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />
+      </StackPanel>
+    </Border>
+
+    <!-- Filter -->
+    <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,0,0,1" Padding="12,8">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="260" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
+                 ToolTip="Suche nach interner Nummer, Kennzeichen, FIN, Hersteller, Modell oder Fahrer" />
+
+        <ComboBox Grid.Column="1" Margin="8,0,0,0" Width="170" ItemsSource="{Binding Statuses}"
+                  SelectedItem="{Binding SelectedStatus}" DisplayMemberPath="Name"
+                  ToolTip="Nach Status filtern" />
+
+        <ComboBox Grid.Column="2" Margin="8,0,0,0" Width="170" ItemsSource="{Binding Categories}"
+                  SelectedItem="{Binding SelectedCategory}" DisplayMemberPath="Name"
+                  ToolTip="Nach Einsatzbereich filtern" />
+
+        <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
+          <CheckBox Content="offene Schäden" IsChecked="{Binding OnlyOpenDamages}" Margin="0,0,14,0" />
+          <CheckBox Content="in Werkstatt" IsChecked="{Binding OnlyInWorkshop}" Margin="0,0,14,0" />
+          <CheckBox Content="TÜV fällig" IsChecked="{Binding OnlyInspectionDue}" Margin="0,0,14,0" />
+          <CheckBox Content="ausgemusterte einschließen" IsChecked="{Binding IncludeRetired}" />
+        </StackPanel>
+
+        <Button Grid.Column="4" Content="Filter _zurücksetzen" Command="{Binding ResetFilterCommand}" />
+      </Grid>
+    </Border>
+
+    <!-- Tabelle -->
+    <DataGrid Grid.Row="2" Margin="12" ItemsSource="{Binding Vehicles}"
+              SelectedItem="{Binding SelectedVehicle}" BorderThickness="1">
+      <DataGrid.InputBindings>
+        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenCommand}" />
+      </DataGrid.InputBindings>
+
+      <DataGrid.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Fahrzeugakte öffnen" Command="{Binding OpenCommand}" />
+          <MenuItem Header="Bearbeiten" Command="{Binding EditCommand}" />
+          <Separator />
+          <MenuItem Header="Status ändern" Command="{Binding ChangeStatusCommand}" />
+          <MenuItem Header="Kilometerstand erfassen" Command="{Binding AddMileageCommand}" />
+          <Separator />
+          <MenuItem Header="Nach CSV exportieren" Command="{Binding ExportCommand}" CommandParameter="csv" />
+          <MenuItem Header="Nach Excel exportieren" Command="{Binding ExportCommand}" CommandParameter="xlsx" />
+        </ContextMenu>
+      </DataGrid.ContextMenu>
+
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Interne Nr." Binding="{Binding InternalNumber}" Width="95" />
+        <DataGridTextColumn Header="Kennzeichen" Binding="{Binding LicensePlate}" Width="120"
+                            FontWeight="SemiBold" />
+        <DataGridTextColumn Header="Hersteller" Binding="{Binding Manufacturer}" Width="120" />
+        <DataGridTextColumn Header="Modell" Binding="{Binding Model}" Width="140" />
+        <DataGridTextColumn Header="Kategorie" Binding="{Binding Categories}" Width="140" />
+
+        <DataGridTemplateColumn Header="Status" Width="130">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Border Style="{StaticResource BadgeStyle}" Background="{StaticResource SurfaceSunkenBrush}">
+                <StackPanel Orientation="Horizontal">
+                  <Border Width="7" Height="7" CornerRadius="4" VerticalAlignment="Center"
+                          Background="{Binding StatusColorHex, Converter={StaticResource HexToBrush}}" />
+                  <TextBlock Text="{Binding StatusName}" Margin="5,0,0,0" FontSize="11" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTextColumn Header="Fester Fahrer" Binding="{Binding DriverName}" Width="150" />
+        <DataGridTextColumn Header="Kilometerstand" Binding="{Binding CurrentMileage, StringFormat=N0}" Width="110">
+          <DataGridTextColumn.ElementStyle>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+              <Setter Property="HorizontalAlignment" Value="Right" />
+            </Style>
+          </DataGridTextColumn.ElementStyle>
+        </DataGridTextColumn>
+
+        <DataGridTemplateColumn Header="TÜV" Width="130">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal">
+                <Border Style="{StaticResource BadgeStyle}" Padding="6,1"
+                        Background="{Binding InspectionWarning, Converter={StaticResource WarningLevelToBackground}}">
+                  <TextBlock Text="{Binding NextInspectionDue, StringFormat=dd.MM.yyyy}" FontSize="11"
+                             Foreground="{Binding InspectionWarning, Converter={StaticResource WarningLevelToBrush}}" />
+                </Border>
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Header="Schäden" Width="90">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding OpenDamageCount}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock Text="kritisch" Margin="6,0,0,0" FontSize="10" VerticalAlignment="Center"
+                           Foreground="{StaticResource CriticalBrush}"
+                           Visibility="{Binding HasCriticalDamage, Converter={StaticResource BoolToVisibility}}" />
+              </StackPanel>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTextColumn Header="Werkstatt"
+                            Binding="{Binding WorkshopStatus, Converter={StaticResource EnumToText}}" Width="130" />
+
+        <DataGridTemplateColumn Header="Service" Width="110">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <Border Style="{StaticResource BadgeStyle}" Padding="6,1"
+                      Background="{Binding ServiceWarning, Converter={StaticResource WarningLevelToBackground}}">
+                <TextBlock Text="{Binding ServiceWarning, Converter={StaticResource WarningLevelToText}}"
+                           FontSize="10"
+                           Foreground="{Binding ServiceWarning, Converter={StaticResource WarningLevelToBrush}}" />
+              </Border>
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <!-- Fusszeile mit Seitennavigation -->
+    <Border Grid.Row="3" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="12,6">
+      <Grid>
+        <TextBlock VerticalAlignment="Center" Style="{StaticResource PageSubtitleStyle}">
+          <Run Text="{Binding TotalCount, Mode=OneWay}" /><Run Text=" Fahrzeuge · Seite " /><Run
+            Text="{Binding PageNumber, Mode=OneWay}" /><Run Text=" von " /><Run Text="{Binding PageCount, Mode=OneWay}" />
+        </TextBlock>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="◀ Zurück" Command="{Binding PreviousPageCommand}" MinWidth="90" />
+          <Button Content="Weiter ▶" Margin="8,0,0,0" Command="{Binding NextPageCommand}" MinWidth="90" />
+          <Button Content="_Aktualisieren" Margin="8,0,0,0" Command="{Binding ReloadCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>
