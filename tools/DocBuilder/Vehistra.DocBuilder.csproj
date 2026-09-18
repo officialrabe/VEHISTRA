@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Vehistra.DocBuilder</RootNamespace>
+    <AssemblyName>VehistraDocBuilder</AssemblyName>
+    <AssemblyTitle>Vehistra Documentation Builder</AssemblyTitle>
+    <Description>Erzeugt die Anleitungen als PDF. Entwickelt von LSP Virtual Services.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QuestPDF" />
+  </ItemGroup>
+
+  <!--
+    Feste Schrift fuer Codebloecke und Diagramme. Wird mitgeliefert, damit die
+    Anleitungen auf jedem Rechner gleich aussehen. Lizenz: Bitstream Vera /
+    DejaVu (siehe assets\fonts\DejaVuSansMono-LICENSE.txt).
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\assets\fonts\DejaVuSansMono.ttf" LogicalName="DejaVuSansMono.ttf" />
+  </ItemGroup>
+
+</Project>
