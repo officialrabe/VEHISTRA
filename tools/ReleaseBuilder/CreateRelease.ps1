@@ -192,8 +192,11 @@ Write-Step 4 'Automatisierte Tests ausfuehren'
 if ($SkipTests) {
     Write-Warning 'Die Tests wurden per Parameter uebersprungen. Das ist fuer Auslieferungen nicht zulaessig.'
 } else {
+    # Seit der Umstellung auf die Microsoft Testing Platform wird die
+    # Projektmappe mit --solution uebergeben, nicht als freies Argument.
     Invoke-Checked 'dotnet' @(
-        'test', $solution,
+        'test',
+        '--solution', $solution,
         '--configuration', $Configuration,
         '--no-build'
     ) 'Die automatisierten Tests'

@@ -1,0 +1,169 @@
+# ---------------------------------------------------------------------------
+#  Vehistra - Version veröffentlichen
+#
+#  Läuft, sobald ein Versionsschild (Tag) der Form v1.0.0 gesetzt wird, und
+#  kann zum Ausprobieren auch von Hand gestartet werden.
+#
+#  Der eigentliche Ablauf steckt in tools/ReleaseBuilder/CreateRelease.ps1 -
+#  demselben Skript, das auch auf einem Arbeitsplatzrechner verwendet wird.
+#  So wird genau der Weg geprüft, den die Anleitung beschreibt.
+#
+#  Entwickelt von LSP Virtual Services - vehistra.dev
+# ---------------------------------------------------------------------------
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, z. B. 1.0.0'
+        required: true
+        type: string
+      draft:
+        description: 'Nur als Entwurf anlegen'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  release:
+    name: Version bauen und veröffentlichen
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Quellcode auschecken
+        uses: actions/checkout@v4
+
+      - name: .NET SDK einrichten
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Inno Setup einrichten
+        run: choco install innosetup --yes --no-progress
+
+      - name: Versionsnummer bestimmen
+        id: version
+        shell: pwsh
+        run: |
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch') {
+            $version = '${{ inputs.version }}'
+          } else {
+            # refs/tags/v1.0.0 -> 1.0.0
+            $version = '${{ github.ref_name }}' -replace '^v', ''
+          }
+
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            Write-Host "::error::Die Versionsnummer '$version' entspricht nicht dem Muster HAUPT.NEBEN.KORREKTUR."
+            exit 1
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Version: $version"
+
+      - name: Versionshinweise vorbereiten
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+
+          @"
+          VEHISTRA $version
+          Open Fleet Management - Vehicle · Driver · Maintenance · Compliance
+          Veroeffentlicht am $(Get-Date -Format 'dd.MM.yyyy')
+          Entwickelt und betreut von LSP Virtual Services - vehistra.dev
+
+          INHALT DIESER AUSLIEFERUNG
+          - Vehistra-Setup.exe        Erstinstallation eines Arbeitsplatzes
+          - Vehistra-Update.exe       Updatepaket fuer vorhandene Installationen
+          - Serverwerkzeuge\          VehistraServerSetup.exe, VehistraServerCheck.exe
+          - Dokumentation\            die fuenf Anleitungen als Markdown und PDF
+          - latest.json               Beschreibung fuer die Updateablage
+          - checksums.sha256          Pruefsummen aller Dateien
+
+          HINWEISE ZUM UPDATE
+          - Vor jeder Datenbankaenderung wird automatisch eine Sicherung erstellt.
+          - Schlaegt die Sicherung fehl, wird das Update abgebrochen.
+          - Es werden keine Daten geloescht; bestehende Daten bleiben erhalten.
+
+          VORAUSSETZUNGEN
+          - Windows 10 oder neuer (64 Bit)
+          - .NET Desktop Runtime 10
+          - Microsoft SQL Server Express auf dem Firmenserver
+          "@ | Set-Content release-notes.txt -Encoding utf8
+
+      - name: Version bauen
+        shell: pwsh
+        run: |
+          ./tools/ReleaseBuilder/CreateRelease.ps1 `
+            -Version '${{ steps.version.outputs.version }}' `
+            -ReleaseNotesFile (Join-Path $PWD 'release-notes.txt')
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::CreateRelease.ps1 ist fehlgeschlagen."
+            exit $LASTEXITCODE
+          }
+
+      - name: Ergebnis prüfen
+        shell: pwsh
+        run: |
+          $ordner = "Release/${{ steps.version.outputs.version }}"
+
+          $erwartet = @(
+            'Vehistra-Setup.exe',
+            'Vehistra-Update.exe',
+            'latest.json',
+            'checksums.sha256',
+            'release-notes.txt'
+          )
+
+          $fehlend = $erwartet | Where-Object { -not (Test-Path (Join-Path $ordner $_)) }
+
+          if ($fehlend) {
+            Write-Host "::error::Im Releaseordner fehlen: $($fehlend -join ', ')"
+            exit 1
+          }
+
+          Get-ChildItem $ordner -Recurse -File |
+            ForEach-Object { "{0,10:N0} KB  {1}" -f ($_.Length / 1KB), $_.Name }
+
+      - name: Alles als ZIP zusammenfassen
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          Compress-Archive -Path "Release/$version/*" -DestinationPath "Vehistra-$version.zip"
+
+      - name: Veröffentlichung anlegen
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Vehistra ${{ steps.version.outputs.version }}
+          body_path: release-notes.txt
+          draft: ${{ github.event_name == 'workflow_dispatch' && inputs.draft }}
+          files: |
+            Release/${{ steps.version.outputs.version }}/Vehistra-Setup.exe
+            Release/${{ steps.version.outputs.version }}/Vehistra-Update.exe
+            Release/${{ steps.version.outputs.version }}/latest.json
+            Release/${{ steps.version.outputs.version }}/checksums.sha256
+            Vehistra-${{ steps.version.outputs.version }}.zip
+
+      - name: Releaseordner als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-release-${{ steps.version.outputs.version }}
+          path: Release/
+          retention-days: 90
