@@ -236,6 +236,16 @@ public sealed partial class ShellViewModel : ViewModelBase
         await RefreshNotificationsAsync().ConfigureAwait(true);
     }
 
+    /// <summary>Blendet die Fehlerleiste der aktuellen Ansicht aus.</summary>
+    [RelayCommand]
+    private void DismissError()
+    {
+        if (CurrentView is not null)
+        {
+            CurrentView.ErrorMessage = null;
+        }
+    }
+
     [RelayCommand]
     private void Logout() => LogoutRequested?.Invoke(this, EventArgs.Empty);
 

@@ -178,12 +178,56 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
     {
         if (SelectedOrder is null)
         {
+            // Stilles Abbrechen sieht aus wie eine kaputte Schaltflaeche.
+            _dialogs.ShowInformation(
+                "Bitte wählen Sie zuerst einen Werkstattvorgang in der Liste aus." + Environment.NewLine +
+                Environment.NewLine +
+                "Ein leeres Formular zum Ausfüllen von Hand erhalten Sie über „Blankoformular drucken“.",
+                "Werkstattbericht");
             return;
         }
 
-        await RunAsync(
-            async () => await _reports.CreateWorkshopReportForOrderAsync(SelectedOrder.Id).ConfigureAwait(true),
-            "Der Werkstattbericht wurde erstellt.").ConfigureAwait(true);
+        var vorgang = SelectedOrder;
+
+        await ErzeugeBerichtAsync(
+            () => _reports.CreateWorkshopReportForOrderAsync(vorgang.Id),
+            "Werkstattbericht").ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Leeres Werkstattformular zum Ausfuellen von Hand - dort, wo man es
+    /// sucht. Bisher gab es das nur unter "Berichte &amp; Formulare".
+    /// </summary>
+    [RelayCommand]
+    private async Task PrintBlankReportAsync() =>
+        await ErzeugeBerichtAsync(
+            () => _reports.CreateBlankWorkshopReportAsync(),
+            "Blanko-Werkstattbericht").ConfigureAwait(true);
+
+    /// <summary>Erzeugt den Bericht und sagt, was passiert ist - Pfad oder Fehler.</summary>
+    private async Task ErzeugeBerichtAsync(Func<Task<string>> erzeugen, string bezeichnung)
+    {
+        if (!CanPrint)
+        {
+            _dialogs.ShowInformation(
+                "Für das Erstellen von Berichten fehlt die Berechtigung „Berichte drucken“.", bezeichnung);
+            return;
+        }
+
+        string? pfad = null;
+
+        var erfolgreich = await RunAsync(async () =>
+        {
+            pfad = await erzeugen().ConfigureAwait(true);
+        }).ConfigureAwait(true);
+
+        if (erfolgreich)
+        {
+            StatusMessage = $"{bezeichnung} erstellt: {pfad}";
+            return;
+        }
+
+        _dialogs.ShowError(ErrorMessage ?? "Der Bericht konnte nicht erstellt werden.", null, bezeichnung);
     }
 
     [RelayCommand]

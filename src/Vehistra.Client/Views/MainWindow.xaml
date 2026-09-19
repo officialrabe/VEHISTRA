@@ -271,7 +271,37 @@
       </Border>
 
       <!-- Inhalt -->
-      <ContentControl Grid.Row="2" Content="{Binding CurrentView}" Margin="0" />
+      <Grid Grid.Row="2">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--
+          Fehlerleiste fuer jede Ansicht. Sie haengt hier und nicht in den
+          einzelnen Ansichten, weil sie sonst irgendwo fehlt: genau das liess
+          fehlgeschlagene Aktionen wie wirkungslose Schaltflaechen aussehen.
+        -->
+        <Border Background="{StaticResource CriticalBackgroundBrush}"
+                BorderBrush="{StaticResource CriticalBrush}" BorderThickness="0,0,0,1" Padding="20,10"
+                Visibility="{Binding CurrentView.ErrorMessage, Converter={StaticResource StringToVisibility}}">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto" />
+              <ColumnDefinition Width="*" />
+              <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="&#xE783;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center"
+                       Margin="0,0,10,0" Foreground="{StaticResource CriticalBrush}" />
+            <TextBlock Grid.Column="1" Text="{Binding CurrentView.ErrorMessage}" TextWrapping="Wrap"
+                       VerticalAlignment="Center" Foreground="{StaticResource CriticalBrush}" />
+            <Button Grid.Column="2" Content="Ausblenden" Margin="12,0,0,0"
+                    Command="{Binding DismissErrorCommand}" />
+          </Grid>
+        </Border>
+
+        <ContentControl Grid.Row="1" Content="{Binding CurrentView}" Margin="0" />
+      </Grid>
 
       <!-- Statusleiste -->
       <Border Grid.Row="3" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"

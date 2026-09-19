@@ -135,12 +135,55 @@ public sealed partial class AccidentViewModel : ViewModelBase
     {
         if (SelectedAccident is null)
         {
+            _dialogs.ShowInformation(
+                "Bitte wählen Sie zuerst einen Unfall in der Liste aus." + Environment.NewLine +
+                Environment.NewLine +
+                "Ein leeres Formular für das Handschuhfach erhalten Sie über „Blankoformular drucken“.",
+                "Unfallbericht");
             return;
         }
 
-        await RunAsync(
-            async () => await _reports.CreateAccidentReportForAccidentAsync(SelectedAccident.Id).ConfigureAwait(true),
-            "Der Unfallbericht wurde erstellt.").ConfigureAwait(true);
+        var unfall = SelectedAccident;
+
+        await ErzeugeBerichtAsync(
+            () => _reports.CreateAccidentReportForAccidentAsync(unfall.Id),
+            "Unfallbericht").ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Leeres Unfallformular - das gehoert ins Handschuhfach und wird gebraucht,
+    /// bevor ein Unfall ueberhaupt erfasst ist.
+    /// </summary>
+    [RelayCommand]
+    private async Task PrintBlankReportAsync() =>
+        await ErzeugeBerichtAsync(
+            () => _reports.CreateBlankAccidentReportAsync(),
+            "Blanko-Unfallbericht").ConfigureAwait(true);
+
+    /// <summary>Erzeugt den Bericht und sagt, was passiert ist - Pfad oder Fehler.</summary>
+    private async Task ErzeugeBerichtAsync(Func<Task<string>> erzeugen, string bezeichnung)
+    {
+        if (!CanPrint)
+        {
+            _dialogs.ShowInformation(
+                "Für das Erstellen von Berichten fehlt die Berechtigung „Berichte drucken“.", bezeichnung);
+            return;
+        }
+
+        string? pfad = null;
+
+        var erfolgreich = await RunAsync(async () =>
+        {
+            pfad = await erzeugen().ConfigureAwait(true);
+        }).ConfigureAwait(true);
+
+        if (erfolgreich)
+        {
+            StatusMessage = $"{bezeichnung} erstellt: {pfad}";
+            return;
+        }
+
+        _dialogs.ShowError(ErrorMessage ?? "Der Bericht konnte nicht erstellt werden.", null, bezeichnung);
     }
 
     [RelayCommand]

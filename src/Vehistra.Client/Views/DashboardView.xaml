@@ -65,9 +65,6 @@
     <Border Style="{StaticResource ToolbarStyle}">
       <StackPanel Orientation="Horizontal">
         <Button Content="_Aktualisieren" Command="{Binding RefreshCommand}" />
-        <TextBlock Text="{Binding ErrorMessage}" Margin="14,0,0,0" VerticalAlignment="Center"
-                   Foreground="{StaticResource CriticalBrush}" TextTrimming="CharacterEllipsis"
-                   Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}" />
       </StackPanel>
     </Border>
 
