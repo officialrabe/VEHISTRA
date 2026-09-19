@@ -53,7 +53,10 @@ public enum ExportArea
     Accidents = 6,
     WorkshopOrders = 7,
     LicensePlates = 8,
-    RetiredVehicles = 9
+    RetiredVehicles = 9,
+
+    /// <summary>Historie der festen Fahrer je Fahrzeug.</summary>
+    DriverAssignments = 10
 }
 
 /// <summary>Exportformat.</summary>

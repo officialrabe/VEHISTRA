@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Vehistra.Client.ViewModels;
 
 /// <summary>Fahrzeuguebersicht mit Suche, Filter, Sortierung und Export.</summary>
-public sealed partial class VehicleListViewModel : ViewModelBase
+public sealed partial class VehicleListViewModel : ViewModelBase, IAcceptsPreset
 {
     private readonly IVehicleService _vehicles;
     private readonly IExportService _export;
@@ -46,6 +46,22 @@ public sealed partial class VehicleListViewModel : ViewModelBase
 
     [ObservableProperty]
     private bool _includeRetired;
+
+    /// <summary>Hersteller; leer bedeutet alle.</summary>
+    [ObservableProperty]
+    private string? _selectedManufacturer;
+
+    /// <summary>Fahrerzuordnung: null = alle, true = mit, false = ohne.</summary>
+    [ObservableProperty]
+    private bool? _hasDriver;
+
+    /// <summary>Anmeldung: null = alle, true = angemeldet, false = abgemeldet.</summary>
+    [ObservableProperty]
+    private bool? _isRegistered;
+
+    /// <summary>Stufe der Hauptuntersuchung; siehe <see cref="InspectionLevels"/>.</summary>
+    [ObservableProperty]
+    private string _inspectionLevel = "Alle";
 
     [ObservableProperty]
     private int _totalCount;
@@ -82,6 +98,29 @@ public sealed partial class VehicleListViewModel : ViewModelBase
 
     public ObservableCollection<VehicleCategory> Categories { get; } = [];
 
+    /// <summary>Hersteller, die im Bestand vorkommen. Erster Eintrag: alle.</summary>
+    public ObservableCollection<string> Manufacturers { get; } = [];
+
+    /// <summary>Stufen der Hauptuntersuchung zur Auswahl.</summary>
+    public static IReadOnlyList<string> InspectionLevels { get; } =
+        ["Alle", "Abgelaufen", "Fällig in 14 Tagen", "Fällig in 30 Tagen", "Fällig in 60 Tagen"];
+
+    /// <summary>Fahrerzuordnung zur Auswahl (Anzeige und Wert).</summary>
+    public static IReadOnlyList<KeyValuePair<string, bool?>> DriverOptions { get; } =
+    [
+        new("Alle", null),
+        new("Mit festem Fahrer", true),
+        new("Ohne festen Fahrer", false)
+    ];
+
+    /// <summary>Anmeldung zur Auswahl.</summary>
+    public static IReadOnlyList<KeyValuePair<string, bool?>> RegistrationOptions { get; } =
+    [
+        new("Alle", null),
+        new("Angemeldet", true),
+        new("Abgemeldet", false)
+    ];
+
     public bool CanCreate => _currentUser.HasPermission(Permissions.VehicleCreate);
 
     public bool CanEdit => _currentUser.HasPermission(Permissions.VehicleEdit);
@@ -109,6 +148,19 @@ public sealed partial class VehicleListViewModel : ViewModelBase
                 }
             }
 
+            // Die Herstellerliste kommt aus dem Bestand und kann sich mit jedem
+            // neuen Fahrzeug aendern - deshalb bei jedem Laden neu.
+            var bisher = SelectedManufacturer;
+            Manufacturers.Clear();
+            Manufacturers.Add(string.Empty);
+
+            foreach (var hersteller in await _vehicles.GetManufacturersAsync(cancellationToken).ConfigureAwait(true))
+            {
+                Manufacturers.Add(hersteller);
+            }
+
+            SelectedManufacturer = Manufacturers.Contains(bisher ?? string.Empty) ? bisher : string.Empty;
+
             await ReloadAsync(cancellationToken).ConfigureAwait(true);
         }).ConfigureAwait(true);
     }
@@ -127,6 +179,63 @@ public sealed partial class VehicleListViewModel : ViewModelBase
 
     partial void OnIncludeRetiredChanged(bool value) => _ = ReloadCommand.ExecuteAsync(null);
 
+    partial void OnSelectedManufacturerChanged(string? value) => _ = ReloadCommand.ExecuteAsync(null);
+
+    partial void OnHasDriverChanged(bool? value) => _ = ReloadCommand.ExecuteAsync(null);
+
+    partial void OnIsRegisteredChanged(bool? value) => _ = ReloadCommand.ExecuteAsync(null);
+
+    partial void OnInspectionLevelChanged(string value) => _ = ReloadCommand.ExecuteAsync(null);
+
+    /// <inheritdoc />
+    public void ApplyPreset(ListPreset preset)
+    {
+        // Jede Voreinstellung setzt genau die Filter, die zur angeklickten Zahl
+        // gehoeren. Was hier nicht gesetzt wird, bleibt auf Standard.
+        switch (preset)
+        {
+            case ListPreset.AktiveFahrzeuge:
+                IsRegistered = true;
+                break;
+
+            case ListPreset.MitFestemFahrer:
+                HasDriver = true;
+                break;
+
+            case ListPreset.OhneFestenFahrer:
+                HasDriver = false;
+                break;
+
+            case ListPreset.FahrzeugeInWerkstatt:
+                OnlyInWorkshop = true;
+                break;
+
+            case ListPreset.FahrzeugeMitOffenenSchaeden:
+                OnlyOpenDamages = true;
+                break;
+
+            case ListPreset.Abgemeldet:
+                IsRegistered = false;
+                break;
+
+            case ListPreset.TuevAbgelaufen:
+                InspectionLevel = "Abgelaufen";
+                break;
+
+            case ListPreset.TuevIn14Tagen:
+                InspectionLevel = "Fällig in 14 Tagen";
+                break;
+
+            case ListPreset.TuevIn30Tagen:
+                InspectionLevel = "Fällig in 30 Tagen";
+                break;
+
+            case ListPreset.TuevIn60Tagen:
+                InspectionLevel = "Fällig in 60 Tagen";
+                break;
+        }
+    }
+
     [RelayCommand]
     private async Task ReloadAsync(CancellationToken cancellationToken = default)
     {
@@ -138,9 +247,20 @@ public sealed partial class VehicleListViewModel : ViewModelBase
                 StatusId = SelectedStatus?.Id,
                 CategoryId = SelectedCategory?.Id,
                 IsRetired = IncludeRetired ? null : false,
+                IsRegistered = IsRegistered,
+                Manufacturer = string.IsNullOrWhiteSpace(SelectedManufacturer) ? null : SelectedManufacturer,
+                HasDriver = HasDriver,
                 OnlyWithOpenDamages = OnlyOpenDamages,
                 OnlyInWorkshop = OnlyInWorkshop,
                 OnlyInspectionDue = OnlyInspectionDue,
+                OnlyInspectionExpired = InspectionLevel == "Abgelaufen",
+                InspectionDueWithinDays = InspectionLevel switch
+                {
+                    "Fällig in 14 Tagen" => 14,
+                    "Fällig in 30 Tagen" => 30,
+                    "Fällig in 60 Tagen" => 60,
+                    _ => null
+                },
                 PageNumber = PageNumber,
                 PageSize = 200
             };
@@ -169,6 +289,10 @@ public sealed partial class VehicleListViewModel : ViewModelBase
         OnlyInWorkshop = false;
         OnlyInspectionDue = false;
         IncludeRetired = false;
+        SelectedManufacturer = string.Empty;
+        HasDriver = null;
+        IsRegistered = null;
+        InspectionLevel = "Alle";
         PageNumber = 1;
     }
 

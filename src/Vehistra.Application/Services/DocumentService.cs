@@ -15,17 +15,20 @@ public sealed class DocumentService : IDocumentService
     private readonly IVehistraDbContext _db;
     private readonly IDocumentStorage _storage;
     private readonly ICurrentUserService _currentUser;
+    private readonly ISettingsService _settings;
     private readonly IClock _clock;
 
     public DocumentService(
         IVehistraDbContext db,
         IDocumentStorage storage,
         ICurrentUserService currentUser,
+        ISettingsService settings,
         IClock clock)
     {
         _db = db;
         _storage = storage;
         _currentUser = currentUser;
+        _settings = settings;
         _clock = clock;
     }
 
@@ -96,6 +99,21 @@ public sealed class DocumentService : IDocumentService
 
         Guard.That(_storage.IsConfigured,
             "Es ist keine Dokumentenablage konfiguriert. Bitte in den Einstellungen den Dokumentenpfad hinterlegen.");
+
+        // Die Ablage begrenzt hart auf 50 MB; hier gilt zusaetzlich die
+        // Einstellung des Betriebs, sofern der Datenstrom seine Laenge kennt.
+        if (content.CanSeek)
+        {
+            var grenzeMb = await _settings
+                .GetIntAsync(SettingsKeys.DocumentMaxFileSizeMb, 25, cancellationToken)
+                .ConfigureAwait(false);
+
+            var grenzeBytes = Math.Max(1, grenzeMb) * 1024L * 1024L;
+
+            Guard.That(content.Length <= grenzeBytes,
+                $"Die Datei ist {content.Length / 1024.0 / 1024.0:N1} MB gross. " +
+                $"Erlaubt sind {grenzeMb} MB. Die Grenze lässt sich in den Einstellungen ändern.");
+        }
 
         var folder = await BuildTargetFolderAsync(metadata, cancellationToken).ConfigureAwait(false);
 

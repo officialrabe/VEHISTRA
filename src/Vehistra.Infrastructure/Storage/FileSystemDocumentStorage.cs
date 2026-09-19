@@ -17,8 +17,50 @@ public sealed class FileSystemDocumentStorage : IDocumentStorage
         ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt", ".rtf", ".odt", ".ods", ".msg", ".eml", ".zip"
     };
 
-    /// <summary>Maximale Dateigroesse: 50 MB.</summary>
-    private const long MaxFileSizeBytes = 50L * 1024 * 1024;
+    /// <summary>Maximale Dateigroesse: 50 MB. Harte Obergrenze der Ablage.</summary>
+    public const long MaxFileSizeBytes = 50L * 1024 * 1024;
+
+    /// <summary>
+    /// Signaturen am Dateianfang, an denen sich ausfuehrbarer Inhalt erkennen
+    /// laesst. Was hier passt, wird abgelehnt - egal wie die Datei heisst. Eine
+    /// zu "Rechnung.pdf" umbenannte EXE kommt damit nicht in die Ablage.
+    /// </summary>
+    private static readonly (byte[] Muster, string Bezeichnung)[] AusfuehrbareSignaturen =
+    [
+        ([0x4D, 0x5A], "Windows-Programm (EXE, DLL, MSI)"),
+        ([0x7F, 0x45, 0x4C, 0x46], "Linux-Programm (ELF)"),
+        ([0xCA, 0xFE, 0xBA, 0xBE], "Java-Programm"),
+        ([0x23, 0x21], "Skript mit Shebang (#!)")
+    ];
+
+    /// <summary>
+    /// Erwartete Signatur je Dateiendung. Fehlt eine Endung hier, hat das
+    /// Format keine verlaessliche Signatur (z. B. Textdateien) - dann bleibt es
+    /// bei der Pruefung auf ausfuehrbaren Inhalt.
+    /// </summary>
+    private static readonly Dictionary<string, (byte[] Muster, string Bezeichnung)[]> ErwarteteSignaturen =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            [".pdf"] = [([0x25, 0x50, 0x44, 0x46], "PDF")],
+            [".jpg"] = [([0xFF, 0xD8, 0xFF], "JPEG")],
+            [".jpeg"] = [([0xFF, 0xD8, 0xFF], "JPEG")],
+            [".png"] = [([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], "PNG")],
+            [".gif"] = [([0x47, 0x49, 0x46, 0x38], "GIF")],
+            [".bmp"] = [([0x42, 0x4D], "BMP")],
+            [".tif"] = [([0x49, 0x49, 0x2A, 0x00], "TIFF"), ([0x4D, 0x4D, 0x00, 0x2A], "TIFF")],
+            [".tiff"] = [([0x49, 0x49, 0x2A, 0x00], "TIFF"), ([0x4D, 0x4D, 0x00, 0x2A], "TIFF")],
+            [".zip"] = [([0x50, 0x4B, 0x03, 0x04], "ZIP")],
+            // Die neueren Office-Formate sind ZIP-Behaelter.
+            [".docx"] = [([0x50, 0x4B, 0x03, 0x04], "Office-Dokument")],
+            [".xlsx"] = [([0x50, 0x4B, 0x03, 0x04], "Office-Dokument")],
+            [".ods"] = [([0x50, 0x4B, 0x03, 0x04], "Office-Dokument")],
+            [".odt"] = [([0x50, 0x4B, 0x03, 0x04], "Office-Dokument")],
+            // Die aelteren sind OLE-Behaelter, ebenso Outlook-Nachrichten.
+            [".doc"] = [([0xD0, 0xCF, 0x11, 0xE0], "Word-Dokument (alt)")],
+            [".xls"] = [([0xD0, 0xCF, 0x11, 0xE0], "Excel-Datei (alt)")],
+            [".msg"] = [([0xD0, 0xCF, 0x11, 0xE0], "Outlook-Nachricht")],
+            [".rtf"] = [([0x7B, 0x5C, 0x72, 0x74, 0x66], "RTF")]
+        };
 
     private readonly ILogger<FileSystemDocumentStorage> _logger;
     private string _rootPath = string.Empty;
@@ -87,6 +129,18 @@ public sealed class FileSystemDocumentStorage : IDocumentStorage
                 $"Die Datei ist groesser als {MaxFileSizeBytes / 1024 / 1024} MB und kann nicht abgelegt werden.");
         }
 
+        // Der Inhalt entscheidet, nicht der Name. Geprueft wird nach dem
+        // Schreiben, damit es auch fuer Datenstroeme funktioniert, die sich
+        // nicht zuruecksetzen lassen; bei Verdacht wird die Datei geloescht.
+        var inhaltsfehler = await PruefeInhaltAsync(fullPath, extension, cancellationToken).ConfigureAwait(false);
+
+        if (inhaltsfehler is not null)
+        {
+            File.Delete(fullPath);
+            _logger.LogWarning("Dokument abgelehnt: {Datei} - {Grund}", originalFileName, inhaltsfehler);
+            throw new InvalidOperationException(inhaltsfehler);
+        }
+
         await using (var stream = File.OpenRead(fullPath))
         {
             var hash = await SHA256.HashDataAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -98,6 +152,61 @@ public sealed class FileSystemDocumentStorage : IDocumentStorage
 
         return new DocumentStorageResult(relativePath, size, checksum, GuessContentType(extension));
     }
+
+    /// <summary>
+    /// Prueft den Dateianfang. Gibt den Grund zurueck, wenn die Datei
+    /// abzulehnen ist, sonst <c>null</c>.
+    /// </summary>
+    private static async Task<string?> PruefeInhaltAsync(
+        string path,
+        string extension,
+        CancellationToken cancellationToken)
+    {
+        var kopf = new byte[8];
+        int gelesen;
+
+        await using (var stream = File.OpenRead(path))
+        {
+            gelesen = await stream.ReadAsync(kopf, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (gelesen == 0)
+        {
+            return "Die Datei ist leer.";
+        }
+
+        var anfang = kopf.AsSpan(0, gelesen);
+
+        foreach (var (muster, bezeichnung) in AusfuehrbareSignaturen)
+        {
+            if (Passt(anfang, muster))
+            {
+                return $"Die Datei enthaelt ausfuehrbaren Inhalt ({bezeichnung}) und wird nicht abgelegt, " +
+                       "auch wenn die Dateiendung etwas anderes sagt.";
+            }
+        }
+
+        if (!ErwarteteSignaturen.TryGetValue(extension, out var erwartet))
+        {
+            // Formate ohne verlaessliche Signatur, z. B. .txt, .csv, .eml.
+            return null;
+        }
+
+        foreach (var (muster, _) in erwartet)
+        {
+            if (Passt(anfang, muster))
+            {
+                return null;
+            }
+        }
+
+        return $"Der Inhalt der Datei passt nicht zur Endung '{extension}' " +
+               $"(erwartet: {erwartet[0].Bezeichnung}). Bitte die Datei pruefen; " +
+               "moeglicherweise wurde sie umbenannt oder ist beschaedigt.";
+    }
+
+    private static bool Passt(ReadOnlySpan<byte> anfang, byte[] muster) =>
+        anfang.Length >= muster.Length && anfang[..muster.Length].SequenceEqual(muster);
 
     public Task<Stream> OpenReadAsync(string relativePath, CancellationToken cancellationToken = default)
     {

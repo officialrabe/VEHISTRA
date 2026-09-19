@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Vehistra.Client.ViewModels;
 
 /// <summary>Schadensuebersicht ueber den gesamten Fuhrpark.</summary>
-public sealed partial class DamageViewModel : ViewModelBase
+public sealed partial class DamageViewModel : ViewModelBase, IAcceptsPreset
 {
     private readonly IDamageService _damages;
     private readonly IExportService _export;
@@ -233,4 +233,20 @@ public sealed partial class DamageViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task RefreshAsync() => await LoadAsync().ConfigureAwait(true);
+
+    /// <inheritdoc />
+    public void ApplyPreset(ListPreset preset)
+    {
+        switch (preset)
+        {
+            case ListPreset.OffeneSchaeden:
+                OnlyOpen = true;
+                break;
+
+            case ListPreset.KritischeSchaeden:
+                OnlyOpen = true;
+                PriorityFilter = DamagePriority.Kritisch;
+                break;
+        }
+    }
 }

@@ -50,9 +50,22 @@
 
         <Border Style="{StaticResource CardStyle}">
           <StackPanel>
-            <TextBlock Text="LISTEN ALS PDF" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
-            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,12"
-                       Text="Auswertungen im Querformat, geeignet für Besprechungen und Ablage." />
+            <TextBlock Text="LISTEN EXPORTIEREN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+            <TextBlock TextWrapping="Wrap" Style="{StaticResource MutedTextStyle}" Margin="0,0,0,10"
+                       Text="Auswertungen zum Weiterrechnen, für andere Programme oder zum Ausdrucken." />
+
+            <TextBlock Text="Format" Style="{StaticResource FieldLabelStyle}" />
+            <StackPanel Orientation="Horizontal" Margin="0,2,0,2">
+              <RadioButton Content="_Excel" GroupName="Listenformat" IsChecked="{Binding FormatExcel}"
+                           MinWidth="90" />
+              <RadioButton Content="_CSV" GroupName="Listenformat" IsChecked="{Binding FormatCsv}"
+                           MinWidth="90" />
+              <RadioButton Content="_PDF" GroupName="Listenformat" IsChecked="{Binding FormatPdf}"
+                           MinWidth="90" />
+            </StackPanel>
+            <TextBlock Text="{Binding ListFormatDescription}" Style="{StaticResource MutedTextStyle}"
+                       Margin="0,0,0,12" TextWrapping="Wrap" />
+
             <WrapPanel>
               <Button Content="Fahrzeugliste" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
                       CommandParameter="Vehicles" />
@@ -72,6 +85,9 @@
                       CommandParameter="LicensePlates" />
               <Button Content="Ausgemusterte Fahrzeuge" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
                       CommandParameter="RetiredVehicles" />
+              <Button Content="Fahrerzuordnungen" Margin="0,0,8,8" Command="{Binding ExportListCommand}"
+                      CommandParameter="DriverAssignments"
+                      ToolTip="Historie der festen Fahrer je Fahrzeug" />
             </WrapPanel>
           </StackPanel>
         </Border>

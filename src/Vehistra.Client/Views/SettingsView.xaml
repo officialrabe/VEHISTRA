@@ -121,6 +121,16 @@
               </StackPanel>
             </GroupBox>
 
+            <GroupBox Header="Dokumente">
+              <StackPanel>
+                <TextBlock Text="Maximale Dateigröße (MB)" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding DocumentMaxFileSizeMb, UpdateSourceTrigger=PropertyChanged}" Width="120"
+                         HorizontalAlignment="Left" />
+                <TextBlock Style="{StaticResource MutedTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0"
+                           Text="Zulässig sind 1 bis 50 MB. Unabhängig davon prüft die Ablage den Dateiinhalt: Was wie ein Programm aussieht, wird abgelehnt, auch wenn die Endung etwas anderes sagt." />
+              </StackPanel>
+            </GroupBox>
+
             <GroupBox Header="Kennzeichenreservierung">
               <StackPanel>
                 <TextBlock Text="Warnungen X Tage vorher (mit Semikolon getrennt)"

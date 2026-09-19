@@ -430,6 +430,39 @@ public sealed class ExportService : IExportService
                     ]).ToList());
             }
 
+            case ExportArea.DriverAssignments:
+            {
+                // Vollstaendige Historie, nicht nur die aktuelle Zuordnung -
+                // sonst laesst sich nicht belegen, wer wann gefahren hat.
+                var data = await _db.VehicleDriverAssignments.AsNoTracking()
+                    .OrderBy(a => a.Vehicle != null ? a.Vehicle.InternalNumber : string.Empty)
+                    .ThenByDescending(a => a.ValidFrom)
+                    .Select(a => new
+                    {
+                        Vehicle = a.Vehicle != null ? a.Vehicle.InternalNumber : null,
+                        Plate = a.Vehicle != null ? a.Vehicle.LicensePlate : null,
+                        Model = a.Vehicle != null ? a.Vehicle.Manufacturer + " " + a.Vehicle.Model : null,
+                        Driver = a.Driver != null ? a.Driver.LastName + ", " + a.Driver.FirstName : null,
+                        PersonnelNumber = a.Driver != null ? a.Driver.PersonnelNumber : null,
+                        a.ValidFrom,
+                        a.ValidTo,
+                        a.AssignedByUserName,
+                        a.Comment
+                    })
+                    .ToListAsync(cancellationToken).ConfigureAwait(false);
+
+                return ("Fahrerzuordnungen",
+                    ["Interne Nummer", "Kennzeichen", "Fahrzeug", "Fahrer", "Personalnummer",
+                     "Von", "Bis", "Zugewiesen durch", "Bemerkung"],
+                    data.Select(a => (IReadOnlyList<string?>)
+                    [
+                        a.Vehicle, a.Plate, a.Model, a.Driver, a.PersonnelNumber,
+                        Format(a.ValidFrom),
+                        a.ValidTo is null ? "laufend" : Format(a.ValidTo),
+                        a.AssignedByUserName, a.Comment
+                    ]).ToList());
+            }
+
             default:
                 throw new NotSupportedException($"Der Exportbereich '{area}' wird nicht unterstuetzt.");
         }

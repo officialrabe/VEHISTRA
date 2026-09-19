@@ -74,6 +74,15 @@ public sealed class VehicleFilter
 
     public int? InspectionDueWithinDays { get; set; }
 
+    /// <summary>Nur Fahrzeuge, deren Hauptuntersuchung bereits abgelaufen ist.</summary>
+    public bool OnlyInspectionExpired { get; set; }
+
+    /// <summary>Hersteller, genau geschrieben. Null = alle.</summary>
+    public string? Manufacturer { get; set; }
+
+    /// <summary>true = nur mit festem Fahrer, false = nur ohne, null = alle.</summary>
+    public bool? HasDriver { get; set; }
+
     public string SortColumn { get; set; } = nameof(VehicleListItem.InternalNumber);
 
     public bool SortDescending { get; set; }

@@ -68,6 +68,41 @@ public sealed partial class DashboardViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Oeffnet die Liste hinter einer Kennzahl - gefiltert auf genau das, was
+    /// die Zahl zeigt. Ohne das muesste der Anwender die Zahl lesen und den
+    /// Filter danach von Hand nachbauen.
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenPresetAsync(string? preset)
+    {
+        if (!Enum.TryParse<ListPreset>(preset, out var wert))
+        {
+            return;
+        }
+
+        var ziel = wert switch
+        {
+            ListPreset.TuevAbgelaufen or ListPreset.TuevIn14Tagen
+                or ListPreset.TuevIn30Tagen or ListPreset.TuevIn60Tagen => typeof(InspectionViewModel),
+
+            ListPreset.OffeneSchaeden or ListPreset.KritischeSchaeden => typeof(DamageViewModel),
+
+            ListPreset.WerkstattOffen or ListPreset.WerkstattHeute
+                or ListPreset.WerkstattUeberfaellig => typeof(WorkshopViewModel),
+
+            ListPreset.KennzeichenVerfuegbar or ListPreset.KennzeichenReserviert
+                or ListPreset.ReservierungLaeuftAus
+                or ListPreset.ReservierungAbgelaufen => typeof(LicensePlateViewModel),
+
+            ListPreset.WartungFaellig => typeof(MaintenanceViewModel),
+
+            _ => typeof(VehicleListViewModel)
+        };
+
+        await _navigation.NavigateToAsync(ziel, wert).ConfigureAwait(true);
+    }
+
     [RelayCommand]
     private async Task OpenVehiclesAsync() => await _navigation.NavigateToAsync<VehicleListViewModel>().ConfigureAwait(true);
 

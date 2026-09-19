@@ -93,7 +93,11 @@ public sealed class VehicleService : IVehicleService
                 w.Status == WorkshopOrderStatus.Fertig));
         }
 
-        if (filter.OnlyInspectionDue)
+        if (filter.OnlyInspectionExpired)
+        {
+            query = query.Where(v => v.NextInspectionDue != null && v.NextInspectionDue < today);
+        }
+        else if (filter.OnlyInspectionDue)
         {
             query = query.Where(v => v.NextInspectionDue != null && v.NextInspectionDue <= today);
         }
@@ -101,6 +105,19 @@ public sealed class VehicleService : IVehicleService
         {
             var limit = today.AddDays(days);
             query = query.Where(v => v.NextInspectionDue != null && v.NextInspectionDue <= limit);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.Manufacturer))
+        {
+            var hersteller = filter.Manufacturer.Trim();
+            query = query.Where(v => v.Manufacturer == hersteller);
+        }
+
+        if (filter.HasDriver is { } hasDriver)
+        {
+            query = hasDriver
+                ? query.Where(v => v.CurrentDriverId != null)
+                : query.Where(v => v.CurrentDriverId == null);
         }
 
         query = ApplySorting(query, filter);
@@ -449,6 +466,22 @@ public sealed class VehicleService : IVehicleService
             .Include(h => h.NewStatus)
             .Where(h => h.VehicleId == vehicleId)
             .OrderByDescending(h => h.ChangedAt)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    public async Task<IReadOnlyList<string>> GetManufacturersAsync(CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.VehicleView);
+
+        // Nur was wirklich im Bestand vorkommt - eine feste Liste waere
+        // sofort veraltet.
+        return await _db.Vehicles
+            .AsNoTracking()
+            .Where(v => v.Manufacturer != "")
+            .Select(v => v.Manufacturer)
+            .Distinct()
+            .OrderBy(m => m)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }

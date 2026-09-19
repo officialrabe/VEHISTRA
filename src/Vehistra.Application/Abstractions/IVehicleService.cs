@@ -27,6 +27,9 @@ public interface IVehicleService
 
     Task<IReadOnlyList<VehicleStatusHistory>> GetStatusHistoryAsync(int vehicleId, CancellationToken cancellationToken = default);
 
+    /// <summary>Hersteller, die im Bestand vorkommen - fuer die Filterauswahl.</summary>
+    Task<IReadOnlyList<string>> GetManufacturersAsync(CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Fahrzeugstatus. Standardmaessig nur die aktiven; die
     /// Stammdatenverwaltung braucht auch die stillgelegten.
