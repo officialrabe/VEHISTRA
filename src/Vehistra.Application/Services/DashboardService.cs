@@ -200,7 +200,7 @@ public sealed class DashboardService : IDashboardService
             attention.Add(new AttentionItem(
                 NotificationCategory.Tuev,
                 DueDateCalculator.Evaluate(vehicle.Due, today, thresholds),
-                $"TUEV {display} {DueDateCalculator.Describe(vehicle.Due, today)}.",
+                $"TÜV {display} {DueDateCalculator.Describe(vehicle.Due, today)}.",
                 vehicle.Id, $"Vehicle:{vehicle.Id}", vehicle.Due));
         }
 
@@ -213,7 +213,7 @@ public sealed class DashboardService : IDashboardService
                 days < 0 ? WarningLevel.Kritisch : days <= 7 ? WarningLevel.BaldFaellig : WarningLevel.Hinweis,
                 days < 0
                     ? $"Reservierung fuer Kennzeichen {plate.Plate} ist seit {Math.Abs(days)} Tag(en) abgelaufen."
-                    : $"Kennzeichen {plate.Plate} muss in {days} Tag(en) verlaengert werden.",
+                    : $"Kennzeichen {plate.Plate} muss in {days} Tag(en) verlängert werden.",
                 null, $"LicensePlate:{plate.Id}", plate.ReservedUntil));
         }
 

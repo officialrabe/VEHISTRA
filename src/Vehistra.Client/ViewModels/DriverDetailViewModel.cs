@@ -200,7 +200,7 @@ public sealed partial class DriverDetailViewModel : ViewModelBase
 
         if (OpenDamageCount > 0)
         {
-            yield return $"{OpenDamageCount} offene Schäden";
+            yield return OpenDamageCount == 1 ? "1 offener Schaden" : $"{OpenDamageCount} offene Schäden";
         }
     }
 

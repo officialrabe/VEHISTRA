@@ -122,9 +122,9 @@ public class DueDateCalculatorTests
 
     [Theory]
     [InlineData(-3, "abgelaufen seit 3 Tag(en)")]
-    [InlineData(0, "heute faellig")]
-    [InlineData(1, "morgen faellig")]
-    [InlineData(9, "faellig in 9 Tagen")]
+    [InlineData(0, "heute fällig")]
+    [InlineData(1, "morgen fällig")]
+    [InlineData(9, "fällig in 9 Tagen")]
     public void Describe_formuliert_den_Termin_verstaendlich(int offset, string expected) =>
         DueDateCalculator.Describe(Today.AddDays(offset), Today).ShouldBe(expected);
 

@@ -91,7 +91,15 @@ public sealed partial class VehicleDetailViewModel : ViewModelBase
     public override string? Subtitle => Header is null
         ? null
         : $"Interne Nummer {Header.InternalNumber} · Status {Header.StatusName} · " +
-          $"{Header.CurrentMileage:N0} km · {Header.OpenDamageCount} offene Schäden";
+          $"{Header.CurrentMileage:N0} km · {Schadenstext(Header.OpenDamageCount)}";
+
+    /// <summary>Einzahl oder Mehrzahl - "1 offene Schäden" liest sich falsch.</summary>
+    private static string Schadenstext(int anzahl) => anzahl switch
+    {
+        0 => "keine offenen Schäden",
+        1 => "1 offener Schaden",
+        _ => $"{anzahl} offene Schäden"
+    };
 
     public ObservableCollection<VehicleDriverAssignment> DriverAssignments { get; } = [];
 

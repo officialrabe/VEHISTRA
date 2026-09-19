@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Vehistra.Application.Abstractions;
 using Vehistra.Application.Dtos;
+using Vehistra.Application.Services;
 using Vehistra.Client.Services;
 using Vehistra.Client.ViewModels;
 using Vehistra.Client.Views;
@@ -37,9 +38,9 @@ namespace Vehistra.Screenshots;
 public static class Program
 {
     /// <summary>Breite und Hoehe in geraeteunabhaengigen Pixeln.</summary>
-    private const int Breite = 1600;
+    private const int Breite = 1920;
 
-    private const int Hoehe = 1000;
+    private const int Hoehe = 1200;
 
     /// <summary>Zweifache Aufloesung - fuer Bildschirme mit hoher Punktdichte.</summary>
     private const double Skalierung = 2.0;
@@ -137,6 +138,15 @@ public static class Program
             [RoleNames.Administrator],
             [.. Permissions.All.Select(p => p.Name)],
             false));
+
+        using (var bereich = anbieter.CreateScope())
+        {
+            var einstellungen = bereich.ServiceProvider.GetRequiredService<ISettingsService>();
+
+            await einstellungen.SetAsync(SettingsKeys.CompanyName, "Musterbetrieb GmbH").ConfigureAwait(true);
+            await einstellungen.SetAsync(SettingsKeys.CompanyCity, "Musterstadt").ConfigureAwait(true);
+            einstellungen.InvalidateCache();
+        }
 
         var shell = anbieter.GetRequiredService<ShellViewModel>();
         var fenster = new MainWindow(shell) { Width = Breite, Height = Hoehe };
