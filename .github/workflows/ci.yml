@@ -159,6 +159,31 @@ jobs:
           $zeilen | Set-Content artifacts/installer/checksums.sha256 -Encoding ascii
           $zeilen | ForEach-Object { Write-Host $_ }
 
+      # Bildschirmfotos der echten Ansichten. Das ist zugleich eine Probe aufs
+      # Exempel: das Programm baut seine Datenbank auf, meldet sich an und
+      # zeichnet jede Ansicht - geht dabei etwas schief, faellt es hier auf.
+      - name: Bildschirmfotos erzeugen
+        shell: pwsh
+        run: |
+          dotnet run --project tools/Vehistra.Screenshots/Vehistra.Screenshots.csproj `
+            --configuration Release --no-build -- "$PWD/artifacts/screenshots"
+
+          $bilder = Get-ChildItem artifacts/screenshots -Filter '*.png' -ErrorAction SilentlyContinue
+
+          if (-not $bilder) {
+            Write-Host "::error::Es wurde kein Bildschirmfoto erzeugt."
+            exit 1
+          }
+
+          $bilder | ForEach-Object { "{0,10:N0} KB  {1}" -f ($_.Length / 1KB), $_.Name }
+
+      - name: Bildschirmfotos als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-bildschirmfotos
+          path: artifacts/screenshots/
+          retention-days: 30
+
       - name: Programme als Artefakt ablegen
         uses: actions/upload-artifact@v4
         with:
