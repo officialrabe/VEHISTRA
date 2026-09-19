@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Vehistra.ServerSetup</RootNamespace>
+    <AssemblyName>VehistraServerSetup</AssemblyName>
+    <AssemblyTitle>Vehistra Server Setup</AssemblyTitle>
+    <Description>Assistent zur Einrichtung des Vehistra-Servers. Entwickelt von LSP Virtual Services.</Description>
+    <ApplicationIcon>..\..\assets\Vehistra.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vehistra.Domain\Vehistra.Domain.csproj" />
+    <ProjectReference Include="..\Vehistra.Application\Vehistra.Application.csproj" />
+    <ProjectReference Include="..\Vehistra.Infrastructure\Vehistra.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.File" />
+  </ItemGroup>
+
+</Project>

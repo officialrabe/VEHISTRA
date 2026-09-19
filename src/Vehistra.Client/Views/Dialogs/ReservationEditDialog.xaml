@@ -1,0 +1,77 @@
+<UserControl x:Class="Vehistra.Client.Views.Dialogs.ReservationEditDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="600">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}" Padding="18,12">
+      <StackPanel>
+        <TextBlock Text="{Binding Title}" Style="{StaticResource PageTitleStyle}" />
+        <TextBlock Style="{StaticResource PageSubtitleStyle}" TextWrapping="Wrap"
+                   Text="Vor Ablauf der Reservierung wird automatisch gewarnt (Fristen in den Einstellungen konfigurierbar)." />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" MaxHeight="520" VerticalScrollBarVisibility="Auto" Padding="18">
+      <StackPanel>
+        <TextBlock Text="{Binding Plate}" FontSize="19" FontWeight="SemiBold" Margin="0,0,0,12" />
+
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="12" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel>
+            <TextBlock Text="Reserviert am" Style="{StaticResource FieldLabelStyle}" />
+            <DatePicker SelectedDate="{Binding ReservedAt}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+            <TextBlock Text="Reserviert bis *" Style="{StaticResource FieldLabelStyle}" />
+            <DatePicker SelectedDate="{Binding ReservedUntil}" />
+          </StackPanel>
+        </Grid>
+
+        <Grid Margin="0,12,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition Width="12" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+          <StackPanel>
+            <TextBlock Text="Zulassungsstelle" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox Text="{Binding RegistrationOffice, UpdateSourceTrigger=PropertyChanged}" />
+          </StackPanel>
+          <StackPanel Grid.Column="2">
+            <TextBlock Text="Reservierungsnummer" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox Text="{Binding ReservationNumber, UpdateSourceTrigger=PropertyChanged}" />
+          </StackPanel>
+        </Grid>
+
+        <TextBlock Text="Bemerkung" Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+        <TextBox Text="{Binding Comment, UpdateSourceTrigger=PropertyChanged}" MinHeight="54" AcceptsReturn="True"
+                 TextWrapping="Wrap" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="{StaticResource CriticalBackgroundBrush}" Padding="18,8"
+            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" />
+    </Border>
+
+    <Border Grid.Row="3" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="18,12">
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+        <Button Content="_Reservieren" Style="{StaticResource PrimaryButtonStyle}" MinWidth="140" IsDefault="True"
+                Command="{Binding ConfirmCommand}" />
+        <Button Content="Abbre_chen" Margin="8,0,0,0" IsCancel="True" Command="{Binding CancelCommand}" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

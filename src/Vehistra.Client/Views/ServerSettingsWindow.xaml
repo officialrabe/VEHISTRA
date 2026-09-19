@@ -1,0 +1,149 @@
+<Window x:Class="Vehistra.Client.Views.ServerSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:Vehistra.Client.Converters"
+        Title="Servereinstellungen – Vehistra" Height="640" Width="720"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanResize"
+        Background="{StaticResource SurfaceBrush}">
+  <Window.Resources>
+    <conv:StringToVisibilityConverter x:Key="StringToVisibility" />
+    <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+  </Window.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}" Padding="20,14">
+      <StackPanel>
+        <TextBlock Text="Serververbindung einrichten" Style="{StaticResource PageTitleStyle}" />
+        <TextBlock Style="{StaticResource PageSubtitleStyle}"
+                   Text="Diese Angaben werden maschinenweit gespeichert und müssen nicht bei jedem Start erneut eingegeben werden." />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="20,16">
+      <StackPanel>
+        <GroupBox Header="Datenbankserver">
+          <StackPanel>
+            <TextBlock Text="Server (Name\Instanz)" Style="{StaticResource FieldLabelStyle}" />
+            <TextBox Text="{Binding Server, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}" Margin="0,3,0,0"
+                       Text="Beispiel: FUHRPARK-SRV01\SQLEXPRESS" />
+
+            <TextBlock Text="Datenbank" Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+            <TextBox Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}" Margin="0,3,0,0" Text="Standard: VehistraDB" />
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Anmeldung am SQL Server">
+          <StackPanel>
+            <RadioButton Content="Windows-Authentifizierung verwenden (empfohlen)"
+                         IsChecked="{Binding UseWindowsAuthentication}" GroupName="Auth" />
+            <RadioButton Content="SQL Server-Authentifizierung verwenden"
+                         IsChecked="{Binding UseSqlAuthentication, Mode=OneWay}"
+                         Checked="OnSqlAuthenticationChecked" GroupName="Auth" />
+
+            <Grid Margin="22,8,0,0"
+                  Visibility="{Binding UseSqlAuthentication, Converter={StaticResource BoolToVisibility}}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
+              </Grid.ColumnDefinitions>
+
+              <StackPanel>
+                <TextBlock Text="Benutzername" Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding SqlUserName, UpdateSourceTrigger=PropertyChanged}" />
+              </StackPanel>
+
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="Passwort" Style="{StaticResource FieldLabelStyle}" />
+                <PasswordBox x:Name="SqlPasswordBox" PasswordChanged="OnPasswordChanged" />
+              </StackPanel>
+            </Grid>
+
+            <TextBlock Style="{StaticResource PageSubtitleStyle}" Margin="22,6,0,0" TextWrapping="Wrap"
+                       Text="Das Passwort wird ausschließlich verschlüsselt (Windows DPAPI) auf diesem Computer gespeichert – niemals im Klartext." />
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Verzeichnisse auf dem Server">
+          <StackPanel>
+            <TextBlock Text="Dokumentenablage (UNC-Pfad)" Style="{StaticResource FieldLabelStyle}" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBox Text="{Binding DocumentsPath, UpdateSourceTrigger=PropertyChanged}" />
+              <Button Grid.Column="1" Content="..." Width="40" MinWidth="40" Margin="6,0,0,0"
+                      Command="{Binding BrowseDocumentsCommand}" />
+            </Grid>
+            <TextBlock Style="{StaticResource PageSubtitleStyle}" Margin="0,3,0,0"
+                       Text="Beispiel: \\FUHRPARK-SRV01\Fuhrpark\Dokumente" />
+
+            <TextBlock Text="Updateablage (UNC-Pfad)" Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+              <TextBox Text="{Binding UpdatePath, UpdateSourceTrigger=PropertyChanged}" />
+              <Button Grid.Column="1" Content="..." Width="40" MinWidth="40" Margin="6,0,0,0"
+                      Command="{Binding BrowseUpdatesCommand}" />
+            </Grid>
+            <TextBlock Style="{StaticResource PageSubtitleStyle}" Margin="0,3,0,0"
+                       Text="Beispiel: \\FUHRPARK-SRV01\Fuhrpark\Updates" />
+
+            <TextBlock Text="Backupverzeichnis (Pfad auf dem Datenbankserver)"
+                       Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+            <TextBox Text="{Binding BackupPath, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock Style="{StaticResource PageSubtitleStyle}" Margin="0,3,0,0"
+                       Text="Beispiel: D:\Fuhrpark\Backups – dieser Pfad wird vom SQL Server verwendet." />
+          </StackPanel>
+        </GroupBox>
+
+        <Border Style="{StaticResource CardStyle}" Margin="0,4,0,0"
+                Visibility="{Binding TestResult, Converter={StaticResource StringToVisibility}}">
+          <StackPanel>
+            <TextBlock Text="{Binding TestResult}" TextWrapping="Wrap" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding TestHints}" TextWrapping="Wrap" Margin="0,6,0,0"
+                       Style="{StaticResource MutedTextStyle}"
+                       Visibility="{Binding TestHints, Converter={StaticResource StringToVisibility}}" />
+          </StackPanel>
+        </Border>
+
+        <Border Style="{StaticResource CardStyle}" Margin="0,8,0,0"
+                Background="{StaticResource CriticalBackgroundBrush}"
+                BorderBrush="{StaticResource CriticalBrush}"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
+          <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap"
+                     Foreground="{StaticResource CriticalBrush}" />
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+
+    <Border Grid.Row="2" Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,1,0,0" Padding="20,12">
+      <Grid>
+        <StackPanel Orientation="Horizontal">
+          <Button Content="Firmenkonfiguration _laden" MinWidth="180"
+                  Command="{Binding ImportConfigurationCommand}" />
+          <Button Content="_Exportieren" Margin="8,0,0,0" Command="{Binding ExportConfigurationCommand}" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+          <Button Content="Verbindung _testen" MinWidth="140" Command="{Binding TestConnectionCommand}" />
+          <Button Content="_Speichern" Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
+                  IsDefault="True" Command="{Binding SaveCommand}" />
+          <Button Content="Abbre_chen" Margin="8,0,0,0" IsCancel="True" Command="{Binding CancelCommand}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </Grid>
+</Window>

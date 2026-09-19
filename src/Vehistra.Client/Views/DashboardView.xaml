@@ -1,0 +1,339 @@
+<UserControl x:Class="Vehistra.Client.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <UserControl.Resources>
+    <!-- Kennzahl innerhalb einer Karte -->
+    <Style x:Key="MetricValueStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+      <Setter Property="FontSize" Value="26" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style x:Key="MetricLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+      <Setter Property="Margin" Value="0,2,0,0" />
+    </Style>
+
+    <Style x:Key="MetricRowStyle" TargetType="Grid">
+      <Setter Property="Margin" Value="0,3" />
+    </Style>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border Style="{StaticResource ToolbarStyle}">
+      <StackPanel Orientation="Horizontal">
+        <Button Content="_Aktualisieren" Command="{Binding RefreshCommand}" />
+        <TextBlock Text="{Binding ErrorMessage}" Margin="14,0,0,0" VerticalAlignment="Center"
+                   Foreground="{StaticResource CriticalBrush}" TextTrimming="CharacterEllipsis"
+                   Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}" />
+      </StackPanel>
+    </Border>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="18">
+      <StackPanel>
+
+        <!-- Fahrzeugkennzahlen -->
+        <UniformGrid Columns="5" Margin="0,0,0,14">
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
+            <StackPanel>
+              <TextBlock Text="{Binding Data.Vehicles.Total}" Style="{StaticResource MetricValueStyle}" />
+              <TextBlock Text="Fahrzeuge insgesamt" Style="{StaticResource MetricLabelStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
+            <StackPanel>
+              <TextBlock Text="{Binding Data.Vehicles.Active}" Style="{StaticResource MetricValueStyle}"
+                         Foreground="{StaticResource OkBrush}" />
+              <TextBlock Text="aktiv" Style="{StaticResource MetricLabelStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
+            <StackPanel>
+              <TextBlock Text="{Binding Data.Vehicles.InWorkshop}" Style="{StaticResource MetricValueStyle}"
+                         Foreground="{StaticResource WarnBrush}" />
+              <TextBlock Text="in der Werkstatt" Style="{StaticResource MetricLabelStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
+            <StackPanel>
+              <TextBlock Text="{Binding Data.Damages.Open}" Style="{StaticResource MetricValueStyle}"
+                         Foreground="{StaticResource CriticalBrush}" />
+              <TextBlock Text="offene Schäden" Style="{StaticResource MetricLabelStyle}" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource CardStyle}">
+            <StackPanel>
+              <TextBlock Text="{Binding Data.Inspections.Expired}" Style="{StaticResource MetricValueStyle}"
+                         Foreground="{StaticResource CriticalBrush}" />
+              <TextBlock Text="TÜV abgelaufen" Style="{StaticResource MetricLabelStyle}" />
+            </StackPanel>
+          </Border>
+        </UniformGrid>
+
+        <!-- Detailbereiche -->
+        <UniformGrid Columns="3">
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,10,12">
+            <StackPanel>
+              <Grid>
+                <TextBlock Text="FAHRZEUGE" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+                <Button Content="Öffnen" Style="{StaticResource LinkButtonStyle}" HorizontalAlignment="Right"
+                        Command="{Binding OpenVehiclesCommand}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="insgesamt" />
+                <TextBlock Text="{Binding Data.Vehicles.Total}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="aktiv" />
+                <TextBlock Text="{Binding Data.Vehicles.Active}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="verfügbar" />
+                <TextBlock Text="{Binding Data.Vehicles.Available}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="im Einsatz" />
+                <TextBlock Text="{Binding Data.Vehicles.InUse}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="ohne festen Fahrer" />
+                <TextBlock Text="{Binding Data.Vehicles.WithoutDriver}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="Werkstatt" />
+                <TextBlock Text="{Binding Data.Vehicles.InWorkshop}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="beschädigt" />
+                <TextBlock Text="{Binding Data.Vehicles.Damaged}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="nicht fahrbereit" />
+                <TextBlock Text="{Binding Data.Vehicles.NotDriveable}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="abgemeldet" />
+                <TextBlock Text="{Binding Data.Vehicles.Deregistered}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="ausgemustert" />
+                <TextBlock Text="{Binding Data.Vehicles.Retired}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,10,12">
+            <StackPanel>
+              <Grid>
+                <TextBlock Text="TÜV" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+                <Button Content="Öffnen" Style="{StaticResource LinkButtonStyle}" HorizontalAlignment="Right"
+                        Command="{Binding OpenInspectionsCommand}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="abgelaufen" />
+                <TextBlock Text="{Binding Data.Inspections.Expired}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="innerhalb 7 Tage" />
+                <TextBlock Text="{Binding Data.Inspections.Within7Days}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource WarnBrush}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="innerhalb 14 Tage" />
+                <TextBlock Text="{Binding Data.Inspections.Within14Days}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="innerhalb 30 Tage" />
+                <TextBlock Text="{Binding Data.Inspections.Within30Days}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="innerhalb 60 Tage" />
+                <TextBlock Text="{Binding Data.Inspections.Within60Days}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+
+              <Separator Margin="0,10" />
+
+              <Grid>
+                <TextBlock Text="WARTUNG" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+                <Button Content="Öffnen" Style="{StaticResource LinkButtonStyle}" HorizontalAlignment="Right"
+                        Command="{Binding OpenMaintenanceCommand}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="Service fällig" />
+                <TextBlock Text="{Binding Data.Maintenance.ServiceDue}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="bald fällig" />
+                <TextBlock Text="{Binding Data.Maintenance.ServiceDueSoon}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="Kilometerintervall erreicht" />
+                <TextBlock Text="{Binding Data.Maintenance.MileageIntervalReached}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12">
+            <StackPanel>
+              <Grid>
+                <TextBlock Text="SCHÄDEN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+                <Button Content="Öffnen" Style="{StaticResource LinkButtonStyle}" HorizontalAlignment="Right"
+                        Command="{Binding OpenDamagesCommand}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="offen" />
+                <TextBlock Text="{Binding Data.Damages.Open}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="neu gemeldet" />
+                <TextBlock Text="{Binding Data.Damages.New}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="kritisch" />
+                <TextBlock Text="{Binding Data.Damages.Critical}" HorizontalAlignment="Right" FontWeight="SemiBold"
+                           Foreground="{StaticResource CriticalBrush}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="nicht fahrbereit" />
+                <TextBlock Text="{Binding Data.Damages.NotDriveable}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+              </Grid>
+
+              <Separator Margin="0,10" />
+
+              <Grid>
+                <TextBlock Text="WERKSTATT" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+                <Button Content="Öffnen" Style="{StaticResource LinkButtonStyle}" HorizontalAlignment="Right"
+                        Command="{Binding OpenWorkshopCommand}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="aktuell in Werkstatt" />
+                <TextBlock Text="{Binding Data.Workshop.CurrentlyInWorkshop}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="Termin heute" />
+                <TextBlock Text="{Binding Data.Workshop.AppointmentsToday}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="kommende Termine" />
+                <TextBlock Text="{Binding Data.Workshop.UpcomingAppointments}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="überfällige Vorgänge" />
+                <TextBlock Text="{Binding Data.Workshop.Overdue}" HorizontalAlignment="Right" FontWeight="SemiBold"
+                           Foreground="{StaticResource WarnBrush}" />
+              </Grid>
+
+              <Separator Margin="0,10" />
+
+              <Grid>
+                <TextBlock Text="KENNZEICHEN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+                <Button Content="Öffnen" Style="{StaticResource LinkButtonStyle}" HorizontalAlignment="Right"
+                        Command="{Binding OpenPlatesCommand}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="verfügbar" />
+                <TextBlock Text="{Binding Data.LicensePlates.Available}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="reserviert" />
+                <TextBlock Text="{Binding Data.LicensePlates.Reserved}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="Reservierung läuft bald ab" />
+                <TextBlock Text="{Binding Data.LicensePlates.ReservationsExpiringSoon}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource WarnBrush}" />
+              </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="Reservierung abgelaufen" />
+                <TextBlock Text="{Binding Data.LicensePlates.ReservationsExpired}" HorizontalAlignment="Right"
+                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+              </Grid>
+            </StackPanel>
+          </Border>
+        </UniformGrid>
+
+        <!-- Aufmerksamkeit erforderlich -->
+        <Border Style="{StaticResource CardStyle}">
+          <StackPanel>
+            <TextBlock Text="AUFMERKSAMKEIT ERFORDERLICH" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
+
+            <TextBlock Text="Derzeit sind keine Vorgänge offen, die Aufmerksamkeit erfordern."
+                       Margin="0,6,0,0">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource MutedTextStyle}">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding AttentionItems.Count}" Value="0">
+                      <Setter Property="Visibility" Value="Visible" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+
+            <ItemsControl ItemsSource="{Binding AttentionItems}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Button HorizontalContentAlignment="Stretch" BorderThickness="0,0,0,1" MinWidth="0"
+                          BorderBrush="{StaticResource BorderBrush}" Background="Transparent" Padding="0,8"
+                          Command="{Binding DataContext.OpenAttentionItemCommand,
+                                            RelativeSource={RelativeSource AncestorType=UserControl}}"
+                          CommandParameter="{Binding}">
+                    <Grid>
+                      <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                      </Grid.ColumnDefinitions>
+
+                      <Border Width="4" Height="20" CornerRadius="2"
+                              Background="{Binding Level, Converter={StaticResource WarningLevelToBrush}}" />
+
+                      <Border Grid.Column="1" Style="{StaticResource BadgeStyle}" Margin="10,0,0,0"
+                              Background="{Binding Level, Converter={StaticResource WarningLevelToBackground}}">
+                        <TextBlock Text="{Binding Level, Converter={StaticResource WarningLevelToText}}"
+                                   FontSize="10" FontWeight="SemiBold"
+                                   Foreground="{Binding Level, Converter={StaticResource WarningLevelToBrush}}" />
+                      </Border>
+
+                      <TextBlock Grid.Column="2" Text="{Binding Text}" Margin="12,0,0,0" VerticalAlignment="Center"
+                                 TextTrimming="CharacterEllipsis" />
+
+                      <TextBlock Grid.Column="3" Text="{Binding DueDate, StringFormat=dd.MM.yyyy}"
+                                 Style="{StaticResource PageSubtitleStyle}" VerticalAlignment="Center"
+                                 Margin="12,0,0,0" />
+                    </Grid>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>
