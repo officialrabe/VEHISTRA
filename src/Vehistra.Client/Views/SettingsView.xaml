@@ -126,6 +126,17 @@
               </StackPanel>
             </GroupBox>
 
+            <GroupBox Header="Sicherungen">
+              <StackPanel>
+                <TextBlock Text="Aufbewahrungsdauer in Tagen (0 = nichts löschen)"
+                           Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding BackupRetentionDays, UpdateSourceTrigger=PropertyChanged}" Width="120"
+                         HorizontalAlignment="Left" />
+                <TextBlock Style="{StaticResource MutedTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"
+                           Text="Mit einer Dauer größer 0 entfernt das Programm nach jeder Sicherung die älteren. Es löscht nur Dateien aus dem Sicherungsverzeichnis, die es selbst angelegt hat; die drei neuesten Sicherungen und alle Sicherungen vor einer Migration bleiben immer erhalten. Jede Löschung steht im Protokoll. Unter „Backups“ können Sie vorher ansehen, was wegfallen würde." />
+              </StackPanel>
+            </GroupBox>
+
             <GroupBox Header="Werkstatt">
               <StackPanel>
                 <TextBlock Text="Warnung, wenn ein Fahrzeug länger als (Tage) in der Werkstatt steht"

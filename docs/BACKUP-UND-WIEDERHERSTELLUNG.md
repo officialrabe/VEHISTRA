@@ -39,6 +39,39 @@ der Tabelle gilt unverändert.
 Bewahren Sie mindestens eine Sicherung außerhalb des Serverraums auf, zum
 Beispiel auf einer Wechselfestplatte oder einem NAS an einem anderen Ort.
 
+### Aufbewahrungsdauer im Programm einstellen
+
+Ab Version 1.3.0 räumt das Programm alte Sicherungen selbst auf, wenn Sie das
+möchten: **Einstellungen · Sicherungen · Aufbewahrungsdauer in Tagen**.
+
+- **0 Tage** (Voreinstellung) bedeutet: es wird **nichts** gelöscht.
+- Bei einem Wert größer 0 entfernt das Programm nach jeder erfolgreichen
+  Sicherung die älteren Sicherungen.
+
+Was dabei **immer** erhalten bleibt – unabhängig von der eingestellten Dauer:
+
+- die **drei neuesten** Sicherungen,
+- jede Sicherung mit der Art **VorMigration** (sie entsteht vor einer
+  Datenbankaktualisierung und ist der Rettungsanker, falls diese scheitert),
+- alle Dateien, die **nicht** aus diesem Programm stammen. Gelöscht wird nur,
+  was dem eigenen Namensschema entspricht (`Vehistra_JJJJMMTT_HHMMSS_Art.db`
+  beim Solo-Platz, `Datenbank_JJJJMMTT_HHMMSS_Art.bak` bei SQL Server).
+  Fremde Dateien im Sicherungsverzeichnis bleiben unberührt.
+
+Gelöscht wird nur im eingestellten Sicherungsverzeichnis selbst, nicht in
+Unterordnern. Bei SQL Server liegen die Sicherungen auf dem Server: ist der
+Pfad von diesem Arbeitsplatz aus nicht erreichbar, wird nichts gelöscht und
+das Programm sagt es Ihnen.
+
+Jede Löschung steht mit Pfad, Alter und Größe in der Protokolldatei und ist
+damit auch im Supportpaket nachvollziehbar.
+
+Unter **Backups · Alte Sicherungen aufräumen** sehen Sie vorher genau, welche
+Dateien wegfallen würden, und werden vor dem Löschen gefragt.
+
+> **Das Aufräumen ersetzt keine Auslagerung.** Wenn nur eine Kopie existiert
+> und diese im selben Verzeichnis liegt, hilft keine Aufbewahrungsdauer.
+
 ---
 
 ## 3 – Automatische Sicherung einrichten

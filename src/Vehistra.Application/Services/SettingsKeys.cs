@@ -33,6 +33,13 @@ public static class SettingsKeys
 
     public const string DocumentsPath = "Paths.Documents";
     public const string BackupPath = "Paths.Backup";
+
+    /// <summary>
+    /// Aufbewahrungsdauer der Sicherungen in Tagen. 0 bedeutet: nichts wird
+    /// geloescht. Bewusst ausgeschaltet, denn Loeschen laesst sich nicht
+    /// zurueckholen.
+    /// </summary>
+    public const string BackupRetentionDays = "Backup.RetentionDays";
     public const string UpdatePath = "Paths.Update";
 
     public const string DateFormat = "Display.DateFormat";

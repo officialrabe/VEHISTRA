@@ -76,6 +76,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private string? _backupPath;
 
     [ObservableProperty]
+    private int _backupRetentionDays;
+
+    [ObservableProperty]
     private string? _updatePath;
 
     [ObservableProperty]
@@ -183,6 +186,8 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 ?? await _settings.GetAsync(SettingsKeys.BackupPath, cancellationToken).ConfigureAwait(true);
             UpdatePath = connection?.UpdatePath
                 ?? await _settings.GetAsync(SettingsKeys.UpdatePath, cancellationToken).ConfigureAwait(true);
+            BackupRetentionDays = await _settings
+                .GetIntAsync(SettingsKeys.BackupRetentionDays, 0, cancellationToken).ConfigureAwait(true);
 
             DateFormat = await _settings
                 .GetOrDefaultAsync(SettingsKeys.DateFormat, "dd.MM.yyyy", cancellationToken).ConfigureAwait(true);
@@ -274,6 +279,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
             await _settings.SetAsync(SettingsKeys.DocumentsPath, DocumentsPath).ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.BackupPath, BackupPath).ConfigureAwait(true);
+            // Nach oben offen waere unklug: eine Zahl wie 36500 sieht nach
+            // "aufbewahren" aus, loescht aber irgendwann doch.
+            await _settings.SetAsync(SettingsKeys.BackupRetentionDays,
+                Math.Clamp(BackupRetentionDays, 0, 3650).ToString()).ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.UpdatePath, UpdatePath).ConfigureAwait(true);
 
             await _settings.SetAsync(SettingsKeys.DateFormat, DateFormat).ConfigureAwait(true);
