@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Vehistra.Application.Abstractions;
+using Vehistra.Domain.Exceptions;
+using Vehistra.Domain.Security;
 
 namespace Vehistra.IntegrationTests;
 
@@ -175,18 +177,35 @@ public class UpdateDetectionTests : IDisposable
     }
 
     [Fact]
-    public async Task Eine_richtige_Pruefsumme_wird_bestaetigt()
+    public async Task Eine_richtige_Pruefsumme_aus_dem_Manifest_wird_bestaetigt()
     {
         await using var database = await CreateAsync("1.0.0");
         var installer = PublishRelease("1.1.0");
 
-        var checksumFile = Path.Combine(_updateDirectory, "checksums.sha256");
-        File.WriteAllText(checksumFile, $"{Checksum(installer)}  1.1.0/Vehistra-Update.exe\n");
+        var pruefung = await database.Service<IUpdateService>()
+            .VerifyInstallerAsync(installer, Checksum(installer), Token);
 
-        var ok = await database.Service<IUpdateService>()
-            .VerifyChecksumAsync(installer, checksumFile, Token);
+        pruefung.IsValid.ShouldBeTrue(pruefung.Message);
+        pruefung.Source.ShouldBe(ChecksumSource.Manifest);
+        pruefung.Actual.ShouldBe(Checksum(installer));
+    }
 
-        ok.ShouldBeTrue();
+    [Fact]
+    public async Task Ohne_Angabe_im_Manifest_wird_die_Pruefsummendatei_verwendet()
+    {
+        await using var database = await CreateAsync("1.0.0");
+        var installer = PublishRelease("1.1.0");
+
+        // So legt CreateRelease.ps1 die Datei ab: neben dem Paket.
+        File.WriteAllText(
+            Path.Combine(Path.GetDirectoryName(installer)!, "checksums.sha256"),
+            $"{Checksum(installer)}  Vehistra-Update.exe\n");
+
+        var pruefung = await database.Service<IUpdateService>()
+            .VerifyInstallerAsync(installer, null, Token);
+
+        pruefung.IsValid.ShouldBeTrue(pruefung.Message);
+        pruefung.Source.ShouldBe(ChecksumSource.Pruefsummendatei);
     }
 
     [Fact]
@@ -195,14 +214,100 @@ public class UpdateDetectionTests : IDisposable
         await using var database = await CreateAsync("1.0.0");
         var installer = PublishRelease("1.1.0");
 
-        var checksumFile = Path.Combine(_updateDirectory, "checksums.sha256");
-        File.WriteAllText(checksumFile,
-            $"{new string('a', 64)}  1.1.0/Vehistra-Update.exe\n");
+        var pruefung = await database.Service<IUpdateService>()
+            .VerifyInstallerAsync(installer, new string('a', 64), Token);
 
-        var ok = await database.Service<IUpdateService>()
-            .VerifyChecksumAsync(installer, checksumFile, Token);
+        pruefung.IsValid.ShouldBeFalse();
+        pruefung.Message.ShouldContain("stimmt nicht");
 
-        ok.ShouldBeFalse();
+        // Die Meldung muss beide Werte nennen, sonst kann niemand nachsehen.
+        pruefung.Message.ShouldContain(Checksum(installer));
+    }
+
+    [Fact]
+    public async Task Ein_nachtraeglich_veraendertes_Paket_wird_erkannt()
+    {
+        await using var database = await CreateAsync("1.0.0");
+        var installer = PublishRelease("1.1.0");
+        var service = database.Service<IUpdateService>();
+
+        var ergebnis = await service.CheckForUpdateAsync(_updateDirectory, Token);
+        ergebnis.IsUpdateAvailable.ShouldBeTrue();
+
+        // Jemand tauscht das Paket aus, nachdem das Manifest geschrieben wurde.
+        await File.WriteAllTextAsync(installer, "etwas ganz anderes", Token);
+
+        var pruefung = await service
+            .VerifyInstallerAsync(installer, ergebnis.Manifest!.Checksum, Token);
+
+        pruefung.IsValid.ShouldBeFalse("Ein veraendertes Paket darf nicht als in Ordnung gelten.");
+    }
+
+    [Fact]
+    public async Task Ohne_jede_Pruefsumme_gilt_das_Paket_als_ungeprueft()
+    {
+        await using var database = await CreateAsync("1.0.0");
+        var installer = PublishRelease("1.1.0");
+
+        var pruefung = await database.Service<IUpdateService>()
+            .VerifyInstallerAsync(installer, null, Token);
+
+        pruefung.IsValid.ShouldBeFalse("Ungeprueft heisst abgelehnt.");
+        pruefung.Source.ShouldBe(ChecksumSource.Keine);
+        pruefung.Message.ShouldContain("keine Pruefsumme");
+
+        // Damit der Verwalter die Angabe nachtragen kann, nennt die Meldung sie.
+        pruefung.Message.ShouldContain(Checksum(installer));
+    }
+
+    [Fact]
+    public async Task Ein_fehlendes_Paket_wird_gemeldet()
+    {
+        await using var database = await CreateAsync("1.0.0");
+
+        var pruefung = await database.Service<IUpdateService>()
+            .VerifyInstallerAsync(Path.Combine(_updateDirectory, "gibtsnicht.exe"), null, Token);
+
+        pruefung.IsValid.ShouldBeFalse();
+        pruefung.Message.ShouldContain("nicht gefunden");
+    }
+
+    [Fact]
+    public async Task Der_Updater_wird_bei_falscher_Pruefsumme_nicht_gestartet()
+    {
+        await using var database = await CreateAsync("1.0.0");
+        database.SignInAsAdministrator();
+
+        var installer = PublishRelease("1.1.0");
+
+        // Der Aufrufer koennte die Pruefung vergessen - deshalb sitzt sie im
+        // Dienst. Gestartet wird hier nichts, die Ausnahme kommt vor dem Start.
+        var fehler = await Should.ThrowAsync<BusinessRuleException>(() =>
+            database.Service<IUpdateService>().LaunchUpdaterAsync(new UpdateLaunchRequest
+            {
+                InstallerPath = installer,
+                TargetVersion = "1.1.0",
+                ExpectedChecksum = new string('b', 64)
+            }, Token));
+
+        fehler.Message.ShouldContain("stimmt nicht");
+    }
+
+    [Fact]
+    public async Task Ohne_Recht_zur_Updateverwaltung_startet_der_Updater_nicht()
+    {
+        await using var database = await CreateAsync("1.0.0");
+        database.SignInWith(Permissions.VehicleView);
+
+        var installer = PublishRelease("1.1.0");
+
+        await Should.ThrowAsync<PermissionDeniedException>(() =>
+            database.Service<IUpdateService>().LaunchUpdaterAsync(new UpdateLaunchRequest
+            {
+                InstallerPath = installer,
+                TargetVersion = "1.1.0",
+                ExpectedChecksum = Checksum(installer)
+            }, Token));
     }
 
     [Fact]

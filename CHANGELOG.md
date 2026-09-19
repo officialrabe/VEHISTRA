@@ -6,6 +6,34 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.1.1
+
+Behoben
+- **Die Prüfsumme des Updatepakets wurde nie geprüft.** Die Prüfung war
+  vorhanden und getestet, `latest.json` trägt den Wert, und die Anleitung sagte
+  zu, dass geprüft wird – aufgerufen hat die Prüfung niemand. Damit lief eine
+  `Vehistra-Update.exe` aus der Updateablage ungeprüft mit
+  Administratorrechten. Jetzt prüft der Updatedienst selbst, unmittelbar vor dem
+  Start, und startet bei einer Abweichung nichts.
+  - Erwartet wird der Wert aus `latest.json`; fehlt er, wird
+    `checksums.sha256` neben dem Paket herangezogen.
+  - Gibt es keinen von beiden, gilt das Paket als ungeprüft und wird ebenfalls
+    nicht gestartet. Die Meldung nennt die tatsächliche Prüfsumme zum
+    Nachtragen.
+  - Die Prüfung sitzt im Dienst, nicht in der Oberfläche – so kann sie kein
+    Aufrufer übergehen.
+  - Unter „Updates" steht das Ergebnis schon vor dem Klick auf „Installieren",
+    mit Text und nicht nur über die Farbe.
+
+  Was die Prüfsumme leistet und was nicht, steht jetzt auch in der Anleitung:
+  sie erkennt ein unvollständig kopiertes oder verändertes Paket, schützt aber
+  nicht gegen jemanden, der auf die Updateablage schreiben darf. Dagegen hilft
+  die Codesignatur und ein Updateordner, in den nur Administratoren schreiben.
+
+Geprüft
+- Sieben Tests für die Prüfsummenprüfung, darunter das nachträglich vertauschte
+  Paket und der Nachweis, dass der Updater bei einer Abweichung nicht startet.
+
 ## 1.1.0
 
 Behoben
