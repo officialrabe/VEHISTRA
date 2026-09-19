@@ -288,15 +288,120 @@ public sealed class DamageService : IDamageService
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<DamageCategory>> GetCategoriesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<DamageCategory>> GetCategoriesAsync(
+        bool includeInactive = false,
+        CancellationToken cancellationToken = default)
     {
-        return await _db.DamageCategories
-            .AsNoTracking()
-            .Where(c => c.IsActive)
+        var query = _db.DamageCategories.AsNoTracking();
+
+        if (!includeInactive)
+        {
+            query = query.Where(c => c.IsActive);
+        }
+
+        return await query
             .OrderBy(c => c.SortOrder)
             .ThenBy(c => c.Name)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    public async Task<DamageCategory> CreateCategoryAsync(
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        name = Guard.NotEmpty(name, "Name der Schadenskategorie");
+
+        await DemandUniqueCategoryNameAsync(name, null, cancellationToken).ConfigureAwait(false);
+
+        var letzte = await _db.DamageCategories
+            .OrderByDescending(c => c.SortOrder)
+            .Select(c => (int?)c.SortOrder)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var category = new DamageCategory
+        {
+            Name = name,
+            SortOrder = (letzte ?? 0) + 10,
+            IsActive = true,
+            IsSystemCategory = false
+        };
+
+        _db.DamageCategories.Add(category);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        return category;
+    }
+
+    public async Task UpdateCategoryAsync(DamageCategory category, CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        ArgumentNullException.ThrowIfNull(category);
+
+        var gespeichert = await _db.DamageCategories
+            .FirstOrDefaultAsync(c => c.Id == category.Id, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new EntityNotFoundException("Schadenskategorie", category.Id);
+
+        var name = Guard.NotEmpty(category.Name, "Name der Schadenskategorie");
+
+        // Mitgelieferte Kategorien behalten ihren Namen: die Schadensmeldung aus
+        // einem Unfall sucht ihre Kategorie ueber den Namen "Unfall". Wird der
+        // geaendert, entstehen Unfallschaeden stillschweigend ohne Kategorie.
+        Guard.That(!gespeichert.IsSystemCategory || name == gespeichert.Name,
+            $"Die mitgelieferte Kategorie „{gespeichert.Name}“ kann nicht umbenannt werden, " +
+            "weil das Programm sie über ihren Namen findet. " +
+            "Sie können sie stilllegen und eine eigene anlegen.");
+
+        await DemandUniqueCategoryNameAsync(name, category.Id, cancellationToken).ConfigureAwait(false);
+
+        gespeichert.Name = name;
+        gespeichert.Description = category.Description;
+        gespeichert.SortOrder = category.SortOrder;
+        gespeichert.IsActive = category.IsActive;
+
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task DeleteCategoryAsync(int categoryId, CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        var category = await _db.DamageCategories
+            .FirstOrDefaultAsync(c => c.Id == categoryId, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new EntityNotFoundException("Schadenskategorie", categoryId);
+
+        Guard.That(!category.IsSystemCategory,
+            $"Die mitgelieferte Kategorie „{category.Name}“ kann nicht gelöscht werden. " +
+            "Sie können sie aber stilllegen, dann erscheint sie nicht mehr zur Auswahl.");
+
+        var schaeden = await _db.DamageReports
+            .CountAsync(d => d.DamageCategoryId == categoryId, cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(schaeden == 0,
+            $"Die Kategorie „{category.Name}“ ist noch {schaeden} Schadensmeldung(en) zugeordnet. " +
+            "Schadensmeldungen werden nicht verändert; bitte die Kategorie stilllegen.");
+
+        _db.DamageCategories.Remove(category);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task DemandUniqueCategoryNameAsync(
+        string name,
+        int? exceptId,
+        CancellationToken cancellationToken)
+    {
+        var vorhanden = await _db.DamageCategories
+            .AnyAsync(c => c.Id != exceptId && c.Name.ToLower() == name.ToLower(), cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(!vorhanden, $"Die Schadenskategorie „{name}“ ist bereits vorhanden.");
     }
 
     public async Task<IReadOnlyList<DamageReport>> GetOpenForVehicleAsync(

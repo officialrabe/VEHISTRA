@@ -96,6 +96,12 @@ public sealed partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private VehicleCategory? _selectedCategory;
 
+    [ObservableProperty]
+    private DamageCategory? _selectedDamageCategory;
+
+    [ObservableProperty]
+    private VehicleStatus? _selectedStatus;
+
     public SettingsViewModel(
         ISettingsService settings,
         IVehicleService vehicles,
@@ -184,13 +190,13 @@ public sealed partial class SettingsViewModel : ViewModelBase
             }
 
             DamageCategories.Clear();
-            foreach (var category in await _damages.GetCategoriesAsync(cancellationToken).ConfigureAwait(true))
+            foreach (var category in await _damages.GetCategoriesAsync(true, cancellationToken).ConfigureAwait(true))
             {
                 DamageCategories.Add(category);
             }
 
             Statuses.Clear();
-            foreach (var status in await _vehicles.GetStatusesAsync(cancellationToken).ConfigureAwait(true))
+            foreach (var status in await _vehicles.GetStatusesAsync(true, cancellationToken).ConfigureAwait(true))
             {
                 Statuses.Add(status);
             }
@@ -368,6 +374,252 @@ public sealed partial class SettingsViewModel : ViewModelBase
             await LoadAsync().ConfigureAwait(true);
         }, $"Der Einsatzbereich „{category.Name}“ wurde gelöscht.").ConfigureAwait(true);
     }
+
+    // ----- Schadenskategorien -------------------------------------------------
+
+    [RelayCommand]
+    private async Task CreateDamageCategoryAsync()
+    {
+        var name = _dialogs.Prompt(
+            "Name der Schadenskategorie, zum Beispiel „Hagelschaden“ oder „Vandalismus“.",
+            "Neue Schadenskategorie");
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _damages.CreateCategoryAsync(name).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, $"Die Schadenskategorie „{name.Trim()}“ wurde angelegt.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task RenameDamageCategoryAsync()
+    {
+        if (SelectedDamageCategory is null)
+        {
+            return;
+        }
+
+        var category = SelectedDamageCategory;
+
+        if (category.IsSystemCategory)
+        {
+            // Der Dienst weist das ohnehin ab; hier erklaert es sich ohne Fehlermeldung.
+            _dialogs.ShowInformation(
+                $"Die mitgelieferte Kategorie „{category.Name}“ kann nicht umbenannt werden, " +
+                "weil das Programm sie über ihren Namen findet." + Environment.NewLine + Environment.NewLine +
+                "Sie können sie stilllegen und eine eigene Kategorie anlegen.",
+                "Mitgelieferte Kategorie");
+            return;
+        }
+
+        var name = _dialogs.Prompt("Neuer Name der Schadenskategorie", "Umbenennen", category.Name);
+
+        if (string.IsNullOrWhiteSpace(name) || name.Trim() == category.Name)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            category.Name = name;
+            await _damages.UpdateCategoryAsync(category).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, "Die Schadenskategorie wurde umbenannt.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task ToggleDamageCategoryAsync()
+    {
+        if (SelectedDamageCategory is null)
+        {
+            return;
+        }
+
+        var category = SelectedDamageCategory;
+        var einschalten = !category.IsActive;
+
+        await RunAsync(async () =>
+        {
+            category.IsActive = einschalten;
+            await _damages.UpdateCategoryAsync(category).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, einschalten
+            ? $"Die Kategorie „{category.Name}“ steht wieder zur Auswahl."
+            : $"Die Kategorie „{category.Name}“ ist stillgelegt. Bereits erfasste Schäden behalten sie.")
+            .ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task DeleteDamageCategoryAsync()
+    {
+        if (SelectedDamageCategory is null)
+        {
+            return;
+        }
+
+        var category = SelectedDamageCategory;
+
+        if (!_dialogs.Confirm(
+                $"Soll die Schadenskategorie „{category.Name}“ endgültig gelöscht werden?" +
+                Environment.NewLine + Environment.NewLine +
+                "Ist sie noch einer Schadensmeldung zugeordnet, bleibt sie erhalten. " +
+                "Zum Ausblenden genügt „Stilllegen“.",
+                "Schadenskategorie löschen"))
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _damages.DeleteCategoryAsync(category.Id).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, $"Die Schadenskategorie „{category.Name}“ wurde gelöscht.").ConfigureAwait(true);
+    }
+
+    // ----- Fahrzeugstatus -----------------------------------------------------
+
+    [RelayCommand]
+    private async Task CreateStatusAsync()
+    {
+        var name = _dialogs.Prompt(
+            "Name des Status, zum Beispiel „Verleih“ oder „Saisonpause“." + Environment.NewLine +
+            "Ob Fahrzeuge in diesem Status als einsatzbereit oder verfügbar zählen, " +
+            "legen Sie anschließend über die Schaltflächen fest.",
+            "Neuer Fahrzeugstatus");
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _vehicles.CreateStatusAsync(name).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, $"Der Status „{name.Trim()}“ wurde angelegt.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task RenameStatusAsync()
+    {
+        if (SelectedStatus is null)
+        {
+            return;
+        }
+
+        var status = SelectedStatus;
+        var name = _dialogs.Prompt("Neuer Name des Status", "Umbenennen", status.Name);
+
+        if (string.IsNullOrWhiteSpace(name) || name.Trim() == status.Name)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            status.Name = name;
+            await _vehicles.UpdateStatusAsync(status).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, "Der Status wurde umbenannt. Die zugehörigen Abläufe bleiben unverändert.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task ToggleStatusAsync()
+    {
+        if (SelectedStatus is null)
+        {
+            return;
+        }
+
+        var status = SelectedStatus;
+        var einschalten = !status.IsActive;
+
+        await RunAsync(async () =>
+        {
+            status.IsActive = einschalten;
+            await _vehicles.UpdateStatusAsync(status).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, einschalten
+            ? $"Der Status „{status.Name}“ steht wieder zur Auswahl."
+            : $"Der Status „{status.Name}“ ist stillgelegt. Fahrzeuge mit diesem Status behalten ihn.")
+            .ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task ToggleStatusOperationalAsync()
+    {
+        if (SelectedStatus is null)
+        {
+            return;
+        }
+
+        var status = SelectedStatus;
+        status.CountsAsOperational = !status.CountsAsOperational;
+
+        await RunAsync(async () =>
+        {
+            await _vehicles.UpdateStatusAsync(status).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, status.CountsAsOperational
+            ? $"Fahrzeuge im Status „{status.Name}“ zählen jetzt als einsatzbereit."
+            : $"Fahrzeuge im Status „{status.Name}“ zählen nicht mehr als einsatzbereit.")
+            .ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task ToggleStatusAvailableAsync()
+    {
+        if (SelectedStatus is null)
+        {
+            return;
+        }
+
+        var status = SelectedStatus;
+        status.CountsAsAvailable = !status.CountsAsAvailable;
+
+        await RunAsync(async () =>
+        {
+            await _vehicles.UpdateStatusAsync(status).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, status.CountsAsAvailable
+            ? $"Fahrzeuge im Status „{status.Name}“ zählen jetzt als verfügbar."
+            : $"Fahrzeuge im Status „{status.Name}“ zählen nicht mehr als verfügbar.")
+            .ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task DeleteStatusAsync()
+    {
+        if (SelectedStatus is null)
+        {
+            return;
+        }
+
+        var status = SelectedStatus;
+
+        if (!_dialogs.Confirm(
+                $"Soll der Fahrzeugstatus „{status.Name}“ endgültig gelöscht werden?" +
+                Environment.NewLine + Environment.NewLine +
+                "Mitgelieferte Status und solche, die noch an Fahrzeugen oder in der Statushistorie " +
+                "vorkommen, bleiben erhalten. Zum Ausblenden genügt „Stilllegen“.",
+                "Fahrzeugstatus löschen"))
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _vehicles.DeleteStatusAsync(status.Id).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, $"Der Status „{status.Name}“ wurde gelöscht.").ConfigureAwait(true);
+    }
+
+    // ----- Werkstätten --------------------------------------------------------
 
     [RelayCommand]
     private async Task CreateWorkshopAsync()
