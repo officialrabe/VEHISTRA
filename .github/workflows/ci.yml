@@ -36,6 +36,12 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
 
+    # Schreibrecht ausschliesslich fuer den Zweig "bildschirmfotos" weiter
+    # unten. Bei einem Pull Request aus einer Fremdkopie gibt GitHub ohnehin
+    # nur ein Lesetoken aus.
+    permissions:
+      contents: write
+
     steps:
       - name: Quellcode auschecken
         uses: actions/checkout@v4
@@ -176,6 +182,43 @@ jobs:
           }
 
           $bilder | ForEach-Object { "{0,10:N0} KB  {1}" -f ($_.Length / 1KB), $_.Name }
+
+      # Die Bilder zusaetzlich auf einen eigenen Zweig legen. Das Artefakt
+      # laeuft nach 30 Tagen ab und braucht zum Herunterladen eine Anmeldung;
+      # der Zweig gibt feste Adressen, die sich auf einer Webseite einbinden
+      # lassen. Ein eigener Zweig, damit die Bilder nicht in der Geschichte von
+      # main liegen - jeder Lauf ersetzt ihn vollstaendig.
+      - name: Bildschirmfotos auf den Zweig "bildschirmfotos" legen
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          $ordner = "$env:RUNNER_TEMP/bildschirmfotos"
+          New-Item -ItemType Directory -Path $ordner -Force | Out-Null
+          Copy-Item artifacts/screenshots/*.png $ordner
+
+          @"
+          # Bildschirmfotos
+
+          Erzeugt von der CI aus den echten Ansichten (tools/Vehistra.Screenshots),
+          Stand $(Get-Date -Format 'dd.MM.yyyy'), Version $env:VERSION, 3200x2000.
+
+          Dieser Zweig wird bei jedem Lauf vollstaendig ersetzt.
+          "@ | Set-Content "$ordner/README.md" -Encoding utf8
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git checkout --orphan bildschirmfotos
+          git rm -rf --cached . --quiet
+          Get-ChildItem -Force -Exclude '.git' | Remove-Item -Recurse -Force
+
+          Copy-Item "$ordner/*" . -Recurse
+
+          git add .
+          git commit -m "Bildschirmfotos $env:VERSION ($(Get-Date -Format 'yyyy-MM-dd'))" --quiet
+          git push --force origin bildschirmfotos
+
+          Write-Host "Zweig 'bildschirmfotos' aktualisiert."
 
       - name: Bildschirmfotos als Artefakt ablegen
         uses: actions/upload-artifact@v4
