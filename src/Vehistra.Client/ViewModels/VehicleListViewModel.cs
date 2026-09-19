@@ -103,7 +103,7 @@ public sealed partial class VehicleListViewModel : ViewModelBase
                     Statuses.Add(status);
                 }
 
-                foreach (var category in await _vehicles.GetCategoriesAsync(cancellationToken).ConfigureAwait(true))
+                foreach (var category in await _vehicles.GetCategoriesAsync(false, cancellationToken).ConfigureAwait(true))
                 {
                     Categories.Add(category);
                 }

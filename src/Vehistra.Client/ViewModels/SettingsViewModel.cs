@@ -93,6 +93,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
     [ObservableProperty]
     private Workshop? _selectedWorkshop;
 
+    [ObservableProperty]
+    private VehicleCategory? _selectedCategory;
+
     public SettingsViewModel(
         ISettingsService settings,
         IVehicleService vehicles,
@@ -175,7 +178,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 .GetAsync(SettingsKeys.AccidentReportNotice, cancellationToken).ConfigureAwait(true);
 
             Categories.Clear();
-            foreach (var category in await _vehicles.GetCategoriesAsync(cancellationToken).ConfigureAwait(true))
+            foreach (var category in await _vehicles.GetCategoriesAsync(true, cancellationToken).ConfigureAwait(true))
             {
                 Categories.Add(category);
             }
@@ -273,6 +276,98 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     [RelayCommand]
     private void BrowseUpdates() => UpdatePath = _dialogs.SelectFolder("Updateablage auswählen") ?? UpdatePath;
+
+    [RelayCommand]
+    private async Task CreateCategoryAsync()
+    {
+        var name = _dialogs.Prompt(
+            "Name des Einsatzbereichs, zum Beispiel „Winterdienst“ oder „Werkstattwagen“.",
+            "Neuer Einsatzbereich");
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _vehicles.CreateCategoryAsync(name).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, $"Der Einsatzbereich „{name.Trim()}“ wurde angelegt.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task RenameCategoryAsync()
+    {
+        if (SelectedCategory is null)
+        {
+            return;
+        }
+
+        var category = SelectedCategory;
+        var name = _dialogs.Prompt("Neuer Name des Einsatzbereichs", "Umbenennen", category.Name);
+
+        if (string.IsNullOrWhiteSpace(name) || name.Trim() == category.Name)
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            category.Name = name;
+            await _vehicles.UpdateCategoryAsync(category).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, "Der Einsatzbereich wurde umbenannt.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task ToggleCategoryAsync()
+    {
+        if (SelectedCategory is null)
+        {
+            return;
+        }
+
+        var category = SelectedCategory;
+        var einschalten = !category.IsActive;
+
+        await RunAsync(async () =>
+        {
+            category.IsActive = einschalten;
+            await _vehicles.UpdateCategoryAsync(category).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, einschalten
+            ? $"Der Einsatzbereich „{category.Name}“ steht wieder zur Auswahl."
+            : $"Der Einsatzbereich „{category.Name}“ ist stillgelegt und erscheint nicht mehr zur Auswahl. " +
+              "Bereits zugeordnete Fahrzeuge behalten ihn.").ConfigureAwait(true);
+    }
+
+    [RelayCommand]
+    private async Task DeleteCategoryAsync()
+    {
+        if (SelectedCategory is null)
+        {
+            return;
+        }
+
+        var category = SelectedCategory;
+
+        if (!_dialogs.Confirm(
+                $"Soll der Einsatzbereich „{category.Name}“ endgültig gelöscht werden?" +
+                Environment.NewLine + Environment.NewLine +
+                "Ist er noch einem Fahrzeug oder einer Wartungsregel zugeordnet, bleibt er erhalten. " +
+                "Zum Ausblenden genügt „Stilllegen“.",
+                "Einsatzbereich löschen"))
+        {
+            return;
+        }
+
+        await RunAsync(async () =>
+        {
+            await _vehicles.DeleteCategoryAsync(category.Id).ConfigureAwait(true);
+            await LoadAsync().ConfigureAwait(true);
+        }, $"Der Einsatzbereich „{category.Name}“ wurde gelöscht.").ConfigureAwait(true);
+    }
 
     [RelayCommand]
     private async Task CreateWorkshopAsync()

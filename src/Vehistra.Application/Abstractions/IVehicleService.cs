@@ -29,7 +29,30 @@ public interface IVehicleService
 
     Task<IReadOnlyList<VehicleStatus>> GetStatusesAsync(CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<VehicleCategory>> GetCategoriesAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Einsatzbereiche (Fahrzeugkategorien). Standardmaessig nur die aktiven;
+    /// die Stammdatenverwaltung braucht auch die stillgelegten, sonst liesse
+    /// sich eine deaktivierte Kategorie nicht wieder einschalten.
+    /// </summary>
+    Task<IReadOnlyList<VehicleCategory>> GetCategoriesAsync(
+        bool includeInactive = false,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Legt einen eigenen Einsatzbereich an.</summary>
+    Task<VehicleCategory> CreateCategoryAsync(
+        string name,
+        string? colorHex = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Aendert Name, Farbe, Reihenfolge oder Zustand eines Einsatzbereichs.</summary>
+    Task UpdateCategoryAsync(VehicleCategory category, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Loescht einen selbst angelegten Einsatzbereich. Mitgelieferte Bereiche und
+    /// solche, die noch an Fahrzeugen oder Wartungsregeln haengen, bleiben
+    /// erhalten - sie lassen sich stattdessen stilllegen.
+    /// </summary>
+    Task DeleteCategoryAsync(int categoryId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<int>> GetCategoryIdsAsync(int vehicleId, CancellationToken cancellationToken = default);
 

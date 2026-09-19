@@ -6,6 +6,37 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.1.0
+
+Behoben
+- **Listen zeigten Änderungen erst nach „Aktualisieren".** Sehr viele Befehle
+  erledigen ihre Arbeit und laden danach die Liste neu – und dieses Neuladen
+  lief in dieselbe Sperre, die Doppelklicks abfängt. Die innere Arbeit wurde
+  dabei stillschweigend verworfen. Betroffen waren 19 Stellen in 15 Ansichten,
+  unter anderem: die Fahrzeugliste beim Öffnen, Fahrer aktivieren und
+  deaktivieren, Schaden schließen, Unfall schließen, Benutzer deaktivieren,
+  Passwort zurücksetzen, Dokument archivieren, Kennzeichen freigeben,
+  Wartungsregel löschen, Rolle löschen, Werkstatt anlegen, Backup erstellen,
+  Werkstattvorgang umstellen, Ausmusterung zurücknehmen und die Updateprüfung.
+  Der Schutz gegen Doppelklicks bleibt bestehen.
+
+Neu
+- **Eigene Fahrzeugkategorien** (Einsatzbereiche) lassen sich unter
+  „Einstellungen" anlegen, umbenennen, stilllegen und löschen. Die
+  mitgelieferten Bereiche (Taxi, Personenbeförderung, Kurier …) passen nicht zu
+  jedem Fuhrpark; bisher waren sie die einzige Auswahl.
+  - Mitgelieferte Bereiche lassen sich stilllegen, aber nicht löschen.
+  - Gelöscht wird nur, was nirgends verwendet wird; sonst erklärt das Programm,
+    woran es hängt.
+  - Ein stillgelegter Bereich verschwindet aus der Auswahl, bleibt aber an
+    bereits zugeordneten Fahrzeugen erhalten und lässt sich wieder einschalten.
+
+Geprüft
+- Zehn neue Tests für die Kategorieverwaltung (Anlegen, doppelte Namen,
+  Umbenennen, Stilllegen, Löschen, Rechteprüfung).
+- Neues Testprojekt für die Ansichtsmodelle des Arbeitsplatzprogramms, das den
+  Verschachtelungsfehler festnagelt. Es läuft nur unter Windows, also in der CI.
+
 ## 1.0.0
 
 Erste vollständige Fassung. Sie wird als Beta veröffentlicht: vollständig und
