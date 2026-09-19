@@ -36,6 +36,13 @@ Behoben
   unterscheiden. Betroffen waren unter anderem „Bearbeiten“, „Löschen“,
   „Status ändern“, „Bericht drucken“, „Kilometerstand erfassen“ und die elf
   Befehle der Stammdatenkataloge.
+- **Falsches Deutsch bei Aufzählungswerten.** Am Bildschirm stand „Wartet auf
+  teile“, „Verfuegbar“, „Bald faellig“ und im Protokoll „Login failed“ – der
+  Bezeichner wurde maschinell getrennt und kleingeschrieben. Jeder Wert trägt
+  jetzt seine Beschriftung, und dieselbe steht auch in Excel, CSV und PDF: dort
+  stand bisher der blanke Bezeichner. Ebenso in den Hinweisen des Überblicks
+  („TUEV … faellig“) und in der Kopfzeile der Fahrzeugakte („1 offene Schäden“
+  statt „1 offener Schaden“).
 - **Berichte melden, wo die Datei liegt.** Ein Bericht öffnet sich in einem
   anderen Programm; blieb das aus, stand nirgends, wohin er gespeichert wurde.
 

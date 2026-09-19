@@ -74,8 +74,16 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
 
     public override string Title => "Werkstatt";
 
-    public override string? Subtitle =>
-        $"{Orders.Count} Vorgänge · {Orders.Count(o => o.DaysInWorkshop is not null)} Fahrzeuge abgegeben";
+    public override string? Subtitle
+    {
+        get
+        {
+            var abgegeben = Orders.Count(o => o.DaysInWorkshop is not null);
+
+            return $"{(Orders.Count == 1 ? "1 Vorgang" : $"{Orders.Count} Vorgänge")} · " +
+                   $"{(abgegeben == 1 ? "1 Fahrzeug" : $"{abgegeben} Fahrzeuge")} abgegeben";
+        }
+    }
 
     public ObservableCollection<WorkshopOrderListItem> Orders { get; } = [];
 

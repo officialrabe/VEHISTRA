@@ -224,8 +224,8 @@ public sealed class ExportService : IExportService
                     data.Select(v => (IReadOnlyList<string?>)
                     [
                         v.InternalNumber, v.LicensePlate, v.Vin, v.Manufacturer, v.Model, v.Variant,
-                        v.BuildYear?.ToString(), Format(v.FirstRegistration), v.FuelType.ToString(),
-                        v.Transmission.ToString(), v.PowerKw?.ToString(), v.Color, v.Seats?.ToString(),
+                        v.BuildYear?.ToString(), Format(v.FirstRegistration), EnumText.Of(v.FuelType),
+                        EnumText.Of(v.Transmission), v.PowerKw?.ToString(), v.Color, v.Seats?.ToString(),
                         v.CurrentMileage.ToString("N0", German), v.Hsn, v.Tsn, Format(v.NextInspectionDue),
                         v.Status, v.Driver, v.Categories, YesNo(v.IsRegistered), YesNo(v.IsRetired)
                     ]).ToList());
@@ -268,8 +268,8 @@ public sealed class ExportService : IExportService
                      "Kilometerstand", "Kosten", "Mängel"],
                     data.Select(i => (IReadOnlyList<string?>)
                     [
-                        i.Vehicle, i.Type.ToString(), Format(i.InspectionDate), Format(i.NextDueDate),
-                        i.Result.ToString(), i.TestCenter, i.Mileage?.ToString("N0", German),
+                        i.Vehicle, EnumText.Of(i.Type), Format(i.InspectionDate), Format(i.NextDueDate),
+                        EnumText.Of(i.Result), i.TestCenter, i.Mileage?.ToString("N0", German),
                         i.Cost?.ToString("N2", German), i.Defects
                     ]).ToList());
             }
@@ -319,7 +319,7 @@ public sealed class ExportService : IExportService
                     data.Select(d => (IReadOnlyList<string?>)
                     [
                         d.DamageNumber, d.Vehicle, d.Driver, Format(d.OccurredAt), d.Description, d.Category,
-                        d.Priority.ToString(), d.Status.ToString(), YesNo(d.IsDriveable),
+                        EnumText.Of(d.Priority), EnumText.Of(d.Status), YesNo(d.IsDriveable),
                         d.CostActual?.ToString("N2", German), YesNo(d.IsInsuranceCase), Format(d.RepairedAt)
                     ]).ToList());
             }
@@ -343,7 +343,7 @@ public sealed class ExportService : IExportService
                      "Personenschaden", "Polizei", "Tagebuchnummer", "Fahrbereit", "Abgeschlossen am"],
                     data.Select(a => (IReadOnlyList<string?>)
                     [
-                        a.AccidentNumber, a.Vehicle, a.Driver, Format(a.OccurredAt), a.Location, a.Type.ToString(),
+                        a.AccidentNumber, a.Vehicle, a.Driver, Format(a.OccurredAt), a.Location, EnumText.Of(a.Type),
                         YesNo(a.ThirdPartyInvolved), YesNo(a.PersonalInjury), YesNo(a.PoliceInvolved),
                         a.PoliceFileNumber, YesNo(a.VehicleDriveable), Format(a.ClosedAt)
                     ]).ToList());
@@ -369,7 +369,7 @@ public sealed class ExportService : IExportService
                     data.Select(w => (IReadOnlyList<string?>)
                     [
                         w.OrderNumber, w.Vehicle, w.Workshop, Format(w.CreatedOn), Format(w.AppointmentDate),
-                        w.Status.ToString(), Format(w.CompletedAt), Format(w.PickedUpAt),
+                        EnumText.Of(w.Status), Format(w.CompletedAt), Format(w.PickedUpAt),
                         w.CostNet?.ToString("N2", German), w.CostGross?.ToString("N2", German),
                         w.InvoiceNumber, w.NextServiceMileage?.ToString("N0", German), w.Reason
                     ]).ToList());
@@ -397,7 +397,7 @@ public sealed class ExportService : IExportService
                      "Reservierungsnummer", "Bemerkung"],
                     data.Select(p => (IReadOnlyList<string?>)
                     [
-                        p.Plate, p.Status.ToString(), p.Vehicle, p.RegistrationOffice,
+                        p.Plate, EnumText.Of(p.Status), p.Vehicle, p.RegistrationOffice,
                         Format(p.ReservedUntil), p.ReservationNumber, p.Comment
                     ]).ToList());
             }

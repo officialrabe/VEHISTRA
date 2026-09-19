@@ -171,8 +171,55 @@ public static class Program
             await oeffnen().ConfigureAwait(true);
             await Warte().ConfigureAwait(true);
 
+            WaehleErsteZeile(navigation.Current);
+            await Warte().ConfigureAwait(true);
+
             Speichere(fenster, Path.Combine(ziel, datei + ".png"));
             Console.WriteLine($"  {datei}.png");
+        }
+    }
+
+    /// <summary>
+    /// Waehlt in einer Liste die erste Zeile aus. Ohne Auswahl sind die
+    /// Schaltflaechen der Werkzeugleiste abgeblendet - auf einem Bild sieht
+    /// das aus, als koenne das Programm nichts.
+    /// </summary>
+    private static void WaehleErsteZeile(object? ansichtsmodell)
+    {
+        if (ansichtsmodell is null)
+        {
+            return;
+        }
+
+        var typ = ansichtsmodell.GetType();
+
+        foreach (var name in new[]
+                 {
+                     "SelectedVehicle", "SelectedOrder", "SelectedItem", "SelectedDamage",
+                     "SelectedAccident", "SelectedDriver", "SelectedPlate"
+                 })
+        {
+            var auswahl = typ.GetProperty(name);
+
+            if (auswahl is null || auswahl.GetValue(ansichtsmodell) is not null)
+            {
+                continue;
+            }
+
+            // Die passende Liste heisst wie die Auswahl, nur im Plural -
+            // "SelectedVehicle" zu "Vehicles". Zur Not wird gesucht.
+            var liste = typ.GetProperties()
+                .Where(e => typeof(System.Collections.IEnumerable).IsAssignableFrom(e.PropertyType))
+                .Select(e => e.GetValue(ansichtsmodell) as System.Collections.IEnumerable)
+                .OfType<System.Collections.IEnumerable>()
+                .SelectMany(e => e.Cast<object>())
+                .FirstOrDefault(eintrag => auswahl.PropertyType.IsInstanceOfType(eintrag));
+
+            if (liste is not null)
+            {
+                auswahl.SetValue(ansichtsmodell, liste);
+                return;
+            }
         }
     }
 

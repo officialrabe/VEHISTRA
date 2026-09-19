@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -129,35 +130,13 @@ public sealed class HexToBrushConverter : IValueConverter
 public sealed class EnumToTextConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        value is null ? string.Empty : Humanize(value.ToString()!);
+        EnumText.Of(value);
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
 
-    /// <summary>Trennt zusammengeschriebene Bezeichner ("WartetAufTeile" -> "Wartet auf Teile").</summary>
-    public static string Humanize(string name)
-    {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return string.Empty;
-        }
-
-        var builder = new System.Text.StringBuilder(name.Length + 8);
-
-        for (var i = 0; i < name.Length; i++)
-        {
-            if (i > 0 && char.IsUpper(name[i]) && !char.IsUpper(name[i - 1]))
-            {
-                builder.Append(' ');
-                builder.Append(char.ToLower(name[i], culture: CultureInfo.GetCultureInfo("de-DE")));
-                continue;
-            }
-
-            builder.Append(name[i]);
-        }
-
-        return builder.ToString();
-    }
+    /// <summary>Beibehalten fuer Aufrufer, die nur einen Bezeichner haben.</summary>
+    public static string Humanize(string name) => EnumText.Trenne(name);
 }
 
 /// <summary>Formatiert Dateigroessen.</summary>

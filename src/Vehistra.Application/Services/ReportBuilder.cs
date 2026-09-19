@@ -291,7 +291,7 @@ public sealed class ReportBuilder : IReportBuilder
                 ("Variante", vehicle.Variant),
                 ("Baujahr", vehicle.BuildYear?.ToString()),
                 ("Erstzulassung", vehicle.FirstRegistration?.ToString("dd.MM.yyyy")),
-                ("Kraftstoff", vehicle.FuelType.ToString()),
+                ("Kraftstoff", EnumText.Of(vehicle.FuelType)),
                 ("Getriebe", vehicle.Transmission.ToString()),
                 ("Leistung", vehicle.PowerKw is null ? null : $"{vehicle.PowerKw} kW"),
                 ("Farbe", vehicle.Color),
@@ -461,7 +461,7 @@ public sealed class ReportBuilder : IReportBuilder
             new[] { "Art", "Prüfdatum", "Nächste Fälligkeit", "Ergebnis", "Prüfstelle", "Kilometerstand" },
             inspections.Select(i => (IReadOnlyList<string?>)
             [
-                i.Type.ToString(), i.InspectionDate.ToString("dd.MM.yyyy"), i.NextDueDate.ToString("dd.MM.yyyy"),
+                EnumText.Of(i.Type), i.InspectionDate.ToString("dd.MM.yyyy"), i.NextDueDate.ToString("dd.MM.yyyy"),
                 i.Result.ToString(), i.TestCenter, i.Mileage?.ToString("N0")
             ]).ToList()));
 
@@ -479,7 +479,7 @@ public sealed class ReportBuilder : IReportBuilder
             damages.Select(d => (IReadOnlyList<string?>)
             [
                 d.DamageNumber, d.OccurredAt.ToString("dd.MM.yyyy"), d.Description,
-                d.Priority.ToString(), d.Status.ToString(), d.CostActual?.ToString("N2")
+                EnumText.Of(d.Priority), EnumText.Of(d.Status), d.CostActual?.ToString("N2")
             ]).ToList()));
 
         var orders = await _db.WorkshopOrders
@@ -500,7 +500,7 @@ public sealed class ReportBuilder : IReportBuilder
             orders.Select(o => (IReadOnlyList<string?>)
             [
                 o.OrderNumber, o.CreatedOn.ToString("dd.MM.yyyy"), o.WorkshopName,
-                o.Status.ToString(), o.CostNet?.ToString("N2"), o.InvoiceNumber
+                EnumText.Of(o.Status), o.CostNet?.ToString("N2"), o.InvoiceNumber
             ]).ToList()));
 
         var drivers = await _db.VehicleDriverAssignments
