@@ -22,6 +22,18 @@ Vehistra is a Windows desktop application for managing a company vehicle fleet
 workshop orders, documents). It stores its data in a database the operator runs
 themselves.
 
+## Third-party components
+
+Every component Vehistra ships or builds with is listed with its licence in
+[`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md). There is no proprietary,
+closed-source component in the product.
+
+One entry needs stating here rather than being left to be found: **QuestPDF**,
+used to generate the PDF reports, is not under a single OSI-approved licence but
+under a Community/Commercial dual licence. Its Community licence explicitly
+covers open-source projects under OSI-approved licences, which is what Vehistra
+is. Everything else is MIT, Apache-2.0, BSD-3-Clause or MS-PL/Apache-2.0.
+
 ## Roles
 
 | Role | Held by | Rights |
@@ -62,6 +74,18 @@ uploaded by hand.
 A release is triggered only by the maintainer, either by pushing a version tag
 or by manually dispatching the release workflow with an explicit version
 number.
+
+## Release status
+
+Version 1.0.0 is released and publicly available at
+https://github.com/officialrabe/VEHISTRA/releases – in exactly the form that
+should be signed. It is marked as a pre-release (Beta): the application is
+complete and tested, but not yet proven in long-term production use.
+
+What the application does is described in
+[`README.md`](README.md), on the release page and in the six end-user guides
+shipped with it (German). The guides are generated from
+[`docs/`](docs/).
 
 ## Artefacts to be signed
 
