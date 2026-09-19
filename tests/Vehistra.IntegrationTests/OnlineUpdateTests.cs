@@ -101,7 +101,7 @@ public class OnlineUpdateTests
         ergebnis.AvailableVersion.ShouldBe("9.9.9");
         ergebnis.InstallerUrl.ShouldBe(PaketAdresse);
         ergebnis.ChecksumUrl.ShouldBe(PruefsummenAdresse);
-        ergebnis.ReleaseNotes.ShouldContain("geändert");
+        ergebnis.ReleaseNotes.ShouldNotBeNull().ShouldContain("geändert");
     }
 
     [Fact]
