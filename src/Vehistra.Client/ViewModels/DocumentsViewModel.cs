@@ -22,6 +22,8 @@ public sealed partial class DocumentsViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ArchiveCommand))]
     private DocumentListItem? _selectedDocument;
 
     [ObservableProperty]
@@ -103,7 +105,10 @@ public sealed partial class DocumentsViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedDocument is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task OpenAsync(DocumentListItem? item)
     {
         var target = item ?? SelectedDocument;
@@ -120,7 +125,7 @@ public sealed partial class DocumentsViewModel : ViewModelBase
         }).ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task ArchiveAsync()
     {
         if (SelectedDocument is null)

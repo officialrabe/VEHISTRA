@@ -106,15 +106,27 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private string? _accidentReportNotice;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ToggleWorkshopCommand))]
     private Workshop? _selectedWorkshop;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCategoryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleCategoryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteCategoryCommand))]
     private VehicleCategory? _selectedCategory;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditDamageCategoryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleDamageCategoryCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteDamageCategoryCommand))]
     private DamageCategory? _selectedDamageCategory;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditStatusCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleStatusCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleStatusOperationalCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleStatusAvailableCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteStatusCommand))]
     private VehicleStatus? _selectedStatus;
 
     public SettingsViewModel(
@@ -344,7 +356,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
         dialog => dialog.InitializeForNew(CatalogKind.Fahrzeugkategorie),
         "Der Einsatzbereich wurde angelegt.");
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatKategorie => SelectedCategory is not null;
+
+    [RelayCommand(CanExecute = nameof(HatKategorie))]
     private Task EditCategoryAsync()
     {
         if (SelectedCategory is null)
@@ -360,7 +375,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             $"Der Einsatzbereich „{category.Name}“ wurde geändert.");
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatKategorie))]
     private async Task ToggleCategoryAsync()
     {
         if (SelectedCategory is null)
@@ -382,7 +397,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
               "Bereits zugeordnete Fahrzeuge behalten ihn.").ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatKategorie))]
     private async Task DeleteCategoryAsync()
     {
         if (SelectedCategory is null)
@@ -464,7 +479,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
         dialog => dialog.InitializeForNew(CatalogKind.Schadenskategorie),
         "Die Schadenskategorie wurde angelegt.");
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatSchadenskategorie => SelectedDamageCategory is not null;
+
+    [RelayCommand(CanExecute = nameof(HatSchadenskategorie))]
     private Task EditDamageCategoryAsync()
     {
         if (SelectedDamageCategory is null)
@@ -480,7 +498,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             $"Die Schadenskategorie „{category.Name}“ wurde geändert.");
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatSchadenskategorie))]
     private async Task ToggleDamageCategoryAsync()
     {
         if (SelectedDamageCategory is null)
@@ -502,7 +520,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             .ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatSchadenskategorie))]
     private async Task DeleteDamageCategoryAsync()
     {
         if (SelectedDamageCategory is null)
@@ -537,7 +555,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
         dialog => dialog.InitializeForNew(CatalogKind.Fahrzeugstatus),
         "Der Fahrzeugstatus wurde angelegt.");
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatStatus => SelectedStatus is not null;
+
+    [RelayCommand(CanExecute = nameof(HatStatus))]
     private Task EditStatusAsync()
     {
         if (SelectedStatus is null)
@@ -553,7 +574,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             $"Der Status „{status.Name}“ wurde geändert. Die zugehörigen Abläufe bleiben unverändert.");
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatStatus))]
     private async Task ToggleStatusAsync()
     {
         if (SelectedStatus is null)
@@ -575,7 +596,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             .ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatStatus))]
     private async Task ToggleStatusOperationalAsync()
     {
         if (SelectedStatus is null)
@@ -596,7 +617,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             .ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatStatus))]
     private async Task ToggleStatusAvailableAsync()
     {
         if (SelectedStatus is null)
@@ -617,7 +638,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             .ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatStatus))]
     private async Task DeleteStatusAsync()
     {
         if (SelectedStatus is null)
@@ -663,7 +684,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
         }, "Die Werkstatt wurde angelegt.").ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatWerkstatt => SelectedWorkshop is not null;
+
+    [RelayCommand(CanExecute = nameof(HatWerkstatt))]
     private async Task ToggleWorkshopAsync()
     {
         if (SelectedWorkshop is null)

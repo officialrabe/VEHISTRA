@@ -23,6 +23,9 @@ public sealed partial class DamageViewModel : ViewModelBase, IAcceptsPreset
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CloseDamageCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenVehicleCommand))]
     private DamageListItem? _selectedDamage;
 
     [ObservableProperty]
@@ -144,7 +147,10 @@ public sealed partial class DamageViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedDamage is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync(DamageListItem? item)
     {
         var target = item ?? SelectedDamage;
@@ -163,7 +169,7 @@ public sealed partial class DamageViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task CloseDamageAsync()
     {
         if (SelectedDamage is null)
@@ -186,7 +192,7 @@ public sealed partial class DamageViewModel : ViewModelBase, IAcceptsPreset
         }, "Der Schaden wurde abgeschlossen.").ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task OpenVehicleAsync()
     {
         if (SelectedDamage is not null)

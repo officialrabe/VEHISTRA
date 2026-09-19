@@ -17,6 +17,8 @@ public sealed partial class RolesViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteCommand))]
     private Role? _selectedRole;
 
     public RolesViewModel(IUserService users, IDialogService dialogs, IServiceProvider services)
@@ -88,7 +90,10 @@ public sealed partial class RolesViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedRole is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync()
     {
         if (SelectedRole is null)
@@ -105,7 +110,7 @@ public sealed partial class RolesViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task DeleteAsync()
     {
         if (SelectedRole is null)

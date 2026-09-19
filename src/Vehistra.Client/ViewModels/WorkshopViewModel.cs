@@ -26,6 +26,9 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PrintReportCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ChangeStatusCommand))]
     private WorkshopOrderListItem? _selectedOrder;
 
     [ObservableProperty]
@@ -154,7 +157,10 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedOrder is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync(WorkshopOrderListItem? item)
     {
         var target = item ?? SelectedOrder;
@@ -173,7 +179,7 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task PrintReportAsync()
     {
         if (SelectedOrder is null)
@@ -230,7 +236,7 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
         _dialogs.ShowError(ErrorMessage ?? "Der Bericht konnte nicht erstellt werden.", null, bezeichnung);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task ChangeStatusAsync(WorkshopOrderStatus status)
     {
         if (SelectedOrder is null)

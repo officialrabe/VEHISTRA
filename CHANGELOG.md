@@ -30,8 +30,12 @@ Behoben
   sah das aus wie eine tote Schaltfläche. Die Fehlerleiste sitzt jetzt im
   Hauptfenster und gilt damit für jede Ansicht, und jede Ausnahme steht im
   Protokoll – und damit auch im Supportpaket.
-- **„Werkstattbericht drucken" und „Unfallbericht drucken" brachen wortlos ab**,
-  wenn in der Liste nichts ausgewählt war. Beide sagen jetzt, was fehlt.
+- **Schaltflächen, die eine Auswahl brauchen, sind jetzt abgeblendet**, solange
+  nichts ausgewählt ist. 45 Befehle in 16 Ansichten kehrten bisher wortlos
+  zurück – für den Anwender nicht von einer kaputten Schaltfläche zu
+  unterscheiden. Betroffen waren unter anderem „Bearbeiten“, „Löschen“,
+  „Status ändern“, „Bericht drucken“, „Kilometerstand erfassen“ und die elf
+  Befehle der Stammdatenkataloge.
 - **Berichte melden, wo die Datei liegt.** Ein Bericht öffnet sich in einem
   anderen Programm; blieb das aus, stand nirgends, wohin er gespeichert wurde.
 

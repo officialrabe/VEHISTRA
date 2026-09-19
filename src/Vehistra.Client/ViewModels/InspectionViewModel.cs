@@ -22,6 +22,8 @@ public sealed partial class InspectionViewModel : ViewModelBase, IAcceptsPreset
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(AddInspectionCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenVehicleCommand))]
     private InspectionListItem? _selectedItem;
 
     [ObservableProperty]
@@ -98,7 +100,7 @@ public sealed partial class InspectionViewModel : ViewModelBase, IAcceptsPreset
 
     partial void OnIncludeRetiredChanged(bool value) => _ = LoadAsync();
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task OpenVehicleAsync(InspectionListItem? item)
     {
         var target = item ?? SelectedItem;
@@ -109,7 +111,10 @@ public sealed partial class InspectionViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedItem is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task AddInspectionAsync()
     {
         if (SelectedItem is null)

@@ -22,6 +22,10 @@ public sealed partial class AccidentViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CloseAccidentCommand))]
+    [NotifyCanExecuteChangedFor(nameof(PrintReportCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenVehicleCommand))]
     private AccidentListItem? _selectedAccident;
 
     [ObservableProperty]
@@ -89,7 +93,10 @@ public sealed partial class AccidentViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedAccident is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync(AccidentListItem? item)
     {
         var target = item ?? SelectedAccident;
@@ -108,7 +115,7 @@ public sealed partial class AccidentViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task CloseAccidentAsync()
     {
         if (SelectedAccident is null)
@@ -130,7 +137,7 @@ public sealed partial class AccidentViewModel : ViewModelBase
         }, "Der Unfall wurde abgeschlossen.").ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task PrintReportAsync()
     {
         if (SelectedAccident is null)
@@ -186,7 +193,7 @@ public sealed partial class AccidentViewModel : ViewModelBase
         _dialogs.ShowError(ErrorMessage ?? "Der Bericht konnte nicht erstellt werden.", null, bezeichnung);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task OpenVehicleAsync()
     {
         if (SelectedAccident is not null)
