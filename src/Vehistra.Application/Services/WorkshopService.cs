@@ -50,6 +50,11 @@ public sealed class WorkshopService : IWorkshopService
             query = query.Where(w => w.WorkshopId == workshopId);
         }
 
+        if (filter.DriverId is { } fahrerId)
+        {
+            query = query.Where(w => w.DriverId == fahrerId);
+        }
+
         if (filter.Status is { } status)
         {
             query = query.Where(w => w.Status == status);

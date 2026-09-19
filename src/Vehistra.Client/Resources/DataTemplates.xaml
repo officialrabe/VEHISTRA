@@ -47,6 +47,10 @@
     <views:DriverView />
   </DataTemplate>
 
+  <DataTemplate DataType="{x:Type vm:DriverDetailViewModel}">
+    <views:DriverDetailView />
+  </DataTemplate>
+
   <DataTemplate DataType="{x:Type vm:InspectionViewModel}">
     <views:InspectionView />
   </DataTemplate>

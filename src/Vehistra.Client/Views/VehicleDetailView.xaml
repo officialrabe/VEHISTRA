@@ -231,18 +231,26 @@
       </TabItem>
 
       <!-- FAHRER -->
-      <TabItem Header="FAHRER">
+      <TabItem Header="{Binding DriverTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
           </Grid.RowDefinitions>
           <Border Style="{StaticResource ToolbarStyle}">
-            <Button Content="Festen Fahrer _zuweisen" HorizontalAlignment="Left"
-                    Command="{Binding AssignDriverCommand}"
-                    Visibility="{Binding CanAssignDriver, Converter={StaticResource BoolToVisibility}}" />
+            <StackPanel Orientation="Horizontal">
+              <Button Content="Festen Fahrer _zuweisen" Command="{Binding AssignDriverCommand}"
+                      Visibility="{Binding CanAssignDriver, Converter={StaticResource BoolToVisibility}}" />
+              <TextBlock Text="Ein Doppelklick auf eine Zeile öffnet die Fahrerakte."
+                         Style="{StaticResource MutedTextStyle}" Margin="12,0,0,0" VerticalAlignment="Center" />
+            </StackPanel>
           </Border>
-          <DataGrid Grid.Row="1" Margin="12" ItemsSource="{Binding DriverAssignments}">
+          <DataGrid x:Name="DriverAssignmentGrid" Grid.Row="1" Margin="12"
+                    ItemsSource="{Binding DriverAssignments}">
+            <DataGrid.InputBindings>
+              <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDriverFileCommand}"
+                            CommandParameter="{Binding SelectedItem, ElementName=DriverAssignmentGrid}" />
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
               <DataGridTextColumn Header="Fahrer" Binding="{Binding Driver.DisplayName}" Width="*" />
               <DataGridTextColumn Header="Von" Binding="{Binding ValidFrom, StringFormat=dd.MM.yyyy}" Width="110" />
@@ -256,7 +264,7 @@
       </TabItem>
 
       <!-- TÜV -->
-      <TabItem Header="TÜV">
+      <TabItem Header="{Binding InspectionTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -289,7 +297,7 @@
       </TabItem>
 
       <!-- WARTUNG -->
-      <TabItem Header="WARTUNG">
+      <TabItem Header="{Binding MaintenanceTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -336,7 +344,7 @@
       </TabItem>
 
       <!-- SCHÄDEN -->
-      <TabItem Header="SCHÄDEN">
+      <TabItem Header="{Binding DamageTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -388,7 +396,7 @@
       </TabItem>
 
       <!-- UNFÄLLE -->
-      <TabItem Header="UNFÄLLE">
+      <TabItem Header="{Binding AccidentTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -422,7 +430,7 @@
       </TabItem>
 
       <!-- WERKSTATT -->
-      <TabItem Header="WERKSTATT">
+      <TabItem Header="{Binding WorkshopTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -466,7 +474,7 @@
       </TabItem>
 
       <!-- DOKUMENTE -->
-      <TabItem Header="DOKUMENTE">
+      <TabItem Header="{Binding DocumentTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -497,7 +505,7 @@
       </TabItem>
 
       <!-- KENNZEICHEN -->
-      <TabItem Header="KENNZEICHEN">
+      <TabItem Header="{Binding PlateTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -547,7 +555,7 @@
       </TabItem>
 
       <!-- KILOMETER -->
-      <TabItem Header="KILOMETER">
+      <TabItem Header="{Binding MileageTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -576,7 +584,7 @@
       </TabItem>
 
       <!-- VERSICHERUNG -->
-      <TabItem Header="VERSICHERUNG">
+      <TabItem Header="{Binding InsuranceTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -608,7 +616,7 @@
       </TabItem>
 
       <!-- SCHLÜSSEL -->
-      <TabItem Header="SCHLÜSSEL">
+      <TabItem Header="{Binding KeyTabHeader}">
         <Grid>
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -639,7 +647,7 @@
       </TabItem>
 
       <!-- HISTORIE -->
-      <TabItem Header="HISTORIE">
+      <TabItem Header="{Binding TimelineTabHeader}">
         <DataGrid Margin="12" ItemsSource="{Binding Timeline}">
           <DataGrid.Columns>
             <DataGridTextColumn Header="Zeitpunkt" Binding="{Binding Timestamp, StringFormat=dd.MM.yyyy HH:mm}"

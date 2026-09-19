@@ -28,6 +28,7 @@ public sealed partial class VehicleDetailViewModel : ViewModelBase
     private readonly IInsuranceService _insurances;
     private readonly IVehicleKeyService _keys;
     private readonly IVehicleLifecycleService _lifecycle;
+    private readonly INavigationService _navigation;
     private readonly ICurrentUserService _currentUser;
     private readonly IDialogService _dialogs;
     private readonly IServiceProvider _services;
@@ -61,6 +62,7 @@ public sealed partial class VehicleDetailViewModel : ViewModelBase
         IInsuranceService insurances,
         IVehicleKeyService keys,
         IVehicleLifecycleService lifecycle,
+        INavigationService navigation,
         ICurrentUserService currentUser,
         IDialogService dialogs,
         IServiceProvider services)
@@ -78,6 +80,7 @@ public sealed partial class VehicleDetailViewModel : ViewModelBase
         _insurances = insurances;
         _keys = keys;
         _lifecycle = lifecycle;
+        _navigation = navigation;
         _currentUser = currentUser;
         _dialogs = dialogs;
         _services = services;
@@ -149,6 +152,34 @@ public sealed partial class VehicleDetailViewModel : ViewModelBase
     public bool CanManageRegistration => _currentUser.HasPermission(Permissions.VehicleRegistration);
 
     public bool IsRetired => Header?.IsRetired ?? false;
+
+    // Die Zahl an der Registerkarte spart das Durchklicken: man sieht, wo
+    // ueberhaupt etwas hinterlegt ist. Leere Bereiche bleiben ohne Zahl.
+    public string DriverTabHeader => MitZahl("FAHRER", DriverAssignments.Count);
+
+    public string InspectionTabHeader => MitZahl("TÜV", Inspections.Count);
+
+    public string MaintenanceTabHeader => MitZahl("WARTUNG", MaintenanceEntries.Count);
+
+    public string DamageTabHeader => MitZahl("SCHÄDEN", Damages.Count);
+
+    public string AccidentTabHeader => MitZahl("UNFÄLLE", Accidents.Count);
+
+    public string WorkshopTabHeader => MitZahl("WERKSTATT", WorkshopOrders.Count);
+
+    public string DocumentTabHeader => MitZahl("DOKUMENTE", Documents.Count);
+
+    public string PlateTabHeader => MitZahl("KENNZEICHEN", PlateHistory.Count);
+
+    public string MileageTabHeader => MitZahl("KILOMETER", MileageEntries.Count);
+
+    public string InsuranceTabHeader => MitZahl("VERSICHERUNG", Insurances.Count);
+
+    public string KeyTabHeader => MitZahl("SCHLÜSSEL", Keys.Count);
+
+    public string TimelineTabHeader => MitZahl("HISTORIE", Timeline.Count);
+
+    private static string MitZahl(string text, int anzahl) => anzahl == 0 ? text : $"{text} ({anzahl})";
 
     /// <summary>Laedt die Fahrzeugakte und springt optional auf einen bestimmten Reiter.</summary>
     public async Task LoadVehicleAsync(int vehicleId, string? tabKey = null)
@@ -265,7 +296,28 @@ public sealed partial class VehicleDetailViewModel : ViewModelBase
 
             OnPropertyChanged(nameof(Subtitle));
             OnPropertyChanged(nameof(IsRetired));
+
+            foreach (var name in new[]
+                     {
+                         nameof(DriverTabHeader), nameof(InspectionTabHeader), nameof(MaintenanceTabHeader),
+                         nameof(DamageTabHeader), nameof(AccidentTabHeader), nameof(WorkshopTabHeader),
+                         nameof(DocumentTabHeader), nameof(PlateTabHeader), nameof(MileageTabHeader),
+                         nameof(InsuranceTabHeader), nameof(KeyTabHeader), nameof(TimelineTabHeader)
+                     })
+            {
+                OnPropertyChanged(name);
+            }
         }).ConfigureAwait(true);
+    }
+
+    /// <summary>Oeffnet die Fahrerakte zu einer Zuordnung in der Fahrzeugakte.</summary>
+    [RelayCommand]
+    private async Task OpenDriverFileAsync(VehicleDriverAssignment? assignment)
+    {
+        if (assignment?.DriverId is { } driverId and > 0)
+        {
+            await _navigation.OpenDriverAsync(driverId).ConfigureAwait(true);
+        }
     }
 
     [RelayCommand]

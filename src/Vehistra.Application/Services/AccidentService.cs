@@ -32,10 +32,22 @@ public sealed class AccidentService : IAccidentService
         _clock = clock;
     }
 
-    public async Task<IReadOnlyList<AccidentListItem>> GetListAsync(
+    public Task<IReadOnlyList<AccidentListItem>> GetListAsync(
         int? vehicleId = null,
         bool onlyOpen = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) =>
+        ListeAsync(vehicleId, null, onlyOpen, cancellationToken);
+
+    public Task<IReadOnlyList<AccidentListItem>> GetForDriverAsync(
+        int driverId,
+        CancellationToken cancellationToken = default) =>
+        ListeAsync(null, driverId, false, cancellationToken);
+
+    private async Task<IReadOnlyList<AccidentListItem>> ListeAsync(
+        int? vehicleId,
+        int? driverId,
+        bool onlyOpen,
+        CancellationToken cancellationToken)
     {
         _currentUser.DemandPermission(Permissions.AccidentView);
 
@@ -44,6 +56,11 @@ public sealed class AccidentService : IAccidentService
         if (vehicleId is { } id)
         {
             query = query.Where(a => a.VehicleId == id);
+        }
+
+        if (driverId is { } fahrer)
+        {
+            query = query.Where(a => a.DriverId == fahrer);
         }
 
         if (onlyOpen)

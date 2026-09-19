@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<VehicleListViewModel>();
         services.AddScoped<VehicleDetailViewModel>();
         services.AddScoped<DriverViewModel>();
+        services.AddScoped<DriverDetailViewModel>();
         services.AddScoped<InspectionViewModel>();
         services.AddScoped<MaintenanceViewModel>();
         services.AddScoped<DamageViewModel>();

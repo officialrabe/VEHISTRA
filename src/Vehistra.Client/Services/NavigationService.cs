@@ -25,6 +25,9 @@ public interface INavigationService
     /// <summary>Oeffnet die Fahrzeugakte eines bestimmten Fahrzeugs.</summary>
     Task OpenVehicleAsync(int vehicleId, string? tabKey = null);
 
+    /// <summary>Oeffnet die Fahrerakte eines bestimmten Fahrers.</summary>
+    Task OpenDriverAsync(int driverId);
+
     /// <summary>Springt zu einem Suchergebnis der globalen Suche.</summary>
     Task OpenSearchResultAsync(string entityType, int entityId, int? vehicleId);
 }
@@ -98,6 +101,17 @@ public sealed class NavigationService : ObservableObject, INavigationService, ID
         await viewModel.LoadVehicleAsync(vehicleId, tabKey).ConfigureAwait(true);
     }
 
+    public async Task OpenDriverAsync(int driverId)
+    {
+        if (CreateViewModel(typeof(DriverDetailViewModel)) is not DriverDetailViewModel viewModel)
+        {
+            return;
+        }
+
+        Current = viewModel;
+        await viewModel.LoadDriverAsync(driverId).ConfigureAwait(true);
+    }
+
     public async Task OpenSearchResultAsync(string entityType, int entityId, int? vehicleId)
     {
         switch (entityType)
@@ -107,7 +121,7 @@ public sealed class NavigationService : ObservableObject, INavigationService, ID
                 break;
 
             case "Fahrer":
-                await NavigateToAsync<DriverViewModel>().ConfigureAwait(true);
+                await OpenDriverAsync(entityId).ConfigureAwait(true);
                 break;
 
             case "Schaden":

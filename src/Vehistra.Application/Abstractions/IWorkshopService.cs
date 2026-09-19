@@ -45,6 +45,9 @@ public sealed class WorkshopFilter
 
     public int? WorkshopId { get; set; }
 
+    /// <summary>Vorgaenge, die auf einen bestimmten Fahrer gemeldet sind.</summary>
+    public int? DriverId { get; set; }
+
     public WorkshopOrderStatus? Status { get; set; }
 
     public bool OnlyOpen { get; set; } = true;

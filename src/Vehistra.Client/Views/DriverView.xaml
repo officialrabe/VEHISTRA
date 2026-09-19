@@ -14,6 +14,9 @@
           <Button Content="_Neuer Fahrer" Style="{StaticResource PrimaryButtonStyle}" MinWidth="130"
                   Command="{Binding CreateCommand}"
                   Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
+          <Button Content="Fahrer_akte öffnen" Margin="8,0,0,0" Command="{Binding OpenFileCommand}"
+                  MinWidth="150"
+                  ToolTip="Stammdaten, Fahrzeuge, Schäden, Unfälle und Werkstattvorgänge dieses Fahrers" />
           <Button Content="_Bearbeiten" Margin="8,0,0,0" Command="{Binding EditCommand}"
                   Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
           <Button Content="Aktiv / _Inaktiv" Margin="8,0,0,0" Command="{Binding ToggleActiveCommand}"
@@ -46,7 +49,7 @@
 
       <DataGrid ItemsSource="{Binding Drivers}" SelectedItem="{Binding SelectedDriver}">
         <DataGrid.InputBindings>
-          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" />
+          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenFileCommand}" />
         </DataGrid.InputBindings>
         <DataGrid.Columns>
           <DataGridTextColumn Header="Personalnummer" Binding="{Binding PersonnelNumber}" Width="140" />
