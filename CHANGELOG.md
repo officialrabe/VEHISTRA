@@ -59,8 +59,6 @@ Behoben
 - **Benachrichtigung „TÜV abgelaufen"** trug diesen Titel künftig auch bei noch
   gültigen Fristen, weil er an der Warnstufe hing. Er hängt jetzt am Datum.
 
----
-
 ## 1.2.0
 
 Diese Version schließt die Lücken gegenüber der bisherigen Web-Version. Der
