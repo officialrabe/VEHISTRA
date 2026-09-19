@@ -91,6 +91,36 @@ jobs:
 
           $vorab = ([int]($version -split '\.')[0]) -eq 0
 
+          # Die Aenderungen dieser Version aus CHANGELOG.md uebernehmen.
+          $neuerungen = ''
+
+          if (Test-Path 'CHANGELOG.md') {
+            $zeilen = Get-Content 'CHANGELOG.md'
+            $start = -1
+
+            for ($i = 0; $i -lt $zeilen.Count; $i++) {
+              if ($zeilen[$i].Trim() -eq "## $version") { $start = $i + 1; break }
+            }
+
+            if ($start -ge 0) {
+              $ende = $zeilen.Count
+
+              for ($i = $start; $i -lt $zeilen.Count; $i++) {
+                if ($zeilen[$i] -like '## *') { $ende = $i; break }
+              }
+
+              $abschnitt = ($zeilen[$start..($ende - 1)] -join "`n").Trim()
+
+              if ($abschnitt) {
+                $neuerungen = "WAS SICH GEAENDERT HAT`n" + ('-' * 25) + "`n$abschnitt`n"
+              }
+            }
+          }
+
+          if (-not $neuerungen) {
+            Write-Host "::warning::In CHANGELOG.md gibt es keinen Abschnitt '## $version'."
+          }
+
           $hinweis = if ($vorab) {
             @"
 
@@ -109,6 +139,7 @@ jobs:
           Veroeffentlicht am $(Get-Date -Format 'dd.MM.yyyy')
           Entwickelt und betreut von LSP Virtual Services - vehistra.dev
 
+          $neuerungen
           INHALT DIESER AUSLIEFERUNG
           - Vehistra-Setup.exe        Erstinstallation eines Arbeitsplatzes
           - Vehistra-Update.exe       Updatepaket fuer vorhandene Installationen
