@@ -61,6 +61,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private string _plateReservationWarnDays = "30;14;7;3;1";
 
     [ObservableProperty]
+    private int _documentMaxFileSizeMb = 25;
+
+    [ObservableProperty]
     private string? _documentsPath;
 
     [ObservableProperty]
@@ -155,6 +158,10 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 .GetIntAsync(SettingsKeys.MaintenanceWarnDays, 30, cancellationToken).ConfigureAwait(true);
             MaintenanceWarnKilometers = await _settings
                 .GetIntAsync(SettingsKeys.MaintenanceWarnKilometers, 1000, cancellationToken).ConfigureAwait(true);
+            DocumentMaxFileSizeMb = await _settings
+                .GetIntAsync(SettingsKeys.DocumentMaxFileSizeMb, 25, cancellationToken)
+                .ConfigureAwait(true);
+
             PlateReservationWarnDays = await _settings
                 .GetOrDefaultAsync(SettingsKeys.PlateReservationWarnDays, "30;14;7;3;1", cancellationToken)
                 .ConfigureAwait(true);
@@ -230,6 +237,19 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 .ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.MaintenanceWarnKilometers, MaintenanceWarnKilometers.ToString())
                 .ConfigureAwait(true);
+            // Mehr als die harte Grenze der Ablage zu erlauben, waere eine
+            // Zusage, die das Programm nicht halten kann.
+            var grenze = Math.Clamp(DocumentMaxFileSizeMb, 1, 50);
+
+            if (grenze != DocumentMaxFileSizeMb)
+            {
+                DocumentMaxFileSizeMb = grenze;
+                StatusMessage = "Die Dateigröße wurde auf den zulässigen Bereich (1 bis 50 MB) gesetzt.";
+            }
+
+            await _settings.SetAsync(SettingsKeys.DocumentMaxFileSizeMb, grenze.ToString())
+                .ConfigureAwait(true);
+
             await _settings.SetAsync(SettingsKeys.PlateReservationWarnDays, PlateReservationWarnDays)
                 .ConfigureAwait(true);
 

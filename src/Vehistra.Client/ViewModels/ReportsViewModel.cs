@@ -24,6 +24,13 @@ public sealed partial class ReportsViewModel : ViewModelBase
     [ObservableProperty]
     private string _vehicleSearch = string.Empty;
 
+    /// <summary>
+    /// Format der Listenexporte. Voreinstellung ist Excel, weil Listen meist
+    /// weiterverarbeitet werden; PDF bleibt einen Klick entfernt.
+    /// </summary>
+    [ObservableProperty]
+    private ExportFormat _listFormat = ExportFormat.Xlsx;
+
     public ReportsViewModel(
         IReportGenerator reports,
         IVehicleService vehicles,
@@ -46,6 +53,60 @@ public sealed partial class ReportsViewModel : ViewModelBase
     public ObservableCollection<VehicleListItem> Vehicles { get; } = [];
 
     public bool CanPrint => _currentUser.HasPermission(Permissions.ReportsPrint);
+
+    // Die drei Schalter fuer das Format. Eigene Eigenschaften, damit die
+    // Auswahlknoepfe ohne Umwandler auskommen.
+    public bool FormatExcel
+    {
+        get => ListFormat == ExportFormat.Xlsx;
+        set
+        {
+            if (value)
+            {
+                ListFormat = ExportFormat.Xlsx;
+            }
+        }
+    }
+
+    public bool FormatCsv
+    {
+        get => ListFormat == ExportFormat.Csv;
+        set
+        {
+            if (value)
+            {
+                ListFormat = ExportFormat.Csv;
+            }
+        }
+    }
+
+    public bool FormatPdf
+    {
+        get => ListFormat == ExportFormat.Pdf;
+        set
+        {
+            if (value)
+            {
+                ListFormat = ExportFormat.Pdf;
+            }
+        }
+    }
+
+    /// <summary>Beschreibt die aktuelle Auswahl im Klartext.</summary>
+    public string ListFormatDescription => ListFormat switch
+    {
+        ExportFormat.Xlsx => "Excel-Arbeitsmappe (*.xlsx) – zum Weiterrechnen",
+        ExportFormat.Csv => "Textdatei mit Semikolon (*.csv) – für andere Programme",
+        _ => "PDF im Querformat (*.pdf) – zum Ausdrucken und Ablegen"
+    };
+
+    partial void OnListFormatChanged(ExportFormat value)
+    {
+        OnPropertyChanged(nameof(FormatExcel));
+        OnPropertyChanged(nameof(FormatCsv));
+        OnPropertyChanged(nameof(FormatPdf));
+        OnPropertyChanged(nameof(ListFormatDescription));
+    }
 
     public bool CanExport => _currentUser.HasPermission(Permissions.DataExport);
 
@@ -130,8 +191,18 @@ public sealed partial class ReportsViewModel : ViewModelBase
             return;
         }
 
-        var target = _dialogs.SaveFile("PDF-Dokument (*.pdf)|*.pdf",
-            $"{exportArea}_{DateTime.Now:yyyyMMdd}.pdf", "Liste als PDF exportieren");
+        _currentUser.DemandPermission(Permissions.DataExport);
+
+        var (endung, filter, bezeichnung) = ListFormat switch
+        {
+            ExportFormat.Xlsx => ("xlsx", "Excel-Arbeitsmappe (*.xlsx)|*.xlsx", "Excel"),
+            ExportFormat.Csv => ("csv", "CSV-Datei (*.csv)|*.csv", "CSV"),
+            _ => ("pdf", "PDF-Dokument (*.pdf)|*.pdf", "PDF")
+        };
+
+        var target = _dialogs.SaveFile(filter,
+            $"{Bezeichnung(exportArea)}_{DateTime.Now:yyyyMMdd}.{endung}",
+            $"Liste als {bezeichnung} exportieren");
 
         if (string.IsNullOrWhiteSpace(target))
         {
@@ -140,8 +211,24 @@ public sealed partial class ReportsViewModel : ViewModelBase
 
         await RunAsync(async () =>
         {
-            await _export.ExportAsync(exportArea, ExportFormat.Pdf, target).ConfigureAwait(true);
+            await _export.ExportAsync(exportArea, ListFormat, target).ConfigureAwait(true);
             _dialogs.OpenInShell(target);
-        }, "Die Liste wurde erstellt.").ConfigureAwait(true);
+        }, $"Die Liste wurde als {bezeichnung} erstellt: {target}").ConfigureAwait(true);
     }
+
+    /// <summary>Deutscher Dateiname statt des englischen Enum-Namens.</summary>
+    private static string Bezeichnung(ExportArea area) => area switch
+    {
+        ExportArea.Vehicles => "Fahrzeuge",
+        ExportArea.Drivers => "Fahrer",
+        ExportArea.Inspections => "TUEV",
+        ExportArea.Maintenance => "Wartung",
+        ExportArea.Damages => "Schaeden",
+        ExportArea.Accidents => "Unfaelle",
+        ExportArea.WorkshopOrders => "Werkstatt",
+        ExportArea.LicensePlates => "Kennzeichen",
+        ExportArea.RetiredVehicles => "Ausgemustert",
+        ExportArea.DriverAssignments => "Fahrerzuordnungen",
+        _ => area.ToString()
+    };
 }

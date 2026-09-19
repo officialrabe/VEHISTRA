@@ -19,6 +19,12 @@ public static class SettingsKeys
 
     public const string PlateReservationWarnDays = "LicensePlate.ReservationWarnDays";
 
+    /// <summary>
+    /// Groesste erlaubte Dokumentgroesse in Megabyte. Die Ablage selbst begrenzt
+    /// zusaetzlich hart auf 50 MB; ein hoeherer Wert hier hebt das nicht auf.
+    /// </summary>
+    public const string DocumentMaxFileSizeMb = "Documents.MaxFileSizeMb";
+
     public const string DocumentsPath = "Paths.Documents";
     public const string BackupPath = "Paths.Backup";
     public const string UpdatePath = "Paths.Update";
