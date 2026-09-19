@@ -17,7 +17,8 @@
       <DockPanel>
         <StackPanel DockPanel.Dock="Top" Margin="22,22,22,16">
           <TextBlock Text="VEHISTRA" FontSize="16" FontWeight="SemiBold" Foreground="White" />
-          <TextBlock Text="Server einrichten" FontSize="12" Foreground="#FFB9C4D0" Margin="0,4,0,0" />
+          <TextBlock Text="{Binding ModeCaption}" FontSize="12" Foreground="#FFB9C4D0"
+                       TextWrapping="Wrap" Margin="0,4,0,0" />
         </StackPanel>
 
         <Border DockPanel.Dock="Bottom" Margin="22,12,22,18">
@@ -231,12 +232,21 @@
             <!-- 9 Netzwerkfreigaben -->
             <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
                                              ConverterParameter=NetworkShares}">
+              <!-- Netzwerkbetrieb: UNC-Pfade erfragen -->
+              <StackPanel Visibility="{Binding ShowNetworkShares, Converter={StaticResource BoolVisibility}}">
+                <TextBlock TextWrapping="Wrap"
+                           Text="Damit die Arbeitsplätze Dokumente und Updates erreichen, müssen die Ordner als Netzwerkfreigabe bereitstehen. Tragen Sie hier die UNC-Pfade ein, z. B. \\FUHRPARK-SRV01\Fuhrpark\Dokumente." />
+                <TextBlock Text="UNC-Pfad der Dokumentenfreigabe" Style="{StaticResource CaptionText}" />
+                <TextBox Text="{Binding DocumentsShare, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="UNC-Pfad der Updatefreigabe" Style="{StaticResource CaptionText}" />
+                <TextBox Text="{Binding UpdateShare, UpdateSourceTrigger=PropertyChanged}" />
+              </StackPanel>
+
+              <!-- Solo-Platz: es gibt nichts freizugeben -->
               <TextBlock TextWrapping="Wrap"
-                         Text="Damit die Arbeitsplätze Dokumente und Updates erreichen, müssen die Ordner als Netzwerkfreigabe bereitstehen. Tragen Sie hier die UNC-Pfade ein, z. B. \\FUHRPARK-SRV01\Fuhrpark\Dokumente." />
-              <TextBlock Text="UNC-Pfad der Dokumentenfreigabe" Style="{StaticResource CaptionText}" />
-              <TextBox Text="{Binding DocumentsShare, UpdateSourceTrigger=PropertyChanged}" />
-              <TextBlock Text="UNC-Pfad der Updatefreigabe" Style="{StaticResource CaptionText}" />
-              <TextBox Text="{Binding UpdateShare, UpdateSourceTrigger=PropertyChanged}" />
+                         Visibility="{Binding ShowNetworkShares, Converter={StaticResource BoolVisibility},
+                                              ConverterParameter=invert}"
+                         Text="Bei einem Solo-Platz liegen alle Ordner auf diesem Computer. Netzwerkfreigaben werden nicht benötigt – klicken Sie auf „Freigaben prüfen“ und danach auf „Weiter“." />
             </StackPanel>
 
             <!-- 10 Administrator -->

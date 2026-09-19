@@ -39,8 +39,10 @@ UsePreviousAppDir=yes
 UsePreviousGroup=yes
 UsePreviousTasks=yes
 DisableDirPage=yes
-DisableProgramGroupPage=yes
 DisableReadyPage=yes
+; Die urspruengliche Wahl (Netzwerk oder Solo) wird uebernommen, nicht neu gestellt.
+UsePreviousSetupType=yes
+DisableProgramGroupPage=yes
 DisableWelcomePage=yes
 DisableFinishedPage=yes
 
@@ -69,25 +71,45 @@ SignedUninstaller=yes
 [Languages]
 Name: "deutsch"; MessagesFile: "compiler:Languages\German.isl"
 
+; ---------------------------------------------------------------------------
+;  Dieselben Installationsarten wie bei der Erstinstallation. Durch
+;  UsePreviousSetupType behaelt das Update die urspruengliche Wahl bei -
+;  ein Solo-Platz verliert seinen Einrichtungsassistenten also nicht, und
+;  ein Arbeitsplatz im Netz bekommt ihn nicht nachtraeglich untergeschoben.
+; ---------------------------------------------------------------------------
+[Types]
+Name: "netzwerk"; Description: "Netzwerk-Installation – Arbeitsplatz im Firmennetz"
+Name: "solo";     Description: "Solo-Platz-Installation – alles auf diesem Computer"
+
+[Components]
+Name: "programm"; Description: "Vehistra (Hauptanwendung)"; \
+  Types: netzwerk solo; Flags: fixed
+Name: "anleitungen"; Description: "Anleitungen als PDF"; \
+  Types: netzwerk solo
+Name: "servertools"; Description: "Einrichtungsassistent für die örtliche Datenbank"; \
+  Types: solo
+
 [Dirs]
 Name: "{commonappdata}\LSP Virtual Services\Vehistra"; Flags: uninsneveruninstall
 Name: "{commonappdata}\LSP Virtual Services\Vehistra\Logs"; Permissions: users-modify; Flags: uninsneveruninstall
 Name: "{commonappdata}\LSP Virtual Services\Vehistra\UpdateBackup"; Permissions: users-modify; Flags: uninsneveruninstall
 
 [Files]
-Source: "{#SourceDir}\Vehistra.exe";          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\Vehistra.Updater.exe";  DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\VehistraServerCheck.exe";      DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\*.dll";                        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\*.json";                       DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\runtimes\*";                   DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
-Source: "{#SourceDir}\de\*";                         DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
-Source: "{#SourceDir}\Dokumentation\*";              DestDir: "{app}\Dokumentation"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
+Source: "{#SourceDir}\Vehistra.exe";            DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\Vehistra.Updater.exe";    DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\VehistraServerCheck.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\VehistraServerSetup.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: servertools
+Source: "{#SourceDir}\*.dll";       DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\*.json";      DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\runtimes\*";  DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: programm
+Source: "{#SourceDir}\de\*";        DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: programm
+Source: "{#SourceDir}\Dokumentation\*"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: anleitungen
 
 [Icons]
 Name: "{group}\Vehistra"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
 Name: "{group}\Serverprüfung"; Filename: "{app}\VehistraServerCheck.exe"; WorkingDir: "{app}"
-Name: "{group}\Anleitungen"; Filename: "{app}\Dokumentation"
+Name: "{group}\Datenbank einrichten"; Filename: "{app}\VehistraServerSetup.exe"; WorkingDir: "{app}"; Components: servertools
+Name: "{group}\Anleitungen"; Filename: "{app}\Dokumentation"; Components: anleitungen
 Name: "{group}\{cm:UninstallProgram,Vehistra}"; Filename: "{uninstallexe}"
 
 [Code]

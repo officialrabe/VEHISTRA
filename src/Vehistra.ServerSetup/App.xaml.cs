@@ -58,7 +58,20 @@ public partial class App : System.Windows.Application
                 : store.BuildConnectionString(settings);
         }, ThisAssembly.Version);
 
-        builder.Services.AddSingleton<SetupViewModel>();
+        // Der Installer startet den Assistenten beim Solo-Platz mit --einzelplatz.
+        var mode = e.Args.Any(a =>
+            a.Equals("--einzelplatz", StringComparison.OrdinalIgnoreCase) ||
+            a.Equals("/einzelplatz", StringComparison.OrdinalIgnoreCase))
+            ? SetupMode.SingleWorkstation
+            : SetupMode.Server;
+
+        Log.Information("Betriebsart: {Mode}", mode);
+
+        builder.Services.AddSingleton(provider => new SetupViewModel(
+            provider,
+            provider.GetRequiredService<IConnectionSettingsStore>(),
+            mode,
+            provider.GetRequiredService<ILogger<SetupViewModel>>()));
 
         _host = builder.Build();
 

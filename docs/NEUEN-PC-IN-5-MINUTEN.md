@@ -3,6 +3,10 @@
 So richten Sie einen weiteren Arbeitsplatz für Vehistra ein. Der Server muss
 bereits fertig eingerichtet sein – siehe `SERVER-EINRICHTUNG-EINFACH.pdf`.
 
+Wählen Sie im Installationsassistenten die **Netzwerk-Installation**. Soll
+Vehistra dagegen allein auf einem einzelnen Computer laufen, folgen Sie
+`EINZELPLATZ-INSTALLATION.pdf`.
+
 ---
 
 ## Was Sie brauchen

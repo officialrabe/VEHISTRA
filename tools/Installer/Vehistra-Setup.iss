@@ -59,6 +59,27 @@ SignedUninstaller=yes
 [Languages]
 Name: "deutsch"; MessagesFile: "compiler:Languages\German.isl"
 
+; ---------------------------------------------------------------------------
+;  Installationsart
+;
+;  Netzwerk: Arbeitsplatz im Firmennetz. Die Datenbank liegt auf einem
+;            Server, der getrennt eingerichtet wird.
+;  Solo:     Alles auf diesem einen Computer. Dafuer wird zusaetzlich der
+;            Einrichtungsassistent mitgeliefert, der die oertliche Datenbank
+;            anlegt.
+; ---------------------------------------------------------------------------
+[Types]
+Name: "netzwerk"; Description: "Netzwerk-Installation – Arbeitsplatz im Firmennetz"
+Name: "solo";     Description: "Solo-Platz-Installation – alles auf diesem Computer"
+
+[Components]
+Name: "programm"; Description: "Vehistra (Hauptanwendung)"; \
+  Types: netzwerk solo; Flags: fixed
+Name: "anleitungen"; Description: "Anleitungen als PDF"; \
+  Types: netzwerk solo
+Name: "servertools"; Description: "Einrichtungsassistent für die örtliche Datenbank"; \
+  Types: solo
+
 [Tasks]
 Name: "desktopicon"; Description: "Verknüpfung auf dem Desktop anlegen"; GroupDescription: "Zusätzliche Verknüpfungen"
 Name: "startmenuicon"; Description: "Verknüpfung im Startmenü anlegen"; GroupDescription: "Zusätzliche Verknüpfungen"; Flags: checkedonce
@@ -72,28 +93,41 @@ Name: "{commonappdata}\LSP Virtual Services\Vehistra\UpdateBackup"; Permissions:
 
 [Files]
 ; Hauptanwendung
-Source: "{#SourceDir}\Vehistra.exe";          DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\Vehistra.Updater.exe";  DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\VehistraServerCheck.exe";      DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\Vehistra.exe";            DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\Vehistra.Updater.exe";    DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\VehistraServerCheck.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: programm
+
+; Nur beim Solo-Platz: legt die oertliche Datenbank an.
+Source: "{#SourceDir}\VehistraServerSetup.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: servertools
 
 ; Laufzeitdateien und Bibliotheken
-Source: "{#SourceDir}\*.dll";                        DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\*.json";                       DestDir: "{app}"; Flags: ignoreversion
-Source: "{#SourceDir}\runtimes\*";                   DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist
-Source: "{#SourceDir}\de\*";                         DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
+Source: "{#SourceDir}\*.dll";       DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\*.json";      DestDir: "{app}"; Flags: ignoreversion; Components: programm
+Source: "{#SourceDir}\runtimes\*";  DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: programm
+Source: "{#SourceDir}\de\*";        DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: programm
 
 ; Anleitungen als PDF - werden im Startmenue verlinkt
-Source: "{#SourceDir}\Dokumentation\*";              DestDir: "{app}\Dokumentation"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
+Source: "{#SourceDir}\Dokumentation\*"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: anleitungen
 
 [Icons]
 Name: "{group}\Vehistra"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Comment: "Vehistra starten"; Tasks: startmenuicon
 Name: "{group}\Serverprüfung"; Filename: "{app}\VehistraServerCheck.exe"; WorkingDir: "{app}"; Comment: "Verbindung und Server prüfen"; Tasks: startmenuicon
-Name: "{group}\Anleitungen"; Filename: "{app}\Dokumentation"; Tasks: startmenuicon
+Name: "{group}\Datenbank einrichten"; Filename: "{app}\VehistraServerSetup.exe"; WorkingDir: "{app}"; Comment: "Örtliche Datenbank einrichten"; Tasks: startmenuicon; Components: servertools
+Name: "{group}\Anleitungen"; Filename: "{app}\Dokumentation"; Tasks: startmenuicon; Components: anleitungen
 Name: "{group}\{cm:UninstallProgram,Vehistra}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Vehistra"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "Vehistra jetzt starten"; Flags: nowait postinstall skipifsilent
+; Beim Solo-Platz zuerst die Datenbank einrichten - ohne sie startet Vehistra nicht.
+Filename: "{app}\VehistraServerSetup.exe"; Parameters: "--einzelplatz"; \
+  Description: "Jetzt die örtliche Datenbank einrichten (erforderlich)"; \
+  Flags: postinstall skipifsilent; Components: servertools
+
+Filename: "{app}\{#AppExeName}"; Description: "Vehistra jetzt starten"; \
+  Flags: nowait postinstall skipifsilent unchecked; Components: servertools
+
+Filename: "{app}\{#AppExeName}"; Description: "Vehistra jetzt starten"; \
+  Flags: nowait postinstall skipifsilent; Components: not servertools
 
 [UninstallDelete]
 ; Der Programmordner wird geleert - Konfiguration, Protokolle und Sicherungen
@@ -102,8 +136,9 @@ Type: filesandordirs; Name: "{app}\runtimes"
 Type: filesandordirs; Name: "{app}\Dokumentation"
 
 [Messages]
-deutsch.WelcomeLabel2=Dieser Assistent installiert Vehistra {#AppVersion} auf diesem Computer.%n%nDas Programm arbeitet mit der zentralen Fuhrparkdatenbank auf dem Firmenserver. Beim ersten Start wählen Sie einmalig die Serververbindung aus - alternativ die vom Server erzeugte Datei Fuhrpark-Firmenkonfiguration.fmcfg.%n%nEntwickelt von LSP Virtual Services.
-deutsch.FinishedLabel=Vehistra wurde installiert.%n%nBeim ersten Start werden Sie nach der Serververbindung gefragt. Die Anleitung "NEUEN-PC-IN-5-MINUTEN.pdf" liegt im Startmenü unter "Anleitungen".
+deutsch.WelcomeLabel2=Dieser Assistent installiert Vehistra {#AppVersion} auf diesem Computer.%n%nIm nächsten Schritt wählen Sie, wie Vehistra arbeiten soll: als Arbeitsplatz im Firmennetz oder als Solo-Platz, bei dem alles auf diesem einen Computer liegt.%n%nEntwickelt und betreut von LSP Virtual Services.
+deutsch.SelectComponentsLabel2=Wählen Sie, wie Vehistra auf diesem Computer arbeiten soll. Die Erklärung zu beiden Möglichkeiten finden Sie unten.
+deutsch.FinishedLabel=Vehistra wurde installiert.%n%nDie Anleitungen liegen im Startmenü unter „Anleitungen".
 
 [Code]
 var
@@ -134,6 +169,50 @@ begin
   end;
 end;
 
+{ --------------------------------------------------------------------------
+  Beim Solo-Platz muss Microsoft SQL Server Express auf diesem Computer
+  liegen. Fehlt er, wird das hier erklaert - und zwar bevor installiert
+  wird, damit niemand vor einer halb fertigen Einrichtung steht.
+  -------------------------------------------------------------------------- }
+function IstSqlServerVorhanden(): Boolean;
+var
+  Namen: TArrayOfString;
+begin
+  Result :=
+    RegGetValueNames(HKEY_LOCAL_MACHINE,
+      'SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL', Namen) or
+    RegGetValueNames(HKEY_LOCAL_MACHINE,
+      'SOFTWARE\WOW6432Node\Microsoft\Microsoft SQL Server\Instance Names\SQL', Namen);
+end;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+begin
+  Result := True;
+
+  if (CurPageID = wpSelectComponents) and WizardIsComponentSelected('servertools') then
+  begin
+    if not IstSqlServerVorhanden() then
+    begin
+      Result := MsgBox(
+        'Sie haben die Solo-Platz-Installation gewählt. Dabei liegt die Datenbank ' +
+        'auf diesem Computer.' + #13#10 + #13#10 +
+        'Dafür wird Microsoft SQL Server Express benötigt - er wurde hier nicht ' +
+        'gefunden. Das Programm ist von Microsoft, kostenlos und wird einmalig ' +
+        'installiert.' + #13#10 + #13#10 +
+        'So gehen Sie vor:' + #13#10 +
+        '1. Öffnen Sie https://www.microsoft.com/de-de/sql-server/sql-server-downloads' + #13#10 +
+        '2. Laden Sie im Bereich "Express" die Datei herunter' + #13#10 +
+        '3. Wählen Sie bei der Installation "Basic" und behalten Sie den' + #13#10 +
+        '   vorgeschlagenen Instanznamen SQLEXPRESS bei' + #13#10 + #13#10 +
+        'Sie können jetzt fortfahren und SQL Server Express danach installieren. ' +
+        'Die Einrichtung der Datenbank holen Sie anschließend über den Startmenü-' +
+        'Eintrag "Datenbank einrichten" nach.' + #13#10 + #13#10 +
+        'Möchten Sie fortfahren?',
+        mbConfirmation, MB_YESNO) = IDYES;
+    end;
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
@@ -148,7 +227,8 @@ begin
 
   MsgBox(
     'Beim Entfernen des Programms bleiben erhalten:' + #13#10 + #13#10 +
-    '• die zentrale Fuhrparkdatenbank auf dem Server' + #13#10 +
+    '• die Fuhrparkdatenbank im SQL Server (auf dem Firmenserver bzw.' + #13#10 +
+    '  bei einem Solo-Platz auf diesem Computer)' + #13#10 +
     '• alle Fahrzeugdokumente in der Dokumentenablage' + #13#10 +
     '• die Serverkonfiguration und die Protokolle unter' + #13#10 +
     '  C:\ProgramData\LSP Virtual Services\Vehistra' + #13#10 + #13#10 +

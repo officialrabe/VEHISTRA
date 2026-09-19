@@ -26,12 +26,18 @@ Developed & maintained by **LSP Virtual Services** · [vehistra.dev](https://veh
 Alle Arbeitsplätze arbeiten gleichzeitig auf derselben Datenbank. Es gibt keine
 lokale Ersatzdatenbank und keinen Abgleich zwischen Kopien.
 
+Alternativ läuft Vehistra als **Solo-Platz** auf einem einzigen Computer: Der
+Installationsassistent bietet beide Betriebsarten zur Wahl und liefert beim
+Solo-Platz den Einrichtungsassistenten für die örtliche Datenbank gleich mit.
+SQL Server Express wird auch dann benötigt – eine dateibasierte Datenbank gibt
+es bewusst nicht.
+
 ## Programme
 
 | Datei | Zweck |
 | --- | --- |
 | `Vehistra.exe` | Hauptanwendung am Arbeitsplatz |
-| `Vehistra-Setup.exe` | Erstinstallation eines Arbeitsplatzes |
+| `Vehistra-Setup.exe` | Erstinstallation, wahlweise Netzwerk- oder Solo-Platz |
 | `Vehistra-Update.exe` | Updatepaket für vorhandene Installationen |
 | `Vehistra.Updater.exe` | führt Programm- und Datenbankupdate aus |
 | `VehistraServerSetup.exe` | zwölfschrittige Servereinrichtung |
@@ -106,6 +112,7 @@ Codesignatur über `-SignTool <Name eines in Inno Setup hinterlegten Signierers>
 | Datei | Inhalt |
 | --- | --- |
 | `docs/SERVER-EINRICHTUNG-EINFACH.md` | Servereinrichtung in 22 Kapiteln |
+| `docs/EINZELPLATZ-INSTALLATION.md` | Solo-Platz ohne Server einrichten |
 | `docs/NEUEN-PC-IN-5-MINUTEN.md` | Arbeitsplatz einrichten |
 | `docs/UPDATE-ANLEITUNG.md` | Updates bereitstellen und einspielen |
 | `docs/BACKUP-UND-WIEDERHERSTELLUNG.md` | Sicherung, Wiederherstellung, Notfallplan |

@@ -9,6 +9,10 @@ Wenn etwas nicht klappt: In Kapitel 19 stehen die häufigsten Probleme mit
 Lösung. Kommen Sie damit nicht weiter, hilft der Support unter
 support@vehistra.dev weiter.
 
+> Soll Vehistra nur auf **einem einzigen Computer** laufen, ohne Server und
+> ohne Netzwerkfreigaben? Dann ist `EINZELPLATZ-INSTALLATION.pdf` die richtige
+> Anleitung – sie ist deutlich kürzer.
+
 > Wichtig: Es wird nichts an Ihrem Netzwerk verändert, was Sie nicht selbst
 > bestätigen. Das Einrichtungsprogramm installiert insbesondere keinen SQL
 > Server im Hintergrund – Sie installieren ihn in Kapitel 3 bewusst selbst.

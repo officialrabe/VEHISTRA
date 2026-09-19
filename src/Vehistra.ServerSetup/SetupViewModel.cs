@@ -16,6 +16,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Vehistra.ServerSetup;
 
+/// <summary>Betriebsart, in der der Assistent gestartet wurde.</summary>
+public enum SetupMode
+{
+    /// <summary>Server im Firmennetz, mehrere Arbeitsplaetze greifen zu.</summary>
+    Server = 0,
+
+    /// <summary>Solo-Platz: Datenbank und Ablagen auf diesem einen Computer.</summary>
+    SingleWorkstation = 1
+}
+
 /// <summary>
 /// Ansichtsmodell des Einrichtungsassistenten. Fuehrt Schritt fuer Schritt durch die
 /// Servereinrichtung und erklaert jeden Schritt in einfacher Sprache.
@@ -100,12 +110,40 @@ public sealed partial class SetupViewModel : ObservableObject
     public SetupViewModel(
         IServiceProvider services,
         IConnectionSettingsStore connectionStore,
+        SetupMode mode,
         ILogger<SetupViewModel> logger)
     {
         _services = services;
         _connectionStore = connectionStore;
         _logger = logger;
+
+        IsSingleWorkstation = mode == SetupMode.SingleWorkstation;
+
+        if (IsSingleWorkstation)
+        {
+            // Beim Solo-Platz liegt alles auf diesem Computer. Der Punkt steht
+            // fuer die oertliche Maschine und funktioniert unabhaengig davon,
+            // wie der Computer heisst.
+            Server = @".\SQLEXPRESS";
+            DocumentsPath = @"C:\Vehistra\Dokumente";
+            BackupPath = @"C:\Vehistra\Backups";
+            UpdatePath = @"C:\Vehistra\Updates";
+        }
     }
+
+    /// <summary>Solo-Platz: Datenbank und Ablagen liegen auf diesem Computer.</summary>
+    public bool IsSingleWorkstation { get; }
+
+    /// <summary>Untertitel des Fensters, passend zur gewaehlten Betriebsart.</summary>
+    public string ModeCaption => IsSingleWorkstation
+        ? "Solo-Platz einrichten – alles auf diesem Computer"
+        : "Server einrichten";
+
+    /// <summary>
+    /// Im Solo-Platz sind Netzwerkfreigaben gegenstandslos; der Schritt wird
+    /// uebersprungen, statt nach UNC-Pfaden zu fragen, die es nicht gibt.
+    /// </summary>
+    public bool ShowNetworkShares => !IsSingleWorkstation;
 
     public IReadOnlyList<SetupStepInfo> Steps { get; } = SetupStepInfo.All;
 
@@ -492,10 +530,14 @@ public sealed partial class SetupViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(DocumentsShare) && string.IsNullOrWhiteSpace(UpdateShare))
         {
-            Checks.Add(new SetupCheckResult(true,
-                "Es wurden keine UNC-Pfade angegeben.",
-                "Für den Mehrplatzbetrieb sollten die Ordner als Netzwerkfreigabe bereitgestellt werden " +
-                "(Kapitel 11 der Serveranleitung)."));
+            Checks.Add(IsSingleWorkstation
+                ? new SetupCheckResult(true,
+                    "Solo-Platz: Netzwerkfreigaben werden nicht benötigt.",
+                    "Alle Ordner liegen auf diesem Computer. Dieser Schritt ist damit erledigt.")
+                : new SetupCheckResult(true,
+                    "Es wurden keine UNC-Pfade angegeben.",
+                    "Für den Mehrplatzbetrieb sollten die Ordner als Netzwerkfreigabe bereitgestellt werden " +
+                    "(Kapitel 11 der Serveranleitung)."));
         }
 
         StatusMessage = "Die Freigaben wurden geprüft.";
