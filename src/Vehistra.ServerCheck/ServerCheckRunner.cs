@@ -55,7 +55,14 @@ public sealed class ServerCheckRunner
         progress?.Report("Die Serverkonfiguration wird gelesen ...");
         var settings = _connectionStore.Load();
 
-        if (settings is null || string.IsNullOrWhiteSpace(settings.Server))
+        // Was fehlen kann, haengt von der Betriebsart ab: im Netzwerkbetrieb der
+        // Servername, beim Solo-Platz die Datenbankdatei.
+        var unvollstaendig = settings is null
+            || (settings.IsSingleWorkstation
+                ? string.IsNullOrWhiteSpace(settings.DatabaseFile)
+                : string.IsNullOrWhiteSpace(settings.Server));
+
+        if (unvollstaendig)
         {
             results.Add(CheckResult.Problem(GroupConfiguration, "Serverkonfiguration",
                 "Auf diesem Computer ist noch keine Verbindung zur Fuhrparkdatenbank hinterlegt.",
@@ -72,10 +79,28 @@ public sealed class ServerCheckRunner
             return results;
         }
 
-        results.Add(CheckResult.Ok(GroupConfiguration, "Serverkonfiguration",
-            $"Konfiguration gefunden: Server „{settings.Server}“, Datenbank „{settings.Database}“.",
+        // Nach der Pruefung oben steht die Konfiguration fest.
+        ArgumentNullException.ThrowIfNull(settings);
+
+        results.Add(CheckResult.Ok(GroupConfiguration, "Betriebsart",
+            settings.IsSingleWorkstation
+                ? $"Solo-Platz: die Datenbank liegt als Datei auf diesem Computer ({settings.DatabaseFile})."
+                : $"Netzwerkbetrieb: Server „{settings.Server}“, Datenbank „{settings.Database}“.",
             $"Datei: {_connectionStore.ConfigFilePath} · zuletzt geändert am " +
             $"{settings.ConfiguredAt:dd.MM.yyyy HH:mm} durch {settings.ConfiguredBy}"));
+
+        if (settings.IsSingleWorkstation)
+        {
+            results.Add(CheckResult.Ok(GroupNetwork, "Netzwerk",
+                "Beim Solo-Platz wird kein Netzwerk benötigt.",
+                "Es gibt keinen Server, keine Freigabe und keine Firewallregel zu prüfen."));
+
+            await AddDatabaseChecksAsync(results, settings, cancellationToken).ConfigureAwait(false);
+            AddFolderChecks(results, settings);
+
+            progress?.Report("Prüfung abgeschlossen.");
+            return results;
+        }
 
         results.Add(settings.UseWindowsAuthentication
             ? CheckResult.Ok(GroupConfiguration, "Anmeldeverfahren",
@@ -252,8 +277,8 @@ public sealed class ServerCheckRunner
                     "Vor der Änderung wird automatisch eine Sicherung erstellt.",
                     "Ausstehend: " + string.Join(", ", pending)));
 
-            await AddDatabaseContentChecksAsync(results, db, cancellationToken).ConfigureAwait(false);
-            await AddPermissionChecksAsync(results, db, cancellationToken).ConfigureAwait(false);
+            await AddDatabaseContentChecksAsync(results, db, settings, cancellationToken).ConfigureAwait(false);
+            await AddPermissionChecksAsync(results, db, settings, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception exception)
         {
@@ -268,11 +293,11 @@ public sealed class ServerCheckRunner
     private static async Task AddDatabaseContentChecksAsync(
         List<CheckResult> results,
         VehistraDbContext db,
+        ServerConnectionSettings settings,
         CancellationToken cancellationToken)
     {
-        var tableCount = await db.Database
-            .SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM sys.tables")
-            .FirstOrDefaultAsync(cancellationToken)
+        var tableCount = await DatabaseFacts
+            .GetTableCountAsync(db, settings.Provider, cancellationToken)
             .ConfigureAwait(false);
 
         results.Add(tableCount > 0
@@ -299,23 +324,26 @@ public sealed class ServerCheckRunner
         results.Add(CheckResult.Ok("Datenbank", "Datenbestand",
             $"{vehicles} Fahrzeug(e) und {drivers} Fahrer erfasst."));
 
-        var databaseSize = await db.Database
-            .SqlQueryRaw<decimal>(
-                "SELECT CAST(SUM(size) * 8.0 / 1024 AS decimal(18,2)) AS Value FROM sys.database_files")
-            .FirstOrDefaultAsync(cancellationToken)
+        var databaseSize = await DatabaseFacts
+            .GetSizeMegabytesAsync(db, settings, cancellationToken)
             .ConfigureAwait(false);
 
-        results.Add(CheckResult.Ok("Datenbank", "Größe",
-            $"Die Datenbank belegt {databaseSize:N0} MB."));
+        if (databaseSize is { } groesse)
+        {
+            results.Add(CheckResult.Ok("Datenbank", "Größe",
+                $"Die Datenbank belegt {groesse:N1} MB."));
+        }
     }
 
     private static async Task AddPermissionChecksAsync(
         List<CheckResult> results,
         VehistraDbContext db,
+        ServerConnectionSettings settings,
         CancellationToken cancellationToken)
     {
-        var canRead = await HasPermissionAsync(db, "SELECT", cancellationToken).ConfigureAwait(false);
-        var canWrite = await HasPermissionAsync(db, "INSERT", cancellationToken).ConfigureAwait(false);
+        var (canRead, canWrite) = await DatabaseFacts
+            .GetPermissionsAsync(db, settings.Provider, cancellationToken)
+            .ConfigureAwait(false);
 
         results.Add(canRead && canWrite
             ? CheckResult.Ok("Datenbank", "Berechtigungen",
@@ -324,41 +352,17 @@ public sealed class ServerCheckRunner
                 canRead
                     ? "Das verwendete Konto darf Daten lesen, aber nicht schreiben."
                     : "Dem verwendeten Konto fehlen Leseberechtigungen auf der Datenbank.",
-                "Das Konto benötigt die Datenbankrollen „db_datareader“ und „db_datawriter“.",
-                "Diese werden im SQL Server Management Studio unter Sicherheit › Benutzer vergeben.",
-                "Kapitel 14 der Serveranleitung beschreibt die Schritte im Detail."));
+                settings.IsSingleWorkstation
+                    ? "Bitte die Schreibrechte des Windows-Kontos auf den Ordner der Datenbankdatei prüfen."
+                    : "Das Konto benötigt die Datenbankrollen „db_datareader“ und „db_datawriter“.",
+                settings.IsSingleWorkstation
+                    ? "Ist die Datei schreibgeschützt?"
+                    : "Diese werden im SQL Server Management Studio unter Sicherheit › Benutzer vergeben.",
+                settings.IsSingleWorkstation
+                    ? "Sichert gerade ein Sicherungsprogramm die Datei?"
+                    : "Kapitel 14 der Serveranleitung beschreibt die Schritte im Detail."));
     }
 
-    /// <summary>
-    /// Fragt eine Datenbankberechtigung ab. Es werden ausschliesslich feste Abfragetexte
-    /// verwendet - niemals zusammengesetztes SQL aus Benutzereingaben.
-    /// </summary>
-    private static async Task<bool> HasPermissionAsync(
-        VehistraDbContext db,
-        string permission,
-        CancellationToken cancellationToken)
-    {
-        var sql = permission switch
-        {
-            "SELECT" => "SELECT HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'SELECT') AS Value",
-            "INSERT" => "SELECT HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'INSERT') AS Value",
-            _ => throw new ArgumentOutOfRangeException(nameof(permission))
-        };
-
-        try
-        {
-            var value = await db.Database
-                .SqlQueryRaw<int?>(sql)
-                .FirstOrDefaultAsync(cancellationToken)
-                .ConfigureAwait(false);
-
-            return value == 1;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
 
     private static void AddFolderChecks(List<CheckResult> results, ServerConnectionSettings settings)
     {

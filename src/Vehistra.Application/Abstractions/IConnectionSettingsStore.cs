@@ -25,9 +25,33 @@ public interface IConnectionSettingsStore
     ServerConnectionSettings ImportClientConfiguration(string sourcePath);
 }
 
+/// <summary>Welche Datenbank verwendet wird.</summary>
+public enum DatabaseProvider
+{
+    /// <summary>Microsoft SQL Server im Firmennetz - fuer den Mehrplatzbetrieb.</summary>
+    SqlServer = 0,
+
+    /// <summary>
+    /// SQLite als Datei auf diesem Computer. Braucht keine Installation und
+    /// keinen Dienst, eignet sich aber ausschliesslich fuer den Solo-Platz:
+    /// ueber eine Netzwerkfreigabe ist die Dateisperrung nicht verlaesslich.
+    /// </summary>
+    Sqlite = 1
+}
+
 /// <summary>Verbindungs- und Pfadangaben eines Arbeitsplatzes.</summary>
 public sealed class ServerConnectionSettings
 {
+    /// <summary>Welche Datenbank verwendet wird.</summary>
+    public DatabaseProvider Provider { get; set; } = DatabaseProvider.SqlServer;
+
+    /// <summary>
+    /// Datenbankdatei beim Solo-Platz, z. B.
+    /// C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db.
+    /// Nur bei <see cref="DatabaseProvider.Sqlite"/> von Bedeutung.
+    /// </summary>
+    public string? DatabaseFile { get; set; }
+
     /// <summary>Servername inklusive Instanz, z. B. FUHRPARK-SRV01\SQLEXPRESS.</summary>
     public string Server { get; set; } = string.Empty;
 
@@ -61,6 +85,16 @@ public sealed class ServerConnectionSettings
     public DateTime? ConfiguredAt { get; set; }
 
     public string? ConfiguredBy { get; set; }
+
+    /// <summary>Solo-Platz mit Datenbankdatei statt Server.</summary>
+    public bool IsSingleWorkstation => Provider == DatabaseProvider.Sqlite;
+
+    /// <summary>Kurzbeschreibung fuer Anzeige und Protokoll - ohne Zugangsdaten.</summary>
+    public string Describe() => Provider switch
+    {
+        DatabaseProvider.Sqlite => $"Solo-Platz · {DatabaseFile}",
+        _ => $"{Server} · {Database}"
+    };
 
     public ServerConnectionSettings Clone() => (ServerConnectionSettings)MemberwiseClone();
 }

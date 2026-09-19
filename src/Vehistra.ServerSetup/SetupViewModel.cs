@@ -10,6 +10,7 @@ using Vehistra.Infrastructure;
 using Vehistra.Infrastructure.Persistence;
 using Vehistra.Infrastructure.Persistence.Seeding;
 using Vehistra.Infrastructure.Security;
+using Vehistra.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -61,6 +62,10 @@ public sealed partial class SetupViewModel : ObservableObject
 
     [ObservableProperty]
     private string _database = "VehistraDB";
+
+    /// <summary>Datenbankdatei des Solo-Platzes.</summary>
+    [ObservableProperty]
+    private string _databaseFile = string.Empty;
 
     [ObservableProperty]
     private bool _useWindowsAuthentication = true;
@@ -119,12 +124,15 @@ public sealed partial class SetupViewModel : ObservableObject
 
         IsSingleWorkstation = mode == SetupMode.SingleWorkstation;
 
+        Steps = IsSingleWorkstation
+            ? SetupStepInfo.AllForSingleWorkstation
+            : SetupStepInfo.All;
+
         if (IsSingleWorkstation)
         {
-            // Beim Solo-Platz liegt alles auf diesem Computer. Der Punkt steht
-            // fuer die oertliche Maschine und funktioniert unabhaengig davon,
-            // wie der Computer heisst.
-            Server = @".\SQLEXPRESS";
+            // Beim Solo-Platz ist die Datenbank eine Datei auf diesem Computer.
+            // Es wird kein SQL Server gebraucht und nichts installiert.
+            DatabaseFile = ConnectionSettingsStore.DefaultDatabaseFile;
             DocumentsPath = @"C:\Vehistra\Dokumente";
             BackupPath = @"C:\Vehistra\Backups";
             UpdatePath = @"C:\Vehistra\Updates";
@@ -145,7 +153,13 @@ public sealed partial class SetupViewModel : ObservableObject
     /// </summary>
     public bool ShowNetworkShares => !IsSingleWorkstation;
 
-    public IReadOnlyList<SetupStepInfo> Steps { get; } = SetupStepInfo.All;
+    /// <summary>
+    /// Servername, SQL-Instanz und SQL-Anmeldung gibt es nur im Netzwerkbetrieb.
+    /// Beim Solo-Platz wird stattdessen die Datenbankdatei gezeigt.
+    /// </summary>
+    public bool ShowServerFields => !IsSingleWorkstation;
+
+    public IReadOnlyList<SetupStepInfo> Steps { get; }
 
     public ObservableCollection<SqlInstanceInfo> Instances { get; } = [];
 
@@ -168,6 +182,7 @@ public sealed partial class SetupViewModel : ObservableObject
     public string ExecuteCaption => CurrentStep switch
     {
         SetupStep.SystemCheck => "System prüfen",
+        SetupStep.DetectSqlServer when IsSingleWorkstation => "Prüfen",
         SetupStep.DetectSqlServer => "SQL Server suchen",
         SetupStep.TestConnection => "Verbindung testen",
         SetupStep.CreateDatabase => "Datenbank anlegen",
@@ -175,9 +190,11 @@ public sealed partial class SetupViewModel : ObservableObject
         SetupStep.DocumentsFolder => "Ordner anlegen",
         SetupStep.BackupFolder => "Ordner anlegen",
         SetupStep.UpdateFolder => "Ordner anlegen",
+        SetupStep.NetworkShares when IsSingleWorkstation => "Ordner prüfen",
         SetupStep.NetworkShares => "Freigaben prüfen",
         SetupStep.Administrator => "Konto anlegen",
         SetupStep.FinalCheck => "Abschluss prüfen",
+        SetupStep.ClientConfiguration when IsSingleWorkstation => "Einrichtung abschließen",
         SetupStep.ClientConfiguration => "Konfiguration speichern",
         _ => "Ausführen"
     };
@@ -341,6 +358,21 @@ public sealed partial class SetupViewModel : ObservableObject
         Instances.Clear();
         Checks.Clear();
 
+        if (IsSingleWorkstation)
+        {
+            // Ein Solo-Platz braucht keinen Datenbankserver. Wuerde hier gesucht,
+            // meldete der Assistent eine fehlende SQL-Instanz als Problem -
+            // und schickte den Anwender eine Installation suchen, die es nicht
+            // mehr braucht.
+            Checks.Add(new SetupCheckResult(true,
+                "Beim Solo-Platz wird kein Datenbankserver benötigt.",
+                "Die Fuhrparkdatenbank ist eine Datei auf diesem Computer. Klicken Sie auf „Weiter“."));
+
+            StatusMessage = "Kein Datenbankserver nötig.";
+            AddLog("Solo-Platz: Suche nach SQL-Server-Instanzen übersprungen.");
+            return;
+        }
+
         foreach (var instance in SqlInstanceLocator.FindLocalInstances())
         {
             Instances.Add(instance);
@@ -452,9 +484,8 @@ public sealed partial class SetupViewModel : ObservableObject
         Checks.Add(new SetupCheckResult(true,
             "Stammdaten eingerichtet: Rollen, Berechtigungen, Fahrzeugstatus, Kategorien und Einstellungen."));
 
-        var tableCount = await db.Database
-            .SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM sys.tables")
-            .FirstOrDefaultAsync()
+        var tableCount = await DatabaseFacts
+            .GetTableCountAsync(db, BuildSettings().Provider)
             .ConfigureAwait(true);
 
         Checks.Add(new SetupCheckResult(true, $"{tableCount} Tabellen in der Datenbank vorhanden."));
@@ -697,6 +728,22 @@ public sealed partial class SetupViewModel : ObservableObject
     {
         Checks.Clear();
 
+        if (IsSingleWorkstation)
+        {
+            // Die Firmenkonfiguration richtet weitere Arbeitsplaetze auf einen
+            // Server aus. Beim Solo-Platz gibt es keinen - eine solche Datei
+            // waere unbrauchbar und wuerde beim Einlesen scheitern.
+            Checks.Add(new SetupCheckResult(true,
+                "Die Einrichtung des Solo-Platzes ist abgeschlossen.",
+                "Eine Konfigurationsdatei für weitere Arbeitsplätze wird nicht gebraucht. " +
+                "Soll später im Netz gearbeitet werden, beschreibt EINZELPLATZ-INSTALLATION.pdf, " +
+                "Kapitel 7, den Wechsel."));
+
+            StatusMessage = "Die Einrichtung ist abgeschlossen.";
+            AddLog("Solo-Platz: keine Firmenkonfiguration nötig.");
+            return;
+        }
+
         var settings = BuildSettings();
         settings.DocumentsPath = string.IsNullOrWhiteSpace(DocumentsShare) ? DocumentsPath : DocumentsShare;
         settings.UpdatePath = string.IsNullOrWhiteSpace(UpdateShare) ? UpdatePath : UpdateShare;
@@ -723,6 +770,8 @@ public sealed partial class SetupViewModel : ObservableObject
 
         return new ServerConnectionSettings
         {
+            Provider = IsSingleWorkstation ? DatabaseProvider.Sqlite : DatabaseProvider.SqlServer,
+            DatabaseFile = IsSingleWorkstation ? DatabaseFile.Trim() : null,
             Server = Server.Trim(),
             Database = Database.Trim(),
             UseWindowsAuthentication = UseWindowsAuthentication,

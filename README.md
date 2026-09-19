@@ -26,11 +26,22 @@ Developed & maintained by **LSP Virtual Services** · [vehistra.dev](https://veh
 Alle Arbeitsplätze arbeiten gleichzeitig auf derselben Datenbank. Es gibt keine
 lokale Ersatzdatenbank und keinen Abgleich zwischen Kopien.
 
-Alternativ läuft Vehistra als **Solo-Platz** auf einem einzigen Computer: Der
+Alternativ läuft Vehistra als **Solo-Platz** auf einem einzigen Computer. Dann
+liegt die Datenbank als einzelne Datei unter `ProgramData` (SQLite) – es wird
+kein Datenbankserver installiert und keine Netzwerkfreigabe benötigt. Der
 Installationsassistent bietet beide Betriebsarten zur Wahl und liefert beim
-Solo-Platz den Einrichtungsassistenten für die örtliche Datenbank gleich mit.
-SQL Server Express wird auch dann benötigt – eine dateibasierte Datenbank gibt
-es bewusst nicht.
+Solo-Platz den Einrichtungsassistenten gleich mit.
+
+```
+   EIN COMPUTER
+     |- Vehistra.exe
+     |- Vehistra.db (SQLite, unter ProgramData)
+     |- Dokumentenablage
+     '- Sicherungen
+```
+
+Beide Betriebsarten nutzen dasselbe Datenmodell. Ein Solo-Platz kann später auf
+Netzwerkbetrieb wechseln – siehe `docs/EINZELPLATZ-INSTALLATION.md`, Kapitel 7.
 
 ## Programme
 
@@ -49,7 +60,9 @@ es bewusst nicht.
 src/
   Vehistra.Domain           Entitäten, Enums, Rechte, fachliche Regeln
   Vehistra.Application      Fachdienste, Schnittstellen, DTOs
-  Vehistra.Infrastructure   EF Core, SQL Server, Sicherheit, Import/Export
+  Vehistra.Infrastructure   EF Core, Datenbankzugriff, Sicherheit, Import/Export
+  Vehistra.Migrations.SqlServer  Datenbankschema für den Netzwerkbetrieb
+  Vehistra.Migrations.Sqlite     Datenbankschema für den Solo-Platz
   Vehistra.Reporting        PDF-Berichte (QuestPDF, Vektor, DIN A4)
   Vehistra.Client           WPF-Oberfläche (MVVM)
   Vehistra.Updater          Updatekomponente
@@ -75,7 +88,7 @@ Abhängigkeitsrichtung: `Domain` ← `Application` ← `Infrastructure` / `Repor
 | --- | --- |
 | Laufzeit | .NET 10, C# (Nullable aktiviert) |
 | Oberfläche | WPF mit MVVM (CommunityToolkit.Mvvm) |
-| Datenzugriff | EF Core 10, Microsoft SQL Server |
+| Datenzugriff | EF Core 10 – Microsoft SQL Server (Netzwerk), SQLite (Solo-Platz) |
 | Berichte | QuestPDF (echte Vektor-PDFs) |
 | Tabellen | ClosedXML (XLSX), CsvHelper (CSV) |
 | Protokoll | Serilog mit täglicher Rotation |

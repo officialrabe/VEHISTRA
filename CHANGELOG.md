@@ -6,6 +6,57 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 0.7.0
+
+Neu
+- Der Solo-Platz braucht **keinen Datenbankserver** mehr. Die Datenbank ist
+  eine einzelne Datei unter
+  `C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db`. Microsoft SQL
+  Server Express muss dafür nicht mehr installiert werden.
+- Der Installationsassistent verlangt bei der Solo-Platz-Installation nichts
+  mehr nachzuinstallieren. Die Einrichtung dauert rund zehn Minuten.
+- Sicherungen des Solo-Platzes entstehen als vollständige Dateikopie und werden
+  anschließend geöffnet und auf Beschädigung geprüft. Das funktioniert auch,
+  während das Programm läuft.
+- Der Einrichtungsassistent spricht beim Solo-Platz die passende Sprache: er
+  zeigt die Datenbankdatei statt Servername und SQL-Anmeldung, sucht keine
+  SQL-Instanzen mehr und verlangt keine Konfigurationsdatei für weitere
+  Arbeitsplätze.
+- Ist die Datenbankdatei verschwunden oder leer, meldet Vehistra das beim Start
+  mit den passenden Prüfschritten – statt stillschweigend eine leere Datenbank
+  anzulegen.
+- `VehistraServerCheck.exe` nennt in der ersten Zeile die Betriebsart und
+  überspringt beim Solo-Platz alle Prüfungen, die es dort nicht gibt
+  (Netzwerkfreigaben, SQL-Dienst, Firewall).
+- Anleitung BACKUP-UND-WIEDERHERSTELLUNG um Kapitel 9 erweitert: Sicherung und
+  Wiederherstellung der Datenbankdatei, inklusive Notfallplan. FEHLERBEHEBUNG
+  hat ein Kapitel 11 für den Solo-Platz.
+- Vehistra steht unter der **MIT-Lizenz**. Die Datei `LICENSE` liegt im
+  Repository und wird mitinstalliert.
+- `SIGNING-POLICY.md` beschreibt, wie die Auslieferungen gebaut und signiert
+  werden. Der Releaseablauf signiert die Installationspakete, sobald ein
+  Signaturzugang hinterlegt ist – ohne Zugang läuft er unverändert weiter und
+  weist nur darauf hin.
+
+Behoben
+- Die Systemdiagnose und das Supportpaket nannten beim Solo-Platz einen
+  Servernamen, den es nicht gibt. Sie nennen jetzt Betriebsart, Datenbankdatei
+  und deren Größe.
+- Die Wiederherstellungshilfe und das Fenster bei nicht erreichbarer Datenbank
+  verwiesen beim Solo-Platz auf SQL-Server-Dienst, Firewall und Management
+  Studio – alles Dinge, die es dort nicht gibt.
+- Die Systemdiagnose meldete beim Solo-Platz „0,00 MB" für eine gefüllte
+  Datenbank. Sie zählte nur die `.db`-Datei, während die jüngsten Änderungen
+  noch im Begleitprotokoll standen.
+
+Verbessert
+- Datenbankfehler des Solo-Platzes werden in verständliche Hinweise übersetzt
+  (Datei gesperrt, kein Schreibrecht, Datenträger voll, Datei beschädigt).
+- Die MIT-Lizenz wird als `LIZENZ.txt` mitinstalliert.
+- Das Datenbankschema liegt in zwei eigenen Projekten – eines für den
+  Netzwerkbetrieb, eines für den Solo-Platz. Beide Betriebsarten nutzen
+  dasselbe Datenmodell.
+
 ## 0.6.0
 
 Neu

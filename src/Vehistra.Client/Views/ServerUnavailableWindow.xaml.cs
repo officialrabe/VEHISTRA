@@ -27,6 +27,33 @@ public partial class ServerUnavailableWindow : Window
     public void Initialize(ServerConnectionSettings settings)
     {
         _settings = settings;
+
+        if (settings.IsSingleWorkstation)
+        {
+            // Beim Solo-Platz gibt es keinen Server. Ein Fenster, das nach dem
+            // SQL-Server-Dienst und der Firewall fragt, wuerde nur in die Irre
+            // fuehren.
+            HeadlineText.Text = "DATENBANKDATEI NICHT ERREICHBAR";
+            ServerLabel.Text = "Betriebsart";
+            ServerText.Text = "Solo-Platz – die Datenbank liegt auf diesem Computer";
+            DatabaseLabel.Text = "Datenbankdatei";
+            DatabaseText.Text = settings.DatabaseFile ?? "nicht hinterlegt";
+
+            DiagnosticsText.Text =
+                "Bitte prüfen Sie:" + Environment.NewLine + Environment.NewLine +
+                "1. Ist die Datenbankdatei noch vorhanden? Wurde der Ordner verschoben?" + Environment.NewLine +
+                "2. Läuft Vehistra vielleicht schon ein zweites Mal?" + Environment.NewLine +
+                "3. Darf Ihr Windows-Konto in den Ordner schreiben?" + Environment.NewLine +
+                "4. Liegt die Datei auf einem Wechseldatenträger, der nicht angeschlossen ist?" +
+                Environment.NewLine +
+                "5. Wurde die Einrichtung schon durchgeführt (VehistraServerSetup.exe)?" +
+                Environment.NewLine + Environment.NewLine +
+                "Mit „Diagnose“ führen Sie eine automatische Prüfung durch. Eine Sicherung " +
+                "spielen Sie nach BACKUP-UND-WIEDERHERSTELLUNG.pdf, Kapitel 9.3, zurück.";
+
+            return;
+        }
+
         ServerText.Text = settings.Server;
         DatabaseText.Text = settings.Database;
     }

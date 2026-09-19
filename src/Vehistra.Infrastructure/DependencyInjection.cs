@@ -16,11 +16,22 @@ namespace Vehistra.Infrastructure;
 public static class DependencyInjection
 {
     /// <summary>
-    /// Registriert die Infrastruktur fuer den Betrieb gegen Microsoft SQL Server.
+    /// Migrationen sind anbieterspezifisch und liegen deshalb in eigenen
+    /// Projekten. Die Namen werden bewusst als Zeichenkette verwendet, damit
+    /// die Infrastruktur nicht von ihnen abhaengt.
+    /// </summary>
+    public const string SqlServerMigrationsAssembly = "Vehistra.Migrations.SqlServer";
+
+    public const string SqliteMigrationsAssembly = "Vehistra.Migrations.Sqlite";
+
+    /// <summary>
+    /// Registriert die Infrastruktur. Welche Datenbank verwendet wird, entscheiden
+    /// die gespeicherten Verbindungseinstellungen: Microsoft SQL Server im
+    /// Mehrplatzbetrieb, SQLite als Datei beim Solo-Platz.
     /// </summary>
     public static IServiceCollection AddVehistraInfrastructure(
         this IServiceCollection services,
-        Func<IServiceProvider, string> connectionStringFactory,
+        Func<IServiceProvider, ServerConnectionSettings> settingsFactory,
         string? applicationVersion = null,
         int commandTimeoutSeconds = 60)
     {
@@ -32,15 +43,32 @@ public static class DependencyInjection
 
         services.AddDbContext<VehistraDbContext>((sp, options) =>
         {
-            options.UseSqlServer(connectionStringFactory(sp), sql =>
+            var settings = settingsFactory(sp);
+            var connectionString = sp.GetRequiredService<IConnectionSettingsStore>()
+                .BuildConnectionString(settings);
+
+            if (settings.Provider == DatabaseProvider.Sqlite)
             {
-                sql.CommandTimeout(commandTimeoutSeconds);
-                sql.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(5),
-                    errorNumbersToAdd: null);
-                sql.MigrationsHistoryTable("__EFMigrationsHistory");
-            });
+                options.UseSqlite(connectionString, sqlite =>
+                {
+                    sqlite.CommandTimeout(commandTimeoutSeconds);
+                    sqlite.MigrationsAssembly(SqliteMigrationsAssembly);
+                    sqlite.MigrationsHistoryTable("__EFMigrationsHistory");
+                });
+            }
+            else
+            {
+                options.UseSqlServer(connectionString, sql =>
+                {
+                    sql.CommandTimeout(commandTimeoutSeconds);
+                    sql.EnableRetryOnFailure(
+                        maxRetryCount: 3,
+                        maxRetryDelay: TimeSpan.FromSeconds(5),
+                        errorNumbersToAdd: null);
+                    sql.MigrationsAssembly(SqlServerMigrationsAssembly);
+                    sql.MigrationsHistoryTable("__EFMigrationsHistory");
+                });
+            }
 
             options.AddInterceptors(
                 sp.GetRequiredService<AuditSaveChangesInterceptor>(),

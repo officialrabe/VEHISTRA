@@ -28,10 +28,10 @@
     <PackageProjectUrl>https://vehistra.dev</PackageProjectUrl>
     <RepositoryUrl>https://vehistra.dev</RepositoryUrl>
     <NeutralLanguage>de-DE</NeutralLanguage>
-    <VersionPrefix>0.6.0</VersionPrefix>
-    <AssemblyVersion>0.6.0.0</AssemblyVersion>
-    <FileVersion>0.6.0.0</FileVersion>
-    <InformationalVersion>0.6.0</InformationalVersion>
+    <VersionPrefix>0.7.0</VersionPrefix>
+    <AssemblyVersion>0.7.0.0</AssemblyVersion>
+    <FileVersion>0.7.0.0</FileVersion>
+    <InformationalVersion>0.7.0</InformationalVersion>
   </PropertyGroup>
 
   <!-- xunit.v3 laeuft auf der Microsoft Testing Platform; "dotnet test" muss darauf umgestellt werden. -->

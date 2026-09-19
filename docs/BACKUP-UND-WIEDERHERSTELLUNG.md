@@ -6,6 +6,11 @@ sichern und wie Sie beides im Notfall zurückholen.
 > Eine Sicherung, die nie zurückgespielt wurde, ist keine Sicherung. Testen Sie
 > die Wiederherstellung einmal im Monat auf einem Testsystem.
 
+> Die Kapitel 1 bis 8 beschreiben den **Netzwerkbetrieb** mit SQL Server. Läuft
+> Vehistra als **Solo-Platz**, ist die Datenbank eine einzelne Datei – dafür
+> gilt Kapitel 9. Welche Betriebsart bei Ihnen läuft, zeigt
+> `VehistraServerCheck.exe` in der ersten Zeile („Betriebsart").
+
 ---
 
 ## 1 – Was gesichert werden muss
@@ -18,6 +23,10 @@ sichern und wie Sie beides im Notfall zurückholen.
 | Updateordner | `D:\Fuhrpark\Updates` | bei Änderungen |
 
 Die Protokolle im Ordner `Logs` müssen nicht gesichert werden.
+
+Beim Solo-Platz tritt an die Stelle der Serverdatenbank die Datei
+`C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db`. Alles andere aus
+der Tabelle gilt unverändert.
 
 ---
 
@@ -192,7 +201,94 @@ niemandem.
 
 ---
 
-## 9 – Checkliste
+## 9 – Solo-Platz: die Datenbankdatei sichern
+
+Beim Solo-Platz liegt die gesamte Datenbank in einer Datei:
+
+```
+C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db
+```
+
+> **Kopieren Sie diese Datei nicht mit dem Explorer, während Vehistra läuft.**
+> Solange das Programm geöffnet ist, stehen die jüngsten Änderungen in den
+> Begleitdateien `Vehistra.db-wal` und `Vehistra.db-shm`. Eine Kopie der `.db`
+> allein wäre unvollständig und im Ernstfall nicht brauchbar.
+
+### 9.1 Sicherung aus dem Programm heraus (empfohlen)
+
+1. Vehistra öffnen und als Administrator anmelden.
+2. In der Seitenleiste unter „ADMINISTRATION" auf „Backups" klicken.
+3. Oben steht das hinterlegte Backupverzeichnis. Steht dort „nicht
+   konfiguriert", zuerst unter „Einstellungen" einen Ordner hinterlegen – zum
+   Beispiel `C:\Vehistra\Backups`.
+4. Auf „Backup jetzt erstellen" klicken.
+
+Das Programm schreibt eine in sich vollständige Kopie der Datenbank und prüft
+sie anschließend, indem es sie öffnet. Die Datei heißt zum Beispiel
+`Vehistra_20260314_220000_Manuell.db`. In der Liste unten muss die Zeile
+„erfolgreich" und in der Spalte „Geprüft" ein „Ja" zeigen – dann ist die
+Sicherung vollständig, inklusive der Änderungen, die noch im Begleitprotokoll
+standen.
+
+> Das Backupverzeichnis sollte **nicht** auf derselben Festplatte liegen wie
+> die Datenbank. Bei einem Festplattendefekt wären sonst beide weg.
+
+### 9.2 Sicherung per Aufgabenplanung
+
+Ohne geöffnetes Programm genügt eine Dateikopie, sofern **alle** drei Dateien
+mitkommen. Legen Sie dazu `C:\Fuhrpark\Backup-Solo.ps1` an:
+
+```
+$quelle = 'C:\ProgramData\LSP Virtual Services\Vehistra'
+$ziel   = 'D:\Fuhrpark\Backups\Vehistra-' + (Get-Date -Format 'yyyy-MM-dd-HHmm')
+
+New-Item -ItemType Directory -Path $ziel -Force | Out-Null
+
+# Datenbank samt Begleitdateien - nur zusammen sind sie vollstaendig
+Get-ChildItem -Path $quelle -Filter 'Vehistra.db*' |
+    Copy-Item -Destination $ziel -Force
+
+# Dokumente mitsichern
+robocopy 'C:\Fuhrpark\Dokumente' "$ziel\Dokumente" /MIR /R:2 /W:5 /NP | Out-Null
+
+# Aufbewahrung: 7 Sicherungen behalten
+Get-ChildItem 'D:\Fuhrpark\Backups' -Directory |
+    Sort-Object CreationTime -Descending |
+    Select-Object -Skip 7 |
+    Remove-Item -Recurse -Force
+```
+
+Richten Sie die Aufgabe wie in Abschnitt 3.2 beschrieben ein – am besten zu
+einer Uhrzeit, zu der niemand am Computer arbeitet.
+
+### 9.3 Wiederherstellen
+
+1. Vehistra schließen.
+2. Im Ordner `C:\ProgramData\LSP Virtual Services\Vehistra` die Dateien
+   `Vehistra.db`, `Vehistra.db-wal` und `Vehistra.db-shm` in einen Ordner
+   `Alt` verschieben – nicht löschen, solange die Wiederherstellung nicht
+   geprüft ist.
+3. Die Sicherungsdatei in diesen Ordner kopieren und in `Vehistra.db`
+   umbenennen.
+4. Vehistra starten und anmelden.
+5. Stichproben prüfen: Fahrzeugliste, letzte Kilometerstände, letzte Wartung.
+6. Erst wenn alles stimmt, den Ordner `Alt` löschen.
+
+> Stammt die Sicherung aus einer älteren Programmversion, führt Vehistra beim
+> ersten Start die nötige Datenbankaktualisierung durch und legt vorher
+> selbständig eine weitere Sicherung an.
+
+### 9.4 Notfallplan Solo-Platz
+
+1. Windows neu aufsetzen oder anderen Computer bereitstellen.
+2. `Vehistra-Setup.exe` ausführen und „Solo-Platz-Installation" wählen.
+3. Den Einrichtungsassistenten **abbrechen**, bevor er eine Datenbank anlegt.
+4. Die letzte Sicherung wie in 9.3 einspielen.
+5. Die Dokumente aus der Sicherung zurückkopieren.
+
+---
+
+## 10 – Checkliste
 
 | Wann | Was |
 | --- | --- |

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Vehistra.Application.Abstractions;
 using Vehistra.Infrastructure.Security;
+using Microsoft.Data.Sqlite;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 
@@ -29,7 +30,16 @@ public sealed class ConnectionSettingsStore : IConnectionSettingsStore
 
     public string ConfigFilePath { get; }
 
-    public bool IsConfigured => File.Exists(ConfigFilePath) && Load() is { Server.Length: > 0 };
+    /// <summary>
+    /// Eingerichtet heisst je Betriebsart etwas anderes: im Netzwerkbetrieb ein
+    /// Servername, beim Solo-Platz eine Datenbankdatei.
+    /// </summary>
+    public bool IsConfigured => File.Exists(ConfigFilePath) && Load() switch
+    {
+        { Provider: DatabaseProvider.Sqlite } solo => !string.IsNullOrWhiteSpace(solo.DatabaseFile),
+        { Server.Length: > 0 } => true,
+        _ => false
+    };
 
     public ServerConnectionSettings? Load()
     {
@@ -57,11 +67,16 @@ public sealed class ConnectionSettingsStore : IConnectionSettingsStore
         var json = JsonSerializer.Serialize(settings, JsonOptions);
         File.WriteAllText(ConfigFilePath, json);
 
-        _logger.LogInformation("Serverkonfiguration gespeichert: {Server}/{Database}", settings.Server, settings.Database);
+        _logger.LogInformation("Verbindung gespeichert: {Beschreibung}", settings.Describe());
     }
 
     public string BuildConnectionString(ServerConnectionSettings settings)
     {
+        if (settings.Provider == DatabaseProvider.Sqlite)
+        {
+            return BuildSqliteConnectionString(settings);
+        }
+
         var builder = new SqlConnectionStringBuilder
         {
             DataSource = settings.Server,
@@ -92,6 +107,40 @@ public sealed class ConnectionSettingsStore : IConnectionSettingsStore
 
         return builder.ConnectionString;
     }
+
+    /// <summary>
+    /// Verbindung zur Datenbankdatei des Solo-Platzes. Das Verzeichnis wird bei
+    /// Bedarf angelegt, damit die erste Verbindung nicht daran scheitert.
+    /// </summary>
+    private static string BuildSqliteConnectionString(ServerConnectionSettings settings)
+    {
+        var file = string.IsNullOrWhiteSpace(settings.DatabaseFile)
+            ? DefaultDatabaseFile
+            : settings.DatabaseFile;
+
+        var directory = Path.GetDirectoryName(Path.GetFullPath(file));
+
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        return new SqliteConnectionStringBuilder
+        {
+            DataSource = Path.GetFullPath(file),
+            // Die Datei wird beim Einrichten angelegt, nicht beiläufig beim
+            // ersten fehlgeschlagenen Verbindungsversuch.
+            Mode = SqliteOpenMode.ReadWriteCreate,
+            // Solo-Platz: ein Programm, aber mehrere Verbindungen daraus.
+            Cache = SqliteCacheMode.Shared,
+            Pooling = true,
+            ForeignKeys = true
+        }.ConnectionString;
+    }
+
+    /// <summary>Standardablage der Datenbankdatei - unterhalb von ProgramData.</summary>
+    public static string DefaultDatabaseFile =>
+        Path.Combine(ApplicationPaths.MachineData, "Vehistra.db");
 
     public void ExportClientConfiguration(ServerConnectionSettings settings, string targetPath)
     {

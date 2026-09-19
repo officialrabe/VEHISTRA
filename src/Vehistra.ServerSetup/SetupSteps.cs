@@ -49,6 +49,39 @@ public sealed record SetupStepInfo(SetupStep Step, string Title, string Descript
         new(SetupStep.ClientConfiguration, "Client-Konfiguration",
             "Die Datei für die Arbeitsplätze wird erzeugt.")
     ];
+
+    /// <summary>
+    /// Dieselben zwoelf Schritte, aber in der Sprache des Solo-Platzes: dort
+    /// gibt es keinen Server, keine Instanz und keine Freigaben. Die Nummern
+    /// bleiben gleich, damit Anleitung und Assistent zusammenpassen.
+    /// </summary>
+    public static IReadOnlyList<SetupStepInfo> AllForSingleWorkstation { get; } =
+    [
+        .. All.Select(schritt => schritt.Step switch
+        {
+            SetupStep.DetectSqlServer => schritt with
+            {
+                Title = "Datenbankserver",
+                Description = "Beim Solo-Platz nicht nötig – es wird nichts nachinstalliert."
+            },
+            SetupStep.TestConnection => schritt with
+            {
+                Title = "Datenbankdatei",
+                Description = "Der Ort der Datenbankdatei wird festgelegt und geprüft."
+            },
+            SetupStep.NetworkShares => schritt with
+            {
+                Title = "Netzwerkfreigaben",
+                Description = "Beim Solo-Platz nicht nötig – alle Ordner liegen hier."
+            },
+            SetupStep.ClientConfiguration => schritt with
+            {
+                Title = "Abschluss",
+                Description = "Beim Solo-Platz wird keine Datei für weitere Arbeitsplätze gebraucht."
+            },
+            _ => schritt
+        })
+    ];
 }
 
 /// <summary>Ergebnis einer Pruefung im Assistenten.</summary>

@@ -3,6 +3,7 @@ using System.Windows;
 using Vehistra.Application;
 using Vehistra.Application.Abstractions;
 using Vehistra.Infrastructure;
+using Vehistra.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -44,11 +45,14 @@ public partial class App : System.Windows.Application
         builder.Services.AddVehistraInfrastructure(provider =>
         {
             var store = provider.GetRequiredService<IConnectionSettingsStore>();
-            var settings = store.Load();
 
-            return settings is null
-                ? "Server=.;Database=VehistraDB;Trusted_Connection=True;TrustServerCertificate=True"
-                : store.BuildConnectionString(settings);
+            // Ohne gespeicherte Verbindung wird der Solo-Platz angenommen: eine
+            // Datenbankdatei unter ProgramData, die keine Installation braucht.
+            return store.Load() ?? new ServerConnectionSettings
+            {
+                Provider = DatabaseProvider.Sqlite,
+                DatabaseFile = ConnectionSettingsStore.DefaultDatabaseFile
+            };
         }, options.TargetVersion);
 
         builder.Services.AddSingleton<UpdateRunner>();

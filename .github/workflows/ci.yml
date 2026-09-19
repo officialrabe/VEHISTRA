@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERSION: 0.6.0
+  VERSION: 0.7.0
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -104,6 +104,17 @@ jobs:
           }
 
           Write-Host "Alle vier Programme wurden erzeugt."
+
+          # Ohne die native SQLite-Bibliothek startet der Solo-Platz auf einem
+          # frisch installierten Rechner nicht. Sie muss im Paket liegen.
+          $sqlite = Get-ChildItem artifacts/publish -Recurse -Filter 'e_sqlite3.dll' -ErrorAction SilentlyContinue
+
+          if (-not $sqlite) {
+            Write-Host "::error::e_sqlite3.dll fehlt - der Solo-Platz waere nicht lauffaehig."
+            exit 1
+          }
+
+          Write-Host "SQLite-Bibliothek gefunden: $($sqlite[0].FullName)"
 
       # Die Installationspakete erwarten die Anleitungen unterhalb des
       # Veroeffentlichungsordners - genau wie CreateRelease.ps1 es vorsieht.

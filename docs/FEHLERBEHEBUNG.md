@@ -7,6 +7,11 @@ konkreter Lösung. Die Meldungen sind so formuliert, wie Vehistra sie anzeigt.
 > `VehistraServerCheck.exe`. Das Programm prüft alles Wichtige und nennt zu
 > jedem Punkt den nächsten Schritt.
 
+> Läuft Vehistra als **Solo-Platz** auf einem einzigen Computer, gibt es keinen
+> Server und keinen SQL-Dienst. Die Kapitel 2 und 3 betreffen Sie dann nicht –
+> zuständig ist Kapitel 11. Die Betriebsart nennt `VehistraServerCheck.exe` in
+> der ersten Zeile.
+
 ---
 
 ## 1 – Das Programm startet nicht
@@ -32,8 +37,10 @@ diese Datei an den Support, wenn Sie damit nicht weiterkommen.
 
 ## 2 – SERVER NICHT ERREICHBAR
 
-Dieses Fenster erscheint, wenn Vehistra die Datenbank nicht erreicht. Es stehen
-vier Schaltflächen bereit:
+Dieses Fenster erscheint im Netzwerkbetrieb, wenn Vehistra die Datenbank nicht
+erreicht. Beim Solo-Platz heißt dasselbe Fenster „DATENBANKDATEI NICHT
+ERREICHBAR" und nennt dort die passenden Prüfschritte – weiter bei Kapitel 11.
+Es stehen vier Schaltflächen bereit:
 
 | Schaltfläche | Was sie tut |
 | --- | --- |
@@ -251,6 +258,83 @@ Es enthält ausdrücklich **nicht**:
 - Fahrzeug- oder Personendaten
 
 Es wird nichts automatisch versendet. Sie entscheiden, was Sie weitergeben.
+
+---
+
+## 11 – Solo-Platz: Meldungen rund um die Datenbankdatei
+
+Beim Solo-Platz ist die Datenbank eine Datei:
+
+```
+C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db
+```
+
+Daneben liegen `Vehistra.db-wal` und `Vehistra.db-shm`. Diese drei Dateien
+gehören zusammen. Wird nur eine davon kopiert, verschoben oder gelöscht, ist
+die Datenbank unbrauchbar.
+
+### „DATENBANKDATEI NICHT ERREICHBAR" beim Start
+
+Vehistra findet die Datei nicht oder sie ist leer. Das Fenster nennt den
+hinterlegten Ort und bietet „Diagnose", „Servereinstellungen" und „Erneut
+versuchen".
+
+- Ist der Ordner noch da? Wurde die Datei versehentlich verschoben oder
+  gelöscht, spielen Sie die letzte Sicherung zurück
+  (`BACKUP-UND-WIEDERHERSTELLUNG.pdf`, Kapitel 9.3).
+- Wurde die Einrichtung überhaupt schon ausgeführt? Starten Sie im Startmenü
+  „Datenbank einrichten" (`VehistraServerSetup.exe`).
+- Vehistra legt **keine** leere Ersatzdatenbank an und arbeitet auch nicht mit
+  einer weiter – eine leere Datei wird als Problem gemeldet, nicht stillschweigend
+  benutzt.
+
+### „Die Datenbankdatei konnte nicht geöffnet werden"
+
+- Existiert der Ordner noch? Wurde er umbenannt oder verschoben?
+- Hat das angemeldete Windows-Konto Schreibrechte auf den Ordner?
+- Liegt die Datei auf einer Wechselfestplatte, die gerade nicht angeschlossen
+  ist?
+
+Den hinterlegten Weg zur Datei zeigt „Hilfe & Support" → „Systemdiagnose".
+
+### „Die Datenbankdatei ist schreibgeschützt"
+
+Rechtsklick auf die Datei → „Eigenschaften" → den Haken bei „Schreibgeschützt"
+entfernen. Bleibt die Meldung, fehlen dem Windows-Konto die Rechte auf den
+Ordner; ein Administrator muss sie erteilen.
+
+### „Die Datenbankdatei wird gerade von einem anderen Programm verwendet"
+
+- Läuft Vehistra ein zweites Mal? Im Task-Manager nach `Vehistra.exe` sehen und
+  alle Fenster schließen.
+- Sichert gerade ein Sicherungsprogramm oder ein Cloud-Dienst
+  (OneDrive, Dropbox) den Ordner? Schließen Sie den Datenbankordner dort aus.
+- **Die Datenbankdatei darf nicht auf einer Netzwerkfreigabe liegen.** Sollen
+  mehrere Computer gemeinsam arbeiten, ist das der Netzwerkbetrieb – siehe
+  `EINZELPLATZ-INSTALLATION.pdf`, Kapitel 7.
+
+### „Die Datenbankdatei ist beschädigt oder keine gültige Datenbank"
+
+Meist die Folge einer Dateikopie, die während des laufenden Programms erstellt
+wurde, oder eines Stromausfalls mitten im Schreiben.
+
+1. Vehistra schließen.
+2. Die letzte Sicherung zurückspielen –
+   `BACKUP-UND-WIEDERHERSTELLUNG.pdf`, Kapitel 9.3.
+3. Die beschädigte Datei aufbewahren und dem Support beschreiben, was zuvor
+   geschehen ist.
+
+### „Auf dem Laufwerk ist kein Platz mehr frei"
+
+Speicherplatz freigeben und den Vorgang wiederholen. Auch der Ordner für die
+Sicherungen braucht freien Platz – eine Sicherung ist etwa so groß wie die
+Datenbank selbst.
+
+### Die Systemdiagnose meldet eine sehr kleine Datenbank
+
+Solange das Programm läuft, stehen die jüngsten Änderungen in
+`Vehistra.db-wal`. Die Diagnose zählt diese Datei mit. Weicht die Anzeige
+deutlich von der Größe im Explorer ab, ist das normal und kein Fehler.
 
 ---
 

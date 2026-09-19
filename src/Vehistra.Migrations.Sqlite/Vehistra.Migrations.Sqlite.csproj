@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Migrationen sind anbieterspezifisch: dieselbe Modelländerung erzeugt für
+    SQL Server und SQLite unterschiedliches SQL. Deshalb ein eigenes Projekt
+    je Anbieter, beide gegen denselben DbContext.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Vehistra.Migrations.Sqlite</RootNamespace>
+    <AssemblyName>Vehistra.Migrations.Sqlite</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Nur fuer "dotnet ef"; landet nicht in der Auslieferung. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Vehistra.Infrastructure\Vehistra.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -21,6 +21,12 @@ public sealed class DiagnosticsReport
 
     public string? DatabaseSchemaVersion { get; set; }
 
+    /// <summary>Betriebsart in Worten: Netzwerkbetrieb oder Solo-Platz.</summary>
+    public string? OperatingMode { get; set; }
+
+    /// <summary>Datenbankdatei des Solo-Platzes, sonst null.</summary>
+    public string? DatabaseFile { get; set; }
+
     public string? Server { get; set; }
 
     public string? SqlInstance { get; set; }
