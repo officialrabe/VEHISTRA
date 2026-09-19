@@ -453,26 +453,262 @@ public sealed class VehicleService : IVehicleService
             .ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<VehicleStatus>> GetStatusesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<VehicleStatus>> GetStatusesAsync(
+        bool includeInactive = false,
+        CancellationToken cancellationToken = default)
     {
-        return await _db.VehicleStatuses
-            .AsNoTracking()
-            .Where(s => s.IsActive)
+        var query = _db.VehicleStatuses.AsNoTracking();
+
+        if (!includeInactive)
+        {
+            query = query.Where(s => s.IsActive);
+        }
+
+        return await query
             .OrderBy(s => s.SortOrder)
             .ThenBy(s => s.Name)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
-    public async Task<IReadOnlyList<VehicleCategory>> GetCategoriesAsync(CancellationToken cancellationToken = default)
+    public async Task<VehicleStatus> CreateStatusAsync(string name, CancellationToken cancellationToken = default)
     {
-        return await _db.VehicleCategories
-            .AsNoTracking()
-            .Where(c => c.IsActive)
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        name = Guard.NotEmpty(name, "Name des Status");
+
+        await DemandUniqueStatusNameAsync(name, null, cancellationToken).ConfigureAwait(false);
+
+        var letzte = await _db.VehicleStatuses
+            .OrderByDescending(s => s.SortOrder)
+            .Select(s => (int?)s.SortOrder)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var status = new VehicleStatus
+        {
+            Name = name,
+            SortOrder = (letzte ?? 0) + 10,
+            IsActive = true,
+            IsSystemStatus = false,
+            // Eine Systemzuordnung bekommt nur, was das Programm selbst
+            // mitbringt. Sonst wuerden zwei Status denselben Sinn tragen.
+            Kind = null,
+            CountsAsOperational = false,
+            CountsAsAvailable = false
+        };
+
+        _db.VehicleStatuses.Add(status);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        return status;
+    }
+
+    public async Task UpdateStatusAsync(VehicleStatus status, CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        ArgumentNullException.ThrowIfNull(status);
+
+        var gespeichert = await _db.VehicleStatuses
+            .FirstOrDefaultAsync(s => s.Id == status.Id, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new EntityNotFoundException("Fahrzeugstatus", status.Id);
+
+        var name = Guard.NotEmpty(status.Name, "Name des Status");
+
+        await DemandUniqueStatusNameAsync(name, status.Id, cancellationToken).ConfigureAwait(false);
+
+        if (gespeichert.IsActive && !status.IsActive)
+        {
+            // Ohne einen aktiven Status liesse sich kein Fahrzeug mehr anlegen.
+            var weitereAktive = await _db.VehicleStatuses
+                .CountAsync(s => s.IsActive && s.Id != status.Id, cancellationToken)
+                .ConfigureAwait(false);
+
+            Guard.That(weitereAktive > 0,
+                $"„{gespeichert.Name}“ ist der letzte aktive Status. " +
+                "Ohne einen aktiven Status könnte kein Fahrzeug mehr angelegt werden.");
+        }
+
+        gespeichert.Name = name;
+        gespeichert.Description = status.Description;
+        gespeichert.ColorHex = string.IsNullOrWhiteSpace(status.ColorHex) ? null : status.ColorHex.Trim();
+        gespeichert.SortOrder = status.SortOrder;
+        gespeichert.IsActive = status.IsActive;
+        gespeichert.CountsAsOperational = status.CountsAsOperational;
+        gespeichert.CountsAsAvailable = status.CountsAsAvailable;
+
+        // Kind und IsSystemStatus bleiben unberuehrt: daran haengt die Logik
+        // (Ausmusterung, Werkstatt, Import), nicht am Namen.
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task DeleteStatusAsync(int statusId, CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        var status = await _db.VehicleStatuses
+            .FirstOrDefaultAsync(s => s.Id == statusId, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new EntityNotFoundException("Fahrzeugstatus", statusId);
+
+        Guard.That(!status.IsSystemStatus && status.Kind is null,
+            $"Der mitgelieferte Status „{status.Name}“ kann nicht gelöscht werden. " +
+            "An ihm hängen Abläufe wie Ausmusterung, Werkstatt und Import. " +
+            "Sie können ihn aber stilllegen, dann erscheint er nicht mehr zur Auswahl.");
+
+        var fahrzeuge = await _db.Vehicles
+            .CountAsync(v => v.VehicleStatusId == statusId, cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(fahrzeuge == 0,
+            $"Der Status „{status.Name}“ ist noch bei {fahrzeuge} Fahrzeug(en) gesetzt. " +
+            "Bitte diese Fahrzeuge zuerst umstellen oder den Status stilllegen.");
+
+        var historie = await _db.VehicleStatusHistory
+            .CountAsync(h => h.NewStatusId == statusId || h.OldStatusId == statusId, cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(historie == 0,
+            $"Der Status „{status.Name}“ kommt noch in der Statushistorie von Fahrzeugen vor. " +
+            "Historien werden nicht verändert; bitte den Status stilllegen.");
+
+        _db.VehicleStatuses.Remove(status);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task DemandUniqueStatusNameAsync(
+        string name,
+        int? exceptId,
+        CancellationToken cancellationToken)
+    {
+        var vorhanden = await _db.VehicleStatuses
+            .AnyAsync(s => s.Id != exceptId && s.Name.ToLower() == name.ToLower(), cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(!vorhanden, $"Der Status „{name}“ ist bereits vorhanden.");
+    }
+
+    public async Task<IReadOnlyList<VehicleCategory>> GetCategoriesAsync(
+        bool includeInactive = false,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _db.VehicleCategories.AsNoTracking();
+
+        if (!includeInactive)
+        {
+            query = query.Where(c => c.IsActive);
+        }
+
+        return await query
             .OrderBy(c => c.SortOrder)
             .ThenBy(c => c.Name)
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    public async Task<VehicleCategory> CreateCategoryAsync(
+        string name,
+        string? colorHex = null,
+        CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        name = Guard.NotEmpty(name, "Name des Einsatzbereichs");
+
+        await DemandUniqueCategoryNameAsync(name, null, cancellationToken).ConfigureAwait(false);
+
+        // Hinten anstellen, damit die mitgelieferten Bereiche ihre Reihenfolge behalten.
+        var letzte = await _db.VehicleCategories
+            .OrderByDescending(c => c.SortOrder)
+            .Select(c => (int?)c.SortOrder)
+            .FirstOrDefaultAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var category = new VehicleCategory
+        {
+            Name = name,
+            ColorHex = string.IsNullOrWhiteSpace(colorHex) ? null : colorHex.Trim(),
+            SortOrder = (letzte ?? 0) + 10,
+            IsActive = true,
+            IsSystemCategory = false
+        };
+
+        _db.VehicleCategories.Add(category);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+
+        return category;
+    }
+
+    public async Task UpdateCategoryAsync(VehicleCategory category, CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        ArgumentNullException.ThrowIfNull(category);
+
+        var gespeichert = await _db.VehicleCategories
+            .FirstOrDefaultAsync(c => c.Id == category.Id, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new EntityNotFoundException("Einsatzbereich", category.Id);
+
+        var name = Guard.NotEmpty(category.Name, "Name des Einsatzbereichs");
+
+        await DemandUniqueCategoryNameAsync(name, category.Id, cancellationToken).ConfigureAwait(false);
+
+        gespeichert.Name = name;
+        gespeichert.ColorHex = string.IsNullOrWhiteSpace(category.ColorHex) ? null : category.ColorHex.Trim();
+        gespeichert.Description = category.Description;
+        gespeichert.SortOrder = category.SortOrder;
+        gespeichert.IsActive = category.IsActive;
+
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task DeleteCategoryAsync(int categoryId, CancellationToken cancellationToken = default)
+    {
+        _currentUser.DemandPermission(Permissions.SettingsManage);
+
+        var category = await _db.VehicleCategories
+            .FirstOrDefaultAsync(c => c.Id == categoryId, cancellationToken)
+            .ConfigureAwait(false)
+            ?? throw new EntityNotFoundException("Einsatzbereich", categoryId);
+
+        Guard.That(!category.IsSystemCategory,
+            $"Der mitgelieferte Einsatzbereich '{category.Name}' kann nicht gelöscht werden. " +
+            "Sie können ihn aber stilllegen, dann erscheint er nicht mehr zur Auswahl.");
+
+        var fahrzeuge = await _db.VehicleCategoryAssignments
+            .CountAsync(a => a.VehicleCategoryId == categoryId, cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(fahrzeuge == 0,
+            $"Der Einsatzbereich '{category.Name}' ist noch {fahrzeuge} Fahrzeug(en) zugeordnet. " +
+            "Bitte die Zuordnung zuerst entfernen oder den Bereich stilllegen.");
+
+        var regeln = await _db.MaintenanceRules
+            .CountAsync(r => r.VehicleCategoryId == categoryId, cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(regeln == 0,
+            $"Der Einsatzbereich '{category.Name}' wird noch von {regeln} Wartungsregel(n) verwendet. " +
+            "Bitte die Regeln zuerst anpassen oder den Bereich stilllegen.");
+
+        _db.VehicleCategories.Remove(category);
+        await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Zwei Einsatzbereiche mit gleichem Namen waeren in jeder Auswahlliste ein Ratespiel.</summary>
+    private async Task DemandUniqueCategoryNameAsync(
+        string name,
+        int? exceptId,
+        CancellationToken cancellationToken)
+    {
+        var vorhanden = await _db.VehicleCategories
+            .AnyAsync(c => c.Id != exceptId && c.Name.ToLower() == name.ToLower(), cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(!vorhanden, $"Der Einsatzbereich '{name}' ist bereits vorhanden.");
     }
 
     public async Task<IReadOnlyList<int>> GetCategoryIdsAsync(int vehicleId, CancellationToken cancellationToken = default)

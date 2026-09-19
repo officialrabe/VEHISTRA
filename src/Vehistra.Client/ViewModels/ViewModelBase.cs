@@ -32,11 +32,39 @@ public abstract partial class ViewModelBase : ObservableObject
     public virtual Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
 
     /// <summary>
+    /// Merkt sich, dass gerade schon eine Aktion dieses Ansichtsmodells laeuft.
+    /// AsyncLocal ist hier genau richtig: der Wert wird an alles weitergegeben,
+    /// was innerhalb der laufenden Aktion aufgerufen wird, aber nicht an einen
+    /// zweiten Klick des Anwenders, der waehrend des Wartens hereinkommt.
+    /// Je Ansichtsmodell eigenstaendig: ruft eine Aktion ein anderes
+    /// Ansichtsmodell auf, behaelt dieses seinen eigenen Ladezustand.
+    /// </summary>
+    private readonly AsyncLocal<bool> _insideRun = new();
+
+    /// <summary>
     /// Fuehrt eine Aktion aus, zeigt dabei den Ladezustand an und wandelt Ausnahmen
     /// in verstaendliche Meldungen um.
     /// </summary>
     protected async Task<bool> RunAsync(Func<Task> action, string? successMessage = null)
     {
+        // Verschachtelter Aufruf: eine laufende Aktion ruft eine zweite Methode
+        // auf, die ebenfalls ueber RunAsync geht - etwa "Schaden schliessen",
+        // das anschliessend die Liste neu laedt. Frueher hat die Sperre unten
+        // diese innere Arbeit stillschweigend verworfen, weil IsBusy schon
+        // gesetzt war. Die Liste blieb dann unveraendert, bis jemand von Hand
+        // auf "Aktualisieren" geklickt hat.
+        if (_insideRun.Value)
+        {
+            await action().ConfigureAwait(true);
+
+            if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                StatusMessage = successMessage;
+            }
+
+            return true;
+        }
+
         if (IsBusy)
         {
             return false;
@@ -44,6 +72,7 @@ public abstract partial class ViewModelBase : ObservableObject
 
         IsBusy = true;
         ErrorMessage = null;
+        _insideRun.Value = true;
 
         try
         {
@@ -67,6 +96,7 @@ public abstract partial class ViewModelBase : ObservableObject
         }
         finally
         {
+            _insideRun.Value = false;
             IsBusy = false;
             OnPropertyChanged(nameof(HasError));
         }

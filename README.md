@@ -171,6 +171,15 @@ Die mitgelieferte Schrift DejaVu Sans Mono steht unter der Bitstream-Vera-
 Lizenz (siehe `assets/fonts/DejaVuSansMono-LICENSE.txt`) und ist davon nicht
 berührt.
 
+Alle verwendeten Fremdbestandteile sind mit ihrer Lizenz in
+[`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md) aufgeführt. Ein Bestandteil
+verdient dabei besondere Beachtung: **QuestPDF** (Erzeugung der PDF-Berichte)
+steht nicht unter einer einzelnen OSI-Lizenz, sondern unter einem
+Community-/Kommerz-Modell. Die Community-Lizenz deckt quelloffene Projekte unter
+OSI-Lizenzen ausdrücklich ab – Vehistra ist so eines. Wer den Quellcode
+außerhalb dieser Bedingungen weiterverwendet, muss QuestPDFs Bedingungen für
+seinen Fall selbst prüfen.
+
 ## Signatur der Auslieferungen
 
 Die Installationspakete werden über die [SignPath Foundation](https://signpath.org/)

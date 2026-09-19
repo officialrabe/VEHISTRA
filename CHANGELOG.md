@@ -6,6 +6,56 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.1.0
+
+Behoben
+- **Listen zeigten Änderungen erst nach „Aktualisieren".** Sehr viele Befehle
+  erledigen ihre Arbeit und laden danach die Liste neu – und dieses Neuladen
+  lief in dieselbe Sperre, die Doppelklicks abfängt. Die innere Arbeit wurde
+  dabei stillschweigend verworfen. Betroffen waren 19 Stellen in 15 Ansichten,
+  unter anderem: die Fahrzeugliste beim Öffnen, Fahrer aktivieren und
+  deaktivieren, Schaden schließen, Unfall schließen, Benutzer deaktivieren,
+  Passwort zurücksetzen, Dokument archivieren, Kennzeichen freigeben,
+  Wartungsregel löschen, Rolle löschen, Werkstatt anlegen, Backup erstellen,
+  Werkstattvorgang umstellen, Ausmusterung zurücknehmen und die Updateprüfung.
+  Der Schutz gegen Doppelklicks bleibt bestehen.
+
+Neu
+- **Eigene Stammdaten** lassen sich unter „Einstellungen" pflegen – bisher
+  waren die mitgelieferten Einträge die einzige Auswahl:
+  - **Fahrzeugkategorien** (Einsatzbereiche): anlegen, umbenennen, stilllegen,
+    löschen.
+  - **Schadenskategorien**: anlegen, umbenennen, stilllegen, löschen.
+  - **Fahrzeugstatus**: anlegen, umbenennen, stilllegen, löschen, und je Status
+    festlegen, ob Fahrzeuge darin als „einsatzbereit" oder „verfügbar" zählen –
+    davon leben die Kennzahlen im Dashboard.
+
+  Überall gilt dasselbe Vorgehen:
+  - Mitgelieferte Einträge lassen sich stilllegen, aber nicht löschen.
+  - Gelöscht wird nur, was nirgends verwendet wird; sonst nennt die Meldung,
+    woran es hängt. Historien und erfasste Vorgänge werden nie verändert.
+  - Ein stillgelegter Eintrag verschwindet aus der Auswahl, bleibt aber an
+    bereits zugeordneten Datensätzen erhalten und lässt sich wieder einschalten.
+  - Doppelte Namen werden abgewiesen, auch in anderer Schreibweise.
+
+  Zwei Sonderfälle, die das Programm absichert:
+  - Mitgelieferte Fahrzeugstatus dürfen umbenannt werden. Abläufe wie
+    Ausmusterung, Werkstatt und Import hängen an ihrer internen Zuordnung, nicht
+    am Namen.
+  - Die mitgelieferte Schadenskategorie „Unfall" dagegen lässt sich **nicht**
+    umbenennen: die Schadensmeldung aus einem Unfall findet sie über ihren
+    Namen. Stilllegen ist möglich, die Zuordnung funktioniert weiterhin.
+  - Der letzte aktive Fahrzeugstatus lässt sich nicht stilllegen – ohne einen
+    aktiven Status könnte kein Fahrzeug mehr angelegt werden.
+
+Geprüft
+- 23 neue Tests für die Stammdatenverwaltung (Anlegen, doppelte Namen,
+  Umbenennen, Stilllegen, Löschen, Rechteprüfung, die beiden Sonderfälle und
+  der Nachweis, dass Ausmusterung und Unfallschaden weiterhin ihren Status
+  bzw. ihre Kategorie finden).
+- Neues Testprojekt für die Ansichtsmodelle des Arbeitsplatzprogramms, das den
+  Verschachtelungsfehler festnagelt. Es läuft nur unter Windows, also in der CI.
+
 ## 1.0.0
 
 Erste vollständige Fassung. Sie wird als Beta veröffentlicht: vollständig und

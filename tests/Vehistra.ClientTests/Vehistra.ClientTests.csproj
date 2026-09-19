@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Prueft die Ansichtsmodelle des Arbeitsplatzprogramms. Das Ziel muss
+    net10.0-windows sein, weil Vehistra.Client eine WPF-Anwendung ist. Damit
+    laeuft dieses Projekt ausschliesslich auf Windows - also in der CI. Auf
+    einem Linux-Rechner laesst es sich uebersetzen, aber nicht ausfuehren.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Vehistra.ClientTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vehistra.Client\Vehistra.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Shouldly" />
+  </ItemGroup>
+
+</Project>

@@ -226,14 +226,32 @@
                 <RowDefinition Height="*" />
               </Grid.RowDefinitions>
               <Border Style="{StaticResource ToolbarStyle}">
-                <TextBlock Text="FAHRZEUGKATEGORIEN" FontWeight="SemiBold" FontSize="11" />
+                <StackPanel>
+                  <TextBlock Text="FAHRZEUGKATEGORIEN (EINSATZBEREICHE)" FontWeight="SemiBold" FontSize="11" />
+                  <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                    <Button Content="_Neu" MinWidth="70" Command="{Binding CreateCategoryCommand}"
+                            ToolTip="Einen eigenen Einsatzbereich anlegen" />
+                    <Button Content="_Umbenennen" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding RenameCategoryCommand}" />
+                    <Button Content="_Stilllegen / Aktivieren" Margin="6,0,0,0" MinWidth="150"
+                            Command="{Binding ToggleCategoryCommand}"
+                            ToolTip="Stillgelegte Bereiche erscheinen nicht mehr zur Auswahl, bleiben aber an zugeordneten Fahrzeugen erhalten" />
+                    <Button Content="_Löschen" Margin="6,0,0,0" MinWidth="90"
+                            Command="{Binding DeleteCategoryCommand}"
+                            ToolTip="Nur selbst angelegte Bereiche, die nirgends verwendet werden" />
+                  </StackPanel>
+                </StackPanel>
               </Border>
-              <DataGrid Grid.Row="1" ItemsSource="{Binding Categories}" BorderThickness="0">
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Categories}"
+                        SelectedItem="{Binding SelectedCategory}" BorderThickness="0">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
-                  <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" />
+                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" IsReadOnly="True" />
                   <DataGridTextColumn Header="Aktiv" Binding="{Binding IsActive, Converter={StaticResource BoolToYesNo}}"
-                                      Width="80" />
+                                      Width="80" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Mitgeliefert"
+                                      Binding="{Binding IsSystemCategory, Converter={StaticResource BoolToYesNo}}"
+                                      Width="110" IsReadOnly="True" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -246,14 +264,30 @@
                 <RowDefinition Height="*" />
               </Grid.RowDefinitions>
               <Border Style="{StaticResource ToolbarStyle}">
-                <TextBlock Text="SCHADENSKATEGORIEN" FontWeight="SemiBold" FontSize="11" />
+                <StackPanel>
+                  <TextBlock Text="SCHADENSKATEGORIEN" FontWeight="SemiBold" FontSize="11" />
+                  <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                    <Button Content="N_eu" MinWidth="70" Command="{Binding CreateDamageCategoryCommand}" />
+                    <Button Content="U_mbenennen" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding RenameDamageCategoryCommand}"
+                            ToolTip="Mitgelieferte Kategorien behalten ihren Namen - das Programm findet sie darüber" />
+                    <Button Content="St_illlegen / Aktivieren" Margin="6,0,0,0" MinWidth="150"
+                            Command="{Binding ToggleDamageCategoryCommand}" />
+                    <Button Content="Lö_schen" Margin="6,0,0,0" MinWidth="90"
+                            Command="{Binding DeleteDamageCategoryCommand}" />
+                  </StackPanel>
+                </StackPanel>
               </Border>
-              <DataGrid Grid.Row="1" ItemsSource="{Binding DamageCategories}" BorderThickness="0">
+              <DataGrid Grid.Row="1" ItemsSource="{Binding DamageCategories}"
+                        SelectedItem="{Binding SelectedDamageCategory}" BorderThickness="0">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
-                  <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" />
+                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" IsReadOnly="True" />
                   <DataGridTextColumn Header="Aktiv" Binding="{Binding IsActive, Converter={StaticResource BoolToYesNo}}"
-                                      Width="80" />
+                                      Width="80" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Mitgeliefert"
+                                      Binding="{Binding IsSystemCategory, Converter={StaticResource BoolToYesNo}}"
+                                      Width="110" IsReadOnly="True" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>
@@ -266,15 +300,42 @@
                 <RowDefinition Height="*" />
               </Grid.RowDefinitions>
               <Border Style="{StaticResource ToolbarStyle}">
-                <TextBlock Text="FAHRZEUGSTATUS" FontWeight="SemiBold" FontSize="11" />
+                <StackPanel>
+                  <TextBlock Text="FAHRZEUGSTATUS" FontWeight="SemiBold" FontSize="11" />
+                  <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
+                    <Button Content="Ne_u" MinWidth="70" Command="{Binding CreateStatusCommand}" />
+                    <Button Content="Umb_enennen" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding RenameStatusCommand}"
+                            ToolTip="Auch mitgelieferte Status: die Abläufe hängen an ihrer Systemzuordnung, nicht am Namen" />
+                    <Button Content="Stillle_gen / Aktivieren" Margin="6,0,0,0" MinWidth="150"
+                            Command="{Binding ToggleStatusCommand}" />
+                    <Button Content="Einsatz_bereit" Margin="6,0,0,0" MinWidth="120"
+                            Command="{Binding ToggleStatusOperationalCommand}"
+                            ToolTip="Zählen Fahrzeuge in diesem Status im Dashboard als einsatzbereit?" />
+                    <Button Content="Ver_fügbar" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding ToggleStatusAvailableCommand}"
+                            ToolTip="Zählen Fahrzeuge in diesem Status als verfügbar (nicht im Einsatz)?" />
+                    <Button Content="Lös_chen" Margin="6,0,0,0" MinWidth="90"
+                            Command="{Binding DeleteStatusCommand}" />
+                  </StackPanel>
+                </StackPanel>
               </Border>
-              <DataGrid Grid.Row="1" ItemsSource="{Binding Statuses}" BorderThickness="0">
+              <DataGrid Grid.Row="1" ItemsSource="{Binding Statuses}"
+                        SelectedItem="{Binding SelectedStatus}" BorderThickness="0">
                 <DataGrid.Columns>
-                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                  <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" />
                   <DataGridTextColumn Header="Systemstatus"
                                       Binding="{Binding IsSystemStatus, Converter={StaticResource BoolToYesNo}}"
-                                      Width="120" />
-                  <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" />
+                                      Width="120" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Aktiv" Binding="{Binding IsActive, Converter={StaticResource BoolToYesNo}}"
+                                      Width="80" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Einsatzbereit"
+                                      Binding="{Binding CountsAsOperational, Converter={StaticResource BoolToYesNo}}"
+                                      Width="120" IsReadOnly="True" />
+                  <DataGridTextColumn Header="Verfügbar"
+                                      Binding="{Binding CountsAsAvailable, Converter={StaticResource BoolToYesNo}}"
+                                      Width="100" IsReadOnly="True" />
                 </DataGrid.Columns>
               </DataGrid>
             </Grid>

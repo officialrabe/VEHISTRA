@@ -21,7 +21,29 @@ public interface IDamageService
 
     Task CloseAsync(int damageId, DateTime closedAt, decimal? actualCost, string? comment, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<DamageCategory>> GetCategoriesAsync(CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Schadenskategorien. Standardmaessig nur die aktiven; die
+    /// Stammdatenverwaltung braucht auch die stillgelegten.
+    /// </summary>
+    Task<IReadOnlyList<DamageCategory>> GetCategoriesAsync(
+        bool includeInactive = false,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Legt eine eigene Schadenskategorie an.</summary>
+    Task<DamageCategory> CreateCategoryAsync(string name, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Aendert Name, Beschreibung, Reihenfolge oder Zustand. Mitgelieferte
+    /// Kategorien lassen sich nicht umbenennen: an "Unfall" haengt die
+    /// Schadensmeldung aus einem Unfall.
+    /// </summary>
+    Task UpdateCategoryAsync(DamageCategory category, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Loescht eine selbst angelegte Kategorie, die noch an keiner
+    /// Schadensmeldung haengt. Mitgelieferte Kategorien bleiben erhalten.
+    /// </summary>
+    Task DeleteCategoryAsync(int categoryId, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<DamageReport>> GetOpenForVehicleAsync(int vehicleId, CancellationToken cancellationToken = default);
 }

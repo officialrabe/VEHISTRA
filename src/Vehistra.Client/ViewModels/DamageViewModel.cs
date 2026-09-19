@@ -89,7 +89,7 @@ public sealed partial class DamageViewModel : ViewModelBase
         {
             if (Categories.Count == 0)
             {
-                foreach (var category in await _damages.GetCategoriesAsync(cancellationToken).ConfigureAwait(true))
+                foreach (var category in await _damages.GetCategoriesAsync(false, cancellationToken).ConfigureAwait(true))
                 {
                     Categories.Add(category);
                 }
