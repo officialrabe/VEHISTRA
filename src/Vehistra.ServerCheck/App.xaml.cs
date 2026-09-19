@@ -3,6 +3,7 @@ using System.Windows;
 using Vehistra.Application;
 using Vehistra.Application.Abstractions;
 using Vehistra.Infrastructure;
+using Vehistra.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -46,13 +47,14 @@ public partial class App : System.Windows.Application
         builder.Services.AddVehistraInfrastructure(provider =>
         {
             var store = provider.GetRequiredService<IConnectionSettingsStore>();
-            var settings = store.Load();
 
-            // Ohne Konfiguration wird ein Platzhalter verwendet; die Pruefung meldet das verstaendlich.
-            return settings is null
-                ? $"Server={Environment.MachineName}\\SQLEXPRESS;Database=VehistraDB;" +
-                  "Trusted_Connection=True;TrustServerCertificate=True"
-                : store.BuildConnectionString(settings);
+            // Ohne gespeicherte Verbindung wird der Solo-Platz angenommen: eine
+            // Datenbankdatei unter ProgramData, die keine Installation braucht.
+            return store.Load() ?? new ServerConnectionSettings
+            {
+                Provider = DatabaseProvider.Sqlite,
+                DatabaseFile = ConnectionSettingsStore.DefaultDatabaseFile
+            };
         }, version);
 
         builder.Services.AddSingleton<ServerCheckRunner>();

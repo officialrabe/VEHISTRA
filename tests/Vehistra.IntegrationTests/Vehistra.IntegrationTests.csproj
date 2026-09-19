@@ -11,6 +11,8 @@
     <ProjectReference Include="..\..\src\Vehistra.Application\Vehistra.Application.csproj" />
     <ProjectReference Include="..\..\src\Vehistra.Infrastructure\Vehistra.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\Vehistra.Reporting\Vehistra.Reporting.csproj" />
+    <ProjectReference Include="..\..\src\Vehistra.Migrations.SqlServer\Vehistra.Migrations.SqlServer.csproj" />
+    <ProjectReference Include="..\..\src\Vehistra.Migrations.Sqlite\Vehistra.Migrations.Sqlite.csproj" />
   </ItemGroup>
 
   <ItemGroup>

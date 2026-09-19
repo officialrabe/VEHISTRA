@@ -9,8 +9,9 @@ using Microsoft.Extensions.Logging;
 namespace Vehistra.Infrastructure.Services;
 
 /// <summary>
-/// Erstellt Datenbanksicherungen ueber SQL Server (BACKUP DATABASE) und prueft sie
-/// anschliessend mit RESTORE VERIFYONLY. Die Sicherung liegt auf dem Datenbankserver.
+/// Erstellt Datenbanksicherungen und prueft sie anschliessend. Wie gesichert wird,
+/// haengt vom Anbieter ab (siehe <see cref="IBackupEngine"/>): bei SQL Server
+/// BACKUP DATABASE auf dem Server, beim Solo-Platz VACUUM INTO als Dateikopie.
 /// </summary>
 public sealed class BackupService : IBackupService
 {
@@ -67,8 +68,9 @@ public sealed class BackupService : IBackupService
             TriggeredByUserName = _currentUser.User?.UserName ?? Environment.UserName
         };
 
-        var fileName = $"{settings.Database}_{_clock.Now:yyyyMMdd_HHmmss}_{request.Kind}.bak";
-        var backupPath = CombineServerPath(directory, fileName);
+        var engine = CreateEngine(settings);
+        var fileName = engine.BuildFileName(settings, request.Kind, _clock.Now);
+        var backupPath = engine.CombinePath(directory, fileName);
 
         try
         {
@@ -76,17 +78,8 @@ public sealed class BackupService : IBackupService
 
             var description = $"Vehistra {request.Kind} {_clock.Now:dd.MM.yyyy HH:mm}";
 
-            // Parameterisiert, damit keine SQL-Injection ueber Pfadangaben moeglich ist.
-            var sql = $"""
-                BACKUP DATABASE [{EscapeIdentifier(settings.Database)}]
-                TO DISK = @path
-                WITH FORMAT, INIT, NAME = @name, SKIP, NOREWIND, NOUNLOAD, COMPRESSION, STATS = 10
-                """;
-
-            await _db.Database.ExecuteSqlRawAsync(
-                sql,
-                [new SqlParameter("@path", backupPath), new SqlParameter("@name", description)],
-                cancellationToken).ConfigureAwait(false);
+            await engine.CreateAsync(_db.Database, settings, backupPath, description, cancellationToken)
+                .ConfigureAwait(false);
 
             history.FilePath = backupPath;
             history.IsSuccessful = true;
@@ -188,16 +181,21 @@ public sealed class BackupService : IBackupService
             .ConfigureAwait(false);
     }
 
+    /// <summary>Waehlt die Sicherungsmaschinerie passend zum Anbieter.</summary>
+    private static IBackupEngine CreateEngine(ServerConnectionSettings settings) =>
+        settings.Provider == DatabaseProvider.Sqlite
+            ? new SqliteBackupEngine()
+            : new SqlServerBackupEngine();
+
     private async Task<BackupResult> VerifyBackupInternalAsync(string backupPath, CancellationToken cancellationToken)
     {
+        var engine = CreateEngine(_connectionStore.Load() ?? new ServerConnectionSettings());
+
         try
         {
-            await _db.Database.ExecuteSqlRawAsync(
-                "RESTORE VERIFYONLY FROM DISK = @path",
-                [new SqlParameter("@path", backupPath)],
-                cancellationToken).ConfigureAwait(false);
+            await engine.VerifyAsync(_db.Database, backupPath, cancellationToken).ConfigureAwait(false);
 
-            return new BackupResult(true, backupPath, null, true, "Die Sicherungsdatei ist lesbar und vollstaendig.");
+            return new BackupResult(true, backupPath, null, true, engine.VerifyDescription);
         }
         catch (Exception exception)
         {
@@ -208,10 +206,5 @@ public sealed class BackupService : IBackupService
         }
     }
 
-    /// <summary>Verbindet Verzeichnis und Dateiname fuer den Datenbankserver (Windows-Pfadtrenner).</summary>
-    private static string CombineServerPath(string directory, string fileName) =>
-        directory.TrimEnd('\\', '/') + "\\" + fileName;
 
-    /// <summary>Maskiert Bezeichner fuer die Verwendung in eckigen Klammern.</summary>
-    private static string EscapeIdentifier(string identifier) => identifier.Replace("]", "]]");
 }

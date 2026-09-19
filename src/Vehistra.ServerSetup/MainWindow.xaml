@@ -129,60 +129,84 @@
             <!-- 2 SQL Server erkennen -->
             <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
                                              ConverterParameter=DetectSqlServer}">
+              <!-- Netzwerkbetrieb: vorhandene Instanzen suchen -->
+              <StackPanel Visibility="{Binding ShowServerFields, Converter={StaticResource BoolVisibility}}">
+                <TextBlock TextWrapping="Wrap"
+                           Text="Der Assistent sucht nach installierten SQL-Server-Instanzen. Dieses Programm installiert SQL Server nicht selbst – wenn keine Instanz gefunden wird, erhalten Sie eine Anleitung." />
+                <TextBlock Text="Gefundene Instanzen" Style="{StaticResource CaptionText}" />
+                <ListBox ItemsSource="{Binding Instances}" SelectedItem="{Binding SelectedInstance}"
+                         DisplayMemberPath="Display" Height="96"
+                         BorderBrush="{StaticResource BorderBrush}" />
+              </StackPanel>
+
+              <!-- Solo-Platz: es wird kein Datenbankserver gebraucht -->
               <TextBlock TextWrapping="Wrap"
-                         Text="Der Assistent sucht nach installierten SQL-Server-Instanzen. Dieses Programm installiert SQL Server nicht selbst – wenn keine Instanz gefunden wird, erhalten Sie eine Anleitung." />
-              <TextBlock Text="Gefundene Instanzen" Style="{StaticResource CaptionText}" />
-              <ListBox ItemsSource="{Binding Instances}" SelectedItem="{Binding SelectedInstance}"
-                       DisplayMemberPath="Display" Height="96"
-                       BorderBrush="{StaticResource BorderBrush}" />
+                         Visibility="{Binding ShowServerFields, Converter={StaticResource BoolVisibility},
+                                              ConverterParameter=invert}"
+                         Text="Beim Solo-Platz wird kein Datenbankserver benötigt – die Datenbank ist eine Datei auf diesem Computer. Es muss nichts nachinstalliert werden. Klicken Sie auf „Weiter“." />
             </StackPanel>
 
             <!-- 3 Verbindung testen -->
             <StackPanel Visibility="{Binding CurrentStep, Converter={StaticResource StepVisibility},
                                              ConverterParameter=TestConnection}">
-              <Grid>
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*" />
-                  <ColumnDefinition Width="16" />
-                  <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                  <TextBlock Text="Server und Instanz" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
-                  <TextBox Text="{Binding Server, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                  <TextBlock Text="Datenbankname" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
-                  <TextBox Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-              </Grid>
+              <!-- Solo-Platz: die Datenbank ist eine Datei, kein Server -->
+              <StackPanel Visibility="{Binding ShowServerFields, Converter={StaticResource BoolVisibility},
+                                               ConverterParameter=invert}">
+                <TextBlock TextWrapping="Wrap"
+                           Text="Die Fuhrparkdatenbank wird als einzelne Datei auf diesem Computer angelegt. Der vorgeschlagene Ort ist richtig gewählt – ändern Sie ihn nur, wenn Sie die Datei bewusst auf ein anderes Laufwerk legen wollen." />
+                <TextBlock Text="Datenbankdatei" Style="{StaticResource CaptionText}" />
+                <TextBox Text="{Binding DatabaseFile, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{StaticResource MutedBrush}"
+                           TextWrapping="Wrap"
+                           Text="Hinweis: Die Datei darf nicht auf einer Netzwerkfreigabe liegen. Klicken Sie anschließend unten auf „Verbindung testen“." />
+              </StackPanel>
 
-              <TextBlock Text="Anmeldung am SQL Server" Style="{StaticResource CaptionText}" />
-              <RadioButton Content="Windows-Authentifizierung (empfohlen)" GroupName="Auth"
-                           IsChecked="{Binding UseWindowsAuthentication}" />
-              <RadioButton Content="SQL-Server-Anmeldung mit Benutzername und Passwort" GroupName="Auth"
-                           IsChecked="{Binding UseSqlAuthentication, Mode=OneWay}"
-                           Checked="OnSqlAuthenticationChecked" Margin="0,6,0,0" />
+              <!-- Netzwerkbetrieb: Servername, Instanz und Anmeldung -->
+              <StackPanel Visibility="{Binding ShowServerFields, Converter={StaticResource BoolVisibility}}">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="Server und Instanz" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                    <TextBox Text="{Binding Server, UpdateSourceTrigger=PropertyChanged}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="Datenbankname" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                    <TextBox Text="{Binding Database, UpdateSourceTrigger=PropertyChanged}" />
+                  </StackPanel>
+                </Grid>
 
-              <Grid Margin="22,8,0,0"
-                    Visibility="{Binding UseSqlAuthentication, Converter={StaticResource BoolVisibility}}">
-                <Grid.ColumnDefinitions>
-                  <ColumnDefinition Width="*" />
-                  <ColumnDefinition Width="16" />
-                  <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <StackPanel>
-                  <TextBlock Text="SQL-Benutzername" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
-                  <TextBox Text="{Binding SqlUserName, UpdateSourceTrigger=PropertyChanged}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2">
-                  <TextBlock Text="SQL-Passwort" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
-                  <PasswordBox PasswordChanged="OnSqlPasswordChanged" />
-                </StackPanel>
-              </Grid>
+                <TextBlock Text="Anmeldung am SQL Server" Style="{StaticResource CaptionText}" />
+                <RadioButton Content="Windows-Authentifizierung (empfohlen)" GroupName="Auth"
+                             IsChecked="{Binding UseWindowsAuthentication}" />
+                <RadioButton Content="SQL-Server-Anmeldung mit Benutzername und Passwort" GroupName="Auth"
+                             IsChecked="{Binding UseSqlAuthentication, Mode=OneWay}"
+                             Checked="OnSqlAuthenticationChecked" Margin="0,6,0,0" />
 
-              <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{StaticResource MutedBrush}"
-                         TextWrapping="Wrap"
-                         Text="Hinweis: Das SQL-Passwort wird ausschließlich mit Windows DPAPI verschlüsselt gespeichert – niemals im Klartext und niemals in der Client-Konfigurationsdatei." />
+                <Grid Margin="22,8,0,0"
+                      Visibility="{Binding UseSqlAuthentication, Converter={StaticResource BoolVisibility}}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                  </Grid.ColumnDefinitions>
+                  <StackPanel>
+                    <TextBlock Text="SQL-Benutzername" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                    <TextBox Text="{Binding SqlUserName, UpdateSourceTrigger=PropertyChanged}" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2">
+                    <TextBlock Text="SQL-Passwort" Style="{StaticResource CaptionText}" Margin="0,0,0,3" />
+                    <PasswordBox PasswordChanged="OnSqlPasswordChanged" />
+                  </StackPanel>
+                </Grid>
+
+                <TextBlock Margin="0,10,0,0" FontSize="11" Foreground="{StaticResource MutedBrush}"
+                           TextWrapping="Wrap"
+                           Text="Hinweis: Das SQL-Passwort wird ausschließlich mit Windows DPAPI verschlüsselt gespeichert – niemals im Klartext und niemals in der Client-Konfigurationsdatei." />
+              </StackPanel>
             </StackPanel>
 
             <!-- 4 Datenbank -->

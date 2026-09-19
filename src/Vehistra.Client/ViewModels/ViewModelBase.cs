@@ -95,6 +95,11 @@ public abstract partial class ViewModelBase : ObservableObject
             "Die Verbindung zur Fuhrparkdatenbank ist gestört. " +
             "Bitte prüfen Sie über 'Hilfe & Support' die Systemdiagnose.",
 
+        // Solo-Platz: die Datenbank ist eine Datei, kein Server.
+        Microsoft.Data.Sqlite.SqliteException =>
+            "Auf die Fuhrparkdatenbank konnte nicht zugegriffen werden. " +
+            "Bitte prüfen Sie über 'Hilfe & Support' die Systemdiagnose.",
+
         UnauthorizedAccessException =>
             "Für diesen Zugriff fehlen die Berechtigungen im Dateisystem.",
 

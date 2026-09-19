@@ -9,6 +9,7 @@ using Vehistra.Client.Services;
 using Vehistra.Client.ViewModels;
 using Vehistra.Client.Views;
 using Vehistra.Infrastructure;
+using Vehistra.Infrastructure.Services;
 using Vehistra.Infrastructure.Persistence;
 using Vehistra.Infrastructure.Storage;
 using Vehistra.Reporting;
@@ -159,11 +160,14 @@ public partial class App : System.Windows.Application
         builder.Services.AddVehistraInfrastructure(provider =>
         {
             var store = provider.GetRequiredService<IConnectionSettingsStore>();
-            var settings = store.Load();
 
-            return settings is null
-                ? "Server=.;Database=VehistraDB;Trusted_Connection=True;TrustServerCertificate=True"
-                : store.BuildConnectionString(settings);
+            // Ohne gespeicherte Verbindung wird der Solo-Platz angenommen: eine
+            // Datenbankdatei unter ProgramData, die keine Installation braucht.
+            return store.Load() ?? new ServerConnectionSettings
+            {
+                Provider = DatabaseProvider.Sqlite,
+                DatabaseFile = ConnectionSettingsStore.DefaultDatabaseFile
+            };
         }, version);
 
         builder.Services.AddSingleton<IDialogService, DialogService>();
@@ -190,7 +194,14 @@ public partial class App : System.Windows.Application
         {
             var settings = store.Load();
 
-            if (settings is null || string.IsNullOrWhiteSpace(settings.Server))
+            // Was hinterlegt sein muss, haengt von der Betriebsart ab: im
+            // Netzwerkbetrieb der Servername, beim Solo-Platz die Datenbankdatei.
+            var unvollstaendig = settings is null
+                || (settings.IsSingleWorkstation
+                    ? string.IsNullOrWhiteSpace(settings.DatabaseFile)
+                    : string.IsNullOrWhiteSpace(settings.Server));
+
+            if (unvollstaendig)
             {
                 var setupWindow = Services.GetRequiredService<ServerSettingsWindow>();
                 if (setupWindow.ShowDialog() != true)
@@ -201,12 +212,18 @@ public partial class App : System.Windows.Application
                 continue;
             }
 
+            // Nach der Pruefung oben steht die Konfiguration fest.
+            ArgumentNullException.ThrowIfNull(settings);
+
             using var scope = Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<VehistraDbContext>();
 
             try
             {
-                if (await db.Database.CanConnectAsync().ConfigureAwait(true))
+                // Beim Solo-Platz wuerde eine Verbindung die Datei notfalls neu
+                // anlegen. Eine leere Datei ist aber keine Fuhrparkdatenbank -
+                // dann ist etwas verloren gegangen, und das muss auffallen.
+                if (IsUsableDatabaseFile(settings) && await db.Database.CanConnectAsync().ConfigureAwait(true))
                 {
                     ConfigureDocumentStorage(settings);
 
@@ -239,6 +256,27 @@ public partial class App : System.Windows.Application
             {
                 return false;
             }
+        }
+    }
+
+    /// <summary>
+    /// Beim Solo-Platz: Gibt es die Datenbankdatei mit Inhalt? Im Netzwerkbetrieb
+    /// immer <c>true</c>, dort entscheidet der Verbindungsversuch.
+    /// </summary>
+    private static bool IsUsableDatabaseFile(ServerConnectionSettings settings)
+    {
+        if (!settings.IsSingleWorkstation || string.IsNullOrWhiteSpace(settings.DatabaseFile))
+        {
+            return !settings.IsSingleWorkstation;
+        }
+
+        try
+        {
+            return File.Exists(settings.DatabaseFile) && new FileInfo(settings.DatabaseFile).Length > 0;
+        }
+        catch (IOException)
+        {
+            return false;
         }
     }
 

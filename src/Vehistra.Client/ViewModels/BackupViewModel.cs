@@ -151,7 +151,17 @@ public sealed partial class BackupViewModel : ViewModelBase
     [RelayCommand]
     private void ShowRestoreInstructions()
     {
-        var database = _connectionStore.Load()?.Database ?? "VehistraDB";
+        var settings = _connectionStore.Load();
+
+        // Beim Solo-Platz gibt es kein Management Studio und keinen Server -
+        // dort ist die Datenbank eine Datei, und genau das muss hier stehen.
+        if (settings?.IsSingleWorkstation == true)
+        {
+            ShowSoloRestoreInstructions(settings);
+            return;
+        }
+
+        var database = settings?.Database ?? "VehistraDB";
         var path = SelectedBackup?.FilePath ?? @"D:\Fuhrpark\Backups\VehistraDB_JJJJMMTT.bak";
 
         _dialogs.ShowInformation(
@@ -170,6 +180,43 @@ public sealed partial class BackupViewModel : ViewModelBase
              4. Anschließend die Arbeitsplätze wieder starten.
 
              Die ausführliche Anleitung finden Sie in BACKUP-UND-WIEDERHERSTELLUNG.pdf.
+             """,
+            "Wiederherstellung");
+    }
+
+    /// <summary>Wiederherstellung des Solo-Platzes: eine Datei wird ersetzt.</summary>
+    private void ShowSoloRestoreInstructions(ServerConnectionSettings settings)
+    {
+        var databaseFile = string.IsNullOrWhiteSpace(settings.DatabaseFile)
+            ? "Vehistra.db"
+            : settings.DatabaseFile;
+
+        var folder = Path.GetDirectoryName(databaseFile);
+        var path = SelectedBackup?.FilePath ?? Path.Combine(
+            string.IsNullOrWhiteSpace(BackupDirectory) ? @"C:\Vehistra\Backups" : BackupDirectory,
+            "Vehistra_JJJJMMTT_HHMMSS_Manuell.db");
+
+        _dialogs.ShowInformation(
+            $"""
+             WIEDERHERSTELLUNG DER DATENBANK (SOLO-PLATZ)
+
+             1. Vehistra schließen.
+             2. Diesen Ordner öffnen:
+
+                {folder}
+
+             3. Die Dateien Vehistra.db, Vehistra.db-wal und Vehistra.db-shm in
+                einen neuen Unterordner "Alt" verschieben - nicht löschen.
+             4. Die Sicherung dorthin kopieren und in Vehistra.db umbenennen:
+
+                {path}
+
+             5. Vehistra starten und Stichproben prüfen (Fahrzeugliste,
+                letzte Kilometerstände, letzte Wartung).
+             6. Erst danach den Ordner "Alt" löschen.
+
+             Die ausführliche Anleitung finden Sie in
+             BACKUP-UND-WIEDERHERSTELLUNG.pdf, Kapitel 9.
              """,
             "Wiederherstellung");
     }

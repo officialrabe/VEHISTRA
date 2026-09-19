@@ -219,3 +219,50 @@ public sealed class TestConnectionSettingsStore : IConnectionSettingsStore
         System.Text.Json.JsonSerializer.Deserialize<ServerConnectionSettings>(File.ReadAllText(sourcePath))
         ?? throw new InvalidOperationException("Die Konfigurationsdatei konnte nicht gelesen werden.");
 }
+
+/// <summary>
+/// Datenbankdatei in einem eigenen Verzeichnis - fuer Tests, die die Datei
+/// wirklich brauchen, etwa die Sicherung des Solo-Platzes.
+/// </summary>
+public sealed class TemporaryDatabaseFile : IDisposable
+{
+    private readonly string _directory;
+
+    public TemporaryDatabaseFile()
+    {
+        _directory = Path.Combine(Path.GetTempPath(), "vehistra-db-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_directory);
+
+        Path_ = Path.Combine(_directory, "Vehistra.db");
+        BackupDirectory = Path.Combine(_directory, "Backups");
+        Directory.CreateDirectory(BackupDirectory);
+    }
+
+    public string Path_ { get; }
+
+    public string BackupDirectory { get; }
+
+    public ServerConnectionSettings Settings => new()
+    {
+        Provider = DatabaseProvider.Sqlite,
+        DatabaseFile = Path_,
+        BackupPath = BackupDirectory
+    };
+
+    public void Dispose()
+    {
+        Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
+        try
+        {
+            if (Directory.Exists(_directory))
+            {
+                Directory.Delete(_directory, recursive: true);
+            }
+        }
+        catch (IOException)
+        {
+            // Aufraeumen ist Kür, nicht Pflicht.
+        }
+    }
+}

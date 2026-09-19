@@ -70,7 +70,7 @@ Name: "deutsch"; MessagesFile: "compiler:Languages\German.isl"
 ; ---------------------------------------------------------------------------
 [Types]
 Name: "netzwerk"; Description: "Netzwerk-Installation – Arbeitsplatz im Firmennetz"
-Name: "solo";     Description: "Solo-Platz-Installation – alles auf diesem Computer"
+Name: "solo";     Description: "Solo-Platz-Installation – alles auf diesem Computer, ohne Datenbankserver"
 
 [Components]
 Name: "programm"; Description: "Vehistra (Hauptanwendung)"; \
@@ -106,6 +106,9 @@ Source: "{#SourceDir}\*.json";      DestDir: "{app}"; Flags: ignoreversion; Comp
 Source: "{#SourceDir}\runtimes\*";  DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: programm
 Source: "{#SourceDir}\de\*";        DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: programm
 
+; Lizenztext - die MIT-Lizenz verlangt, dass der Hinweis jeder Kopie beiliegt.
+Source: "..\..\LICENSE"; DestDir: "{app}"; DestName: "LIZENZ.txt"; Flags: ignoreversion; Components: programm
+
 ; Anleitungen als PDF - werden im Startmenue verlinkt
 Source: "{#SourceDir}\Dokumentation\*"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: anleitungen
 
@@ -137,7 +140,7 @@ Type: filesandordirs; Name: "{app}\Dokumentation"
 
 [Messages]
 deutsch.WelcomeLabel2=Dieser Assistent installiert Vehistra {#AppVersion} auf diesem Computer.%n%nIm nächsten Schritt wählen Sie, wie Vehistra arbeiten soll: als Arbeitsplatz im Firmennetz oder als Solo-Platz, bei dem alles auf diesem einen Computer liegt.%n%nEntwickelt und betreut von LSP Virtual Services.
-deutsch.SelectComponentsLabel2=Wählen Sie, wie Vehistra auf diesem Computer arbeiten soll. Die Erklärung zu beiden Möglichkeiten finden Sie unten.
+deutsch.SelectComponentsLabel2=Wählen Sie, wie Vehistra auf diesem Computer arbeiten soll.%n%nSolo-Platz: Die Datenbank ist eine Datei auf diesem Computer. Es muss nichts zusätzlich installiert werden.%n%nNetzwerk: Die Datenbank liegt auf einem Firmenserver, der getrennt eingerichtet wird.
 deutsch.FinishedLabel=Vehistra wurde installiert.%n%nDie Anleitungen liegen im Startmenü unter „Anleitungen".
 
 [Code]
@@ -169,50 +172,6 @@ begin
   end;
 end;
 
-{ --------------------------------------------------------------------------
-  Beim Solo-Platz muss Microsoft SQL Server Express auf diesem Computer
-  liegen. Fehlt er, wird das hier erklaert - und zwar bevor installiert
-  wird, damit niemand vor einer halb fertigen Einrichtung steht.
-  -------------------------------------------------------------------------- }
-function IstSqlServerVorhanden(): Boolean;
-var
-  Namen: TArrayOfString;
-begin
-  Result :=
-    RegGetValueNames(HKEY_LOCAL_MACHINE,
-      'SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL', Namen) or
-    RegGetValueNames(HKEY_LOCAL_MACHINE,
-      'SOFTWARE\WOW6432Node\Microsoft\Microsoft SQL Server\Instance Names\SQL', Namen);
-end;
-
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  Result := True;
-
-  if (CurPageID = wpSelectComponents) and WizardIsComponentSelected('servertools') then
-  begin
-    if not IstSqlServerVorhanden() then
-    begin
-      Result := MsgBox(
-        'Sie haben die Solo-Platz-Installation gewählt. Dabei liegt die Datenbank ' +
-        'auf diesem Computer.' + #13#10 + #13#10 +
-        'Dafür wird Microsoft SQL Server Express benötigt - er wurde hier nicht ' +
-        'gefunden. Das Programm ist von Microsoft, kostenlos und wird einmalig ' +
-        'installiert.' + #13#10 + #13#10 +
-        'So gehen Sie vor:' + #13#10 +
-        '1. Öffnen Sie https://www.microsoft.com/de-de/sql-server/sql-server-downloads' + #13#10 +
-        '2. Laden Sie im Bereich "Express" die Datei herunter' + #13#10 +
-        '3. Wählen Sie bei der Installation "Basic" und behalten Sie den' + #13#10 +
-        '   vorgeschlagenen Instanznamen SQLEXPRESS bei' + #13#10 + #13#10 +
-        'Sie können jetzt fortfahren und SQL Server Express danach installieren. ' +
-        'Die Einrichtung der Datenbank holen Sie anschließend über den Startmenü-' +
-        'Eintrag "Datenbank einrichten" nach.' + #13#10 + #13#10 +
-        'Möchten Sie fortfahren?',
-        mbConfirmation, MB_YESNO) = IDYES;
-    end;
-  end;
-end;
-
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
@@ -227,8 +186,8 @@ begin
 
   MsgBox(
     'Beim Entfernen des Programms bleiben erhalten:' + #13#10 + #13#10 +
-    '• die Fuhrparkdatenbank im SQL Server (auf dem Firmenserver bzw.' + #13#10 +
-    '  bei einem Solo-Platz auf diesem Computer)' + #13#10 +
+    '• die Fuhrparkdatenbank - beim Netzwerkbetrieb auf dem Firmenserver,' + #13#10 +
+    '  beim Solo-Platz als Datei unter ProgramData' + #13#10 +
     '• alle Fahrzeugdokumente in der Dokumentenablage' + #13#10 +
     '• die Serverkonfiguration und die Protokolle unter' + #13#10 +
     '  C:\ProgramData\LSP Virtual Services\Vehistra' + #13#10 + #13#10 +

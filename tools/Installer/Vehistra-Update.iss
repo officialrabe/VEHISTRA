@@ -105,6 +105,9 @@ Source: "{#SourceDir}\runtimes\*";  DestDir: "{app}\runtimes"; Flags: ignorevers
 Source: "{#SourceDir}\de\*";        DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: programm
 Source: "{#SourceDir}\Dokumentation\*"; DestDir: "{app}\Dokumentation"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: anleitungen
 
+; Lizenztext - die MIT-Lizenz verlangt, dass der Hinweis jeder Kopie beiliegt.
+Source: "..\..\LICENSE"; DestDir: "{app}"; DestName: "LIZENZ.txt"; Flags: ignoreversion; Components: programm
+
 [Icons]
 Name: "{group}\Vehistra"; Filename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
 Name: "{group}\Serverprüfung"; Filename: "{app}\VehistraServerCheck.exe"; WorkingDir: "{app}"
@@ -159,7 +162,7 @@ begin
     if MsgBox(
       'Vehistra wird auf Version {#AppVersion} aktualisiert.' + #13#10 + #13#10 +
       'Es werden ausschließlich die Programmdateien ausgetauscht.' + #13#10 +
-      'Die Fuhrparkdatenbank auf dem Server bleibt vollständig erhalten;' + #13#10 +
+      'Die Fuhrparkdatenbank bleibt vollständig erhalten;' + #13#10 +
       'notwendige Datenbankanpassungen erfolgen anschließend automatisch' + #13#10 +
       'und immer erst nach einer Sicherung.' + #13#10 + #13#10 +
       'Möchten Sie das Update jetzt durchführen?',

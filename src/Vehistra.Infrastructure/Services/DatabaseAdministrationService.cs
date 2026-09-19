@@ -2,6 +2,7 @@ using System.Reflection;
 using Vehistra.Application.Abstractions;
 using Vehistra.Domain.Entities;
 using Vehistra.Infrastructure.Persistence;
+using Microsoft.Data.Sqlite;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -45,6 +46,21 @@ public sealed class DatabaseAdministrationService : IDatabaseAdministrationServi
         {
             var connectionString = _connectionStore.BuildConnectionString(settings);
 
+            if (settings.Provider == DatabaseProvider.Sqlite)
+            {
+                await using var datei = new SqliteConnection(connectionString);
+                await datei.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+                await using var abfrage = datei.CreateCommand();
+                abfrage.CommandText = "SELECT sqlite_version()";
+                var sqliteVersion = await abfrage.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+
+                return new DatabaseConnectionResult(
+                    true,
+                    "Die Datenbankdatei wurde geöffnet.",
+                    $"SQLite {sqliteVersion} · {settings.DatabaseFile}");
+            }
+
             await using var connection = new SqlConnection(connectionString);
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
@@ -72,6 +88,18 @@ public sealed class DatabaseAdministrationService : IDatabaseAdministrationServi
         ServerConnectionSettings settings,
         CancellationToken cancellationToken = default)
     {
+        if (settings.Provider == DatabaseProvider.Sqlite)
+        {
+            // Beim Solo-Platz ist die Datenbank eine Datei. "Vorhanden" heisst:
+            // die Datei liegt da und ist nicht leer - eine frisch angelegte
+            // Nulldatei zaehlt nicht als eingerichtete Datenbank.
+            var datei = settings.DatabaseFile;
+
+            return !string.IsNullOrWhiteSpace(datei)
+                && File.Exists(datei)
+                && new FileInfo(datei).Length > 0;
+        }
+
         var masterSettings = settings.Clone();
         masterSettings.Database = "master";
 
@@ -92,6 +120,18 @@ public sealed class DatabaseAdministrationService : IDatabaseAdministrationServi
     {
         if (await DatabaseExistsAsync(settings, cancellationToken).ConfigureAwait(false))
         {
+            return;
+        }
+
+        if (settings.Provider == DatabaseProvider.Sqlite)
+        {
+            // Die Datei entsteht beim Verbinden; die Tabellen legt anschliessend
+            // die Migration an. Hier wird nur sichergestellt, dass das
+            // Verzeichnis vorhanden und beschreibbar ist.
+            await using var datei = new SqliteConnection(_connectionStore.BuildConnectionString(settings));
+            await datei.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+            _logger.LogInformation("Datenbankdatei angelegt: {Datei}", settings.DatabaseFile);
             return;
         }
 

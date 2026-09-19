@@ -42,14 +42,19 @@ public sealed class DiagnosticsService : IDiagnosticsService
     public async Task<DiagnosticsReport> RunAsync(CancellationToken cancellationToken = default)
     {
         var settings = _connectionStore.Load();
+        var isSolo = settings?.IsSingleWorkstation == true;
 
         var report = new DiagnosticsReport
         {
             CreatedAt = _clock.Now,
             ApplicationVersion = _versionProvider.Version,
-            Server = settings?.Server,
-            SqlInstance = ExtractInstance(settings?.Server),
-            Database = settings?.Database,
+            OperatingMode = settings is null
+                ? null
+                : isSolo ? "Solo-Platz (Datenbank als Datei auf diesem Computer)" : "Netzwerkbetrieb (SQL Server)",
+            DatabaseFile = isSolo ? settings!.DatabaseFile : null,
+            Server = isSolo ? null : settings?.Server,
+            SqlInstance = isSolo ? null : ExtractInstance(settings?.Server),
+            Database = isSolo ? null : settings?.Database,
             DocumentsPath = settings?.DocumentsPath,
             UpdatePath = settings?.UpdatePath,
             BackupPath = settings?.BackupPath,
@@ -61,11 +66,11 @@ public sealed class DiagnosticsService : IDiagnosticsService
 
         // Konfiguration
         report.Checks.Add(new DiagnosticsCheck(
-            "Serverkonfiguration",
+            isSolo ? "Konfiguration" : "Serverkonfiguration",
             settings is not null,
             settings is null
-                ? "Es ist keine Serververbindung eingerichtet."
-                : $"{settings.Server} / {settings.Database}",
+                ? "Es ist keine Datenbankverbindung eingerichtet."
+                : settings.Describe(),
             settings is null ? "Bitte die Servereinstellungen im Programm hinterlegen." : null));
 
         // Datenbankverbindung
@@ -79,7 +84,9 @@ public sealed class DiagnosticsService : IDiagnosticsService
                 canConnect ? "Verbindung erfolgreich." : "Verbindung fehlgeschlagen.",
                 canConnect
                     ? null
-                    : "Bitte pruefen, ob der Server laeuft, TCP/IP aktiv ist und die Firewall freigegeben wurde."));
+                    : isSolo
+                        ? "Bitte pruefen, ob die Datenbankdatei vorhanden ist und das Windows-Konto darauf schreiben darf."
+                        : "Bitte pruefen, ob der Server laeuft, TCP/IP aktiv ist und die Firewall freigegeben wurde."));
 
             if (canConnect)
             {
@@ -112,6 +119,21 @@ public sealed class DiagnosticsService : IDiagnosticsService
                     "Datenbestand",
                     true,
                     $"{vehicleCount} Fahrzeug(e), {userCount} aktive(r) Benutzer"));
+
+                if (isSolo)
+                {
+                    // Die Datei selbst, samt Begleitprotokoll - siehe DatabaseFacts.
+                    var megabytes = await DatabaseFacts
+                        .GetSizeMegabytesAsync(_db, settings!, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    var groesse = megabytes is null ? "Groesse unbekannt" : $"{megabytes:N2} MB";
+
+                    report.Checks.Add(new DiagnosticsCheck(
+                        "Datenbankdatei",
+                        true,
+                        $"{settings!.DatabaseFile} ({groesse})"));
+                }
             }
         }
         catch (Exception exception)
@@ -131,7 +153,9 @@ public sealed class DiagnosticsService : IDiagnosticsService
             storageProbe.Message ?? "Keine Angabe",
             storageProbe.CanWrite
                 ? null
-                : "Bitte Netzwerkfreigabe und NTFS-Berechtigungen des Dokumentenordners pruefen."));
+                : isSolo
+                    ? "Bitte pruefen, ob der Dokumentenordner existiert und beschreibbar ist."
+                    : "Bitte Netzwerkfreigabe und NTFS-Berechtigungen des Dokumentenordners pruefen."));
 
         // Updateablage
         var updatePathReachable = !string.IsNullOrWhiteSpace(settings?.UpdatePath)
@@ -225,9 +249,19 @@ public sealed class DiagnosticsService : IDiagnosticsService
         builder.AppendLine();
         builder.AppendLine("VERBINDUNG");
         builder.AppendLine(new string('-', 60));
-        builder.AppendLine($"Server             : {report.Server ?? "-"}");
-        builder.AppendLine($"SQL-Instanz        : {report.SqlInstance ?? "-"}");
-        builder.AppendLine($"Datenbank          : {report.Database ?? "-"}");
+        builder.AppendLine($"Betriebsart        : {report.OperatingMode ?? "nicht eingerichtet"}");
+
+        if (report.DatabaseFile is not null)
+        {
+            builder.AppendLine($"Datenbankdatei     : {report.DatabaseFile}");
+        }
+        else
+        {
+            builder.AppendLine($"Server             : {report.Server ?? "-"}");
+            builder.AppendLine($"SQL-Instanz        : {report.SqlInstance ?? "-"}");
+            builder.AppendLine($"Datenbank          : {report.Database ?? "-"}");
+        }
+
         builder.AppendLine($"Dokumentenpfad     : {report.DocumentsPath ?? "-"}");
         builder.AppendLine($"Updatepfad         : {report.UpdatePath ?? "-"}");
         builder.AppendLine($"Backupverzeichnis  : {report.BackupPath ?? "-"}");

@@ -1,10 +1,11 @@
 # Solo-Platz einrichten
 
 Diese Anleitung ist für den Fall, dass Vehistra auf **einem einzigen Computer**
-laufen soll – ohne Server, ohne Netzwerkfreigaben, ohne zweiten Rechner.
+laufen soll – ohne Server, ohne Netzwerkfreigaben, **ohne zusätzliche
+Datenbankinstallation**.
 
-Wenn mehrere Arbeitsplätze gleichzeitig mit demselben Fuhrpark arbeiten sollen,
-ist stattdessen `SERVER-EINRICHTUNG-EINFACH.pdf` die richtige Anleitung.
+Sollen mehrere Arbeitsplätze gleichzeitig mit demselben Fuhrpark arbeiten, ist
+`SERVER-EINRICHTUNG-EINFACH.pdf` die richtige Anleitung.
 
 ---
 
@@ -12,161 +13,136 @@ ist stattdessen `SERVER-EINRICHTUNG-EINFACH.pdf` die richtige Anleitung.
 
 | | Solo-Platz | Netzwerk |
 | --- | --- | --- |
-| Datenbank | auf diesem Computer | auf dem Firmenserver |
+| Datenbank | eine Datei auf diesem Computer | SQL Server auf dem Firmenserver |
+| Zusätzlich zu installieren | **nichts** | Microsoft SQL Server Express |
 | Gleichzeitige Nutzer | einer | beliebig viele |
-| Netzwerkfreigaben | nicht nötig | nötig |
-| Firewall, TCP/IP, SQL-Browser | nicht nötig | nötig |
-| Zeitaufwand | etwa 30 Minuten | etwa 60 Minuten |
+| Netzwerkfreigaben, Firewall, TCP/IP | nicht nötig | nötig |
+| Zeitaufwand | etwa 10 Minuten | etwa 60 Minuten |
 
-Sie können später jederzeit auf den Netzwerkbetrieb wechseln: Die Datenbank
-lässt sich sichern und auf einem Server zurückspielen. Ihre Daten gehen dabei
-nicht verloren.
+Sie können später auf den Netzwerkbetrieb wechseln, ohne Daten zu verlieren –
+siehe Kapitel 7.
 
 ---
 
 ## Kapitel 1 – Was Sie brauchen
 
 - Einen Windows-PC (64 Bit), Windows 10 oder neuer
-- Administratorrechte auf diesem PC
-- Etwa 30 Minuten Zeit
+- Administratorrechte für die Installation
+- Etwa 10 Minuten Zeit
 - Die Datei `Vehistra-Setup.exe`
-- Etwa 10 GB freien Speicherplatz
+- Etwa 2 GB freien Speicherplatz
 
-Der PC muss nicht leistungsstark sein. Ein normaler Büro-PC mit 8 GB
-Arbeitsspeicher und einer SSD genügt.
-
-> Wichtig: Bei einem Solo-Platz liegen Programm, Datenbank und Sicherung auf
+> Wichtig: Beim Solo-Platz liegen Programm, Datenbank und Sicherung auf
 > demselben Gerät. Geht die Festplatte kaputt, ist ohne eine Sicherung außer
-> Haus alles verloren. Lesen Sie dazu Kapitel 7.
+> Haus alles verloren. Lesen Sie dazu Kapitel 6.
 
 ---
 
-## Kapitel 2 – Microsoft SQL Server Express installieren
-
-Vehistra speichert seine Daten in einer richtigen Datenbank, nicht in einer
-Datei. Dafür wird „Microsoft SQL Server Express" benötigt – ein kostenloses
-Programm von Microsoft. Vehistra installiert es bewusst nicht im Hintergrund.
-
-1. Öffnen Sie `https://www.microsoft.com/de-de/sql-server/sql-server-downloads`
-2. Klicken Sie im Bereich „Express" auf „Jetzt herunterladen".
-3. Starten Sie die heruntergeladene Datei.
-4. Wählen Sie den Installationstyp „Basic" bzw. „Standard".
-5. Bestätigen Sie die Lizenzbedingungen.
-6. **Behalten Sie den vorgeschlagenen Instanznamen `SQLEXPRESS` bei.**
-7. Warten Sie, bis die Installation abgeschlossen ist.
-
-Das war der aufwendigste Teil. Alles Weitere geht schnell.
-
-> Sie müssen **nicht** TCP/IP aktivieren, **nicht** den SQL-Server-Browser
-> starten und **nichts** in der Firewall freigeben. Das braucht nur der
-> Netzwerkbetrieb, weil dort andere Computer zugreifen müssen.
-
----
-
-## Kapitel 3 – Vehistra installieren
+## Kapitel 2 – Vehistra installieren
 
 1. Doppelklick auf `Vehistra-Setup.exe`.
 2. Bestätigen Sie die Nachfrage von Windows mit „Ja".
-3. Der Assistent fragt nach der Installationsart. **Wählen Sie hier
-   „Solo-Platz-Installation – alles auf diesem Computer".**
-4. Klicken Sie auf „Weiter" und danach auf „Installieren".
+3. Der Assistent fragt nach der Installationsart. **Wählen Sie
+   „Solo-Platz-Installation – alles auf diesem Computer, ohne
+   Datenbankserver".**
+4. „Weiter", dann „Installieren".
 5. Lassen Sie am Ende den Haken bei **„Jetzt die örtliche Datenbank
    einrichten"** gesetzt und klicken Sie auf „Fertigstellen".
 
-Durch die Wahl „Solo-Platz" wird zusätzlich der Einrichtungsassistent
-mitinstalliert, der im nächsten Kapitel die Datenbank anlegt. Bei der
-Netzwerk-Installation fehlt er, weil dort der Server getrennt eingerichtet wird.
+Durch die Wahl „Solo-Platz" wird der Einrichtungsassistent mitinstalliert, der
+im nächsten Kapitel die Datenbank anlegt.
 
-Meldet der Assistent, dass SQL Server Express fehlt: Kapitel 2 nachholen und
-danach im Startmenü „Datenbank einrichten" aufrufen.
+Meldet der Assistent, dass die .NET Desktop Runtime 10 fehlt: unter
+`https://dotnet.microsoft.com/download/dotnet/10.0` im Bereich „Desktop
+Runtime" die Variante „Windows x64" herunterladen, installieren und das Setup
+erneut starten.
 
 ---
 
-## Kapitel 4 – Die Datenbank anlegen
+## Kapitel 3 – Die Datenbank anlegen
 
 Der Einrichtungsassistent öffnet sich mit dem Untertitel „Solo-Platz einrichten
-– alles auf diesem Computer". Er führt durch zwölf Schritte und hat alle Felder
-bereits sinnvoll vorbelegt.
+– alles auf diesem Computer". Alle Felder sind bereits sinnvoll vorbelegt.
 
 | Schritt | Was zu tun ist |
 | --- | --- |
-| 1 Systemprüfung | Auf „System prüfen" klicken. Es müssen Administratorrechte gemeldet werden. |
-| 2 SQL Server erkennen | Auf „SQL Server suchen" klicken. Ihre Instanz erscheint in der Liste. |
-| 3 Verbindung testen | Der Server steht bereits auf `.\SQLEXPRESS`. Der Punkt steht für „dieser Computer". Windows-Authentifizierung beibehalten. |
-| 4 Datenbank | Auf „Datenbank anlegen" klicken. |
+| 1 Systemprüfung | Auf „System prüfen" klicken. |
+| 2 Datenbankserver | Auf „Prüfen" klicken. Es erscheint „Beim Solo-Platz wird kein Datenbankserver benötigt", dann „Weiter". |
+| 3 Datenbankdatei | Der Ort ist vorbelegt. Auf „Verbindung testen" klicken. |
+| 4 Datenbank | Auf „Datenbank anlegen" klicken. Die Datei entsteht. |
 | 5 Datenbankstruktur | Auf „Struktur einrichten" klicken. Dauert einige Sekunden. |
-| 6 Dokumentenordner | Vorbelegt mit `C:\Vehistra\Dokumente`. Auf „Ordner anlegen" klicken. |
-| 7 Backupordner | Vorbelegt mit `C:\Vehistra\Backups`. Am besten auf ein anderes Laufwerk ändern, falls vorhanden. |
-| 8 Updateordner | Vorbelegt mit `C:\Vehistra\Updates`. Auf „Ordner anlegen" klicken. |
-| 9 Netzwerkfreigaben | Wird beim Solo-Platz nicht gebraucht. Auf „Freigaben prüfen" und „Weiter" klicken. |
+| 6 Dokumentenordner | Vorbelegt mit `C:\Vehistra\Dokumente`. „Ordner anlegen". |
+| 7 Backupordner | Vorbelegt mit `C:\Vehistra\Backups`. Wenn möglich auf ein anderes Laufwerk ändern. |
+| 8 Updateordner | Vorbelegt. „Ordner anlegen". |
+| 9 Netzwerkfreigaben | Wird beim Solo-Platz nicht gebraucht. „Ordner prüfen", dann „Weiter". |
 | 10 Erster Administrator | Benutzername und Passwort festlegen. **Passwort sicher notieren.** |
-| 11 Abschlussprüfung | Auf „Abschluss prüfen" klicken. Alle Zeilen sollten „IN ORDNUNG" zeigen. |
-| 12 Client-Konfiguration | Beim Solo-Platz nicht nötig – Sie können den Assistenten schließen. |
+| 11 Abschlussprüfung | „Abschluss prüfen". Alle Zeilen sollten „IN ORDNUNG" zeigen. |
+| 12 Abschluss | Auf „Einrichtung abschließen" klicken, dann den Assistenten schließen. |
+
+Die Datenbank liegt anschließend unter
+`C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db`.
 
 ---
 
-## Kapitel 5 – Zum ersten Mal anmelden
+## Kapitel 4 – Zum ersten Mal anmelden
 
-1. Doppelklick auf „Vehistra" auf dem Desktop.
-2. Beim ersten Start erscheint das Fenster „Serververbindung einrichten".
-3. Tragen Sie ein:
-   - Server: `.\SQLEXPRESS`
-   - Datenbank: `VehistraDB`
-   - Anmeldung: Windows-Authentifizierung
-   - Dokumentenordner: `C:\Vehistra\Dokumente`
-   - Updateordner: leer lassen
-4. „Verbindung testen", dann „Speichern".
-5. Melden Sie sich mit dem Konto aus Kapitel 4 Schritt 10 an.
-
-Fertig.
+Doppelklick auf „Vehistra" auf dem Desktop und mit dem Konto aus Kapitel 3
+Schritt 10 anmelden. Mehr ist nicht zu tun – die Verbindung zur Datenbankdatei
+hat der Einrichtungsassistent bereits hinterlegt.
 
 ---
 
-## Kapitel 6 – Die Einrichtung prüfen
+## Kapitel 5 – Die Einrichtung prüfen
 
-Starten Sie im Startmenü „Serverprüfung". Das Programm prüft alles Wichtige und
-erkennt den Solo-Platz von selbst – bei „Serverstandort" meldet es:
-*„Die Datenbank liegt auf diesem Computer. Eine Netzwerkprüfung ist nicht
-nötig."*
+Starten Sie im Startmenü „Serverprüfung". Das Programm erkennt den Solo-Platz
+von selbst und meldet bei „Netzwerk": *„Beim Solo-Platz wird kein Netzwerk
+benötigt."*
 
 Alle Zeilen sollten „IN ORDNUNG" tragen.
 
 ---
 
-## Kapitel 7 – Sicherung: hier besonders wichtig
+## Kapitel 6 – Sicherung: hier besonders wichtig
 
 Im Netzwerkbetrieb liegt die Sicherung auf einem Server, der üblicherweise
 mitgesichert wird. **Beim Solo-Platz gibt es diesen zweiten Ort nicht.**
 Festplatte defekt heißt dann: Datenbank *und* Sicherung weg.
 
-Richten Sie deshalb beides ein:
+Vehistra sichert die Datenbank in eine eigenständige Kopie und prüft sie
+anschließend, indem es sie öffnet. Das geschieht im laufenden Betrieb, Sie
+müssen das Programm nicht schließen.
 
-1. Die automatische tägliche Sicherung wie in
-   `BACKUP-UND-WIEDERHERSTELLUNG.pdf`, Kapitel 3 beschrieben. Ersetzen Sie dort
-   `D:\Fuhrpark\Backups` durch Ihren Backupordner.
-2. **Eine regelmäßige Kopie außer Haus** – auf eine Wechselfestplatte, die nicht
-   am PC bleibt, oder in einen Cloudspeicher Ihrer Wahl. Mindestens wöchentlich.
+Richten Sie beides ein:
 
-Prüfen Sie einmal im Monat, ob sich eine Sicherung zurückspielen lässt
-(`BACKUP-UND-WIEDERHERSTELLUNG.pdf`, Kapitel 6). Eine ungeprüfte Sicherung ist
-keine Sicherung.
+1. Die Sicherung im Programm unter „ADMINISTRATION" → „Backups"
+   (das Backupverzeichnis hinterlegen Sie unter „Einstellungen"). Eine
+   Sicherung ohne festes Verzeichnis lässt sich nicht erstellen.
+   Für einen täglichen Lauf ohne Zutun: `BACKUP-UND-WIEDERHERSTELLUNG.pdf`,
+   Abschnitt 9.2.
+2. **Eine Kopie außer Haus** – auf eine Wechselfestplatte, die nicht am PC
+   bleibt, oder in einen Cloudspeicher Ihrer Wahl. Mindestens wöchentlich.
+
+Prüfen Sie einmal im Monat, ob sich eine Sicherung zurückspielen lässt.
+
+> Kopieren Sie die Datei `Vehistra.db` **niemals** von Hand, während Vehistra
+> läuft. Die jüngsten Änderungen stehen dann noch in der Begleitdatei
+> `Vehistra.db-wal` und würden fehlen. Verwenden Sie immer die Sicherung aus
+> dem Programm – sie erzeugt eine in sich stimmige Kopie.
 
 ---
 
-## Kapitel 8 – Später auf Netzwerkbetrieb wechseln
+## Kapitel 7 – Später auf Netzwerkbetrieb wechseln
 
-Wächst der Betrieb, lässt sich der Solo-Platz zum Netzwerkbetrieb ausbauen,
-ohne Daten zu verlieren:
+Wächst der Betrieb, lässt sich der Solo-Platz ausbauen:
 
 1. Server aufsetzen und SQL Server Express installieren
    (`SERVER-EINRICHTUNG-EINFACH.pdf`, Kapitel 3 bis 6).
-2. Auf dem Solo-PC eine Sicherung der Datenbank erstellen.
-3. Die Sicherung auf dem Server zurückspielen
-   (`BACKUP-UND-WIEDERHERSTELLUNG.pdf`, Kapitel 5).
-4. Dokumentenordner auf den Server kopieren und freigeben
-   (`SERVER-EINRICHTUNG-EINFACH.pdf`, Kapitel 7 und 8).
-5. Auf dem bisherigen Solo-PC unter „Servereinstellungen" den neuen Servernamen
-   eintragen.
+2. Auf dem Server mit `VehistraServerSetup.exe` eine leere Datenbank anlegen.
+3. Die Daten aus dem Solo-Platz exportieren (Einstellungen → „Export") und auf
+   dem Server importieren.
+4. Dokumentenordner auf den Server kopieren und freigeben.
+5. Auf dem bisherigen Solo-PC unter „Servereinstellungen" auf Netzwerkbetrieb
+   umstellen und den Servernamen eintragen.
 6. Weitere Arbeitsplätze nach `NEUEN-PC-IN-5-MINUTEN.pdf` einrichten.
 
 ---
@@ -174,22 +150,23 @@ ohne Daten zu verlieren:
 ## Häufige Fragen
 
 **Muss der PC immer laufen?**
-Nein. Sie sind der einzige Nutzer – wenn er aus ist, arbeitet niemand damit.
+Nein. Sie sind der einzige Nutzer.
 
-**Kann ich später einen zweiten Arbeitsplatz anschließen?**
-Nicht direkt an einen Solo-Platz. Dafür braucht es den Wechsel aus Kapitel 8,
-weil am Solo-Platz Firewall und Netzwerkprotokolle bewusst zugelassen bleiben,
-wie Windows sie standardmäßig setzt.
+**Wo liegen meine Daten?**
+Die Datenbank unter `C:\ProgramData\LSP Virtual Services\Vehistra\Vehistra.db`,
+die Fahrzeugdokumente im Dokumentenordner aus Kapitel 3 Schritt 6.
 
-**Warum keine einfache Datei statt einer Datenbank?**
-Eine Datenbank verhindert, dass bei einem Absturz mitten im Speichern
-widersprüchliche Daten entstehen, und führt lückenlos Buch darüber, wer was
-wann geändert hat. Bei Fahrzeugdaten mit Prüfterminen und Unfallakten ist das
-kein Luxus.
+**Warum keine Datenbank auf einem Netzlaufwerk?**
+Die Dateisperrung über Netzwerkfreigaben ist nicht verlässlich; bei zwei
+gleichzeitigen Zugriffen droht eine beschädigte Datei. Für mehrere
+Arbeitsplätze ist der Netzwerkbetrieb mit SQL Server vorgesehen.
+
+**Kann ich einen zweiten Arbeitsplatz anschließen?**
+Nicht an einen Solo-Platz. Dafür ist der Wechsel aus Kapitel 7 nötig.
 
 **Bekomme ich Updates?**
-Ja. Legen Sie neue Versionen in Ihren Updateordner, oder installieren Sie
-`Vehistra-Update.exe` von Hand. Die Solo-Wahl bleibt dabei erhalten.
+Ja. `Vehistra-Update.exe` ausführen oder den Updateordner verwenden. Die
+Solo-Wahl bleibt dabei erhalten, und die Datenbank wird niemals gelöscht.
 
 ---
 
