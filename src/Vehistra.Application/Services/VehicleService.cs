@@ -552,7 +552,21 @@ public sealed class VehicleService : IVehicleService
 
         await DemandUniqueStatusNameAsync(name, status.Id, cancellationToken).ConfigureAwait(false);
 
-        if (gespeichert.IsActive && !status.IsActive)
+        // Die Vergleichswerte kommen frisch aus der Datenbank, nicht vom
+        // geladenen Objekt: Aufrufer koennen genau dieses Objekt bearbeitet
+        // haben - dann waeren "vorher" und "nachher" dasselbe und die
+        // folgenden Pruefungen liefen stillschweigend ins Leere.
+        var vorher = await _db.VehicleStatuses
+            .AsNoTracking()
+            .Where(s => s.Id == status.Id)
+            .Select(s => new { s.IsActive, s.Kind })
+            .FirstAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        var warAktiv = vorher.IsActive;
+        var bisherigeBedeutung = vorher.Kind;
+
+        if (warAktiv && !status.IsActive)
         {
             // Ohne einen aktiven Status liesse sich kein Fahrzeug mehr anlegen.
             var weitereAktive = await _db.VehicleStatuses
@@ -564,6 +578,36 @@ public sealed class VehicleService : IVehicleService
                 "Ohne einen aktiven Status könnte kein Fahrzeug mehr angelegt werden.");
         }
 
+        // Die fachliche Bedeutung darf umgehaengt werden - daran haengen Ablaeufe
+        // wie Ausmusterung, Werkstatt und Import. Zwei Regeln halten das zusammen:
+        // jede Bedeutung traegt genau ein Status, und entfernen laesst sie sich
+        // nicht. Beim Umhaengen gibt der bisherige Traeger sie im selben Schritt
+        // ab - so ist sie nie doppelt und nie verschwunden.
+        if (status.Kind != bisherigeBedeutung)
+        {
+            if (status.Kind is { } neueBedeutung)
+            {
+                var bisher = await _db.VehicleStatuses
+                    .FirstOrDefaultAsync(s => s.Id != status.Id && s.Kind == neueBedeutung, cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (bisher is not null)
+                {
+                    bisher.Kind = null;
+                }
+            }
+            else
+            {
+                Guard.That(false,
+                    $"Die Bedeutung von „{gespeichert.Name}“ kann nicht entfernt werden. " +
+                    "Abläufe wie Ausmusterung oder Werkstatt suchen ihren Status darüber und " +
+                    "würden sonst stillschweigend nichts mehr setzen. " +
+                    "Sie können die Bedeutung aber einem anderen Status geben.");
+            }
+
+            gespeichert.Kind = status.Kind;
+        }
+
         gespeichert.Name = name;
         gespeichert.Description = status.Description;
         gespeichert.ColorHex = string.IsNullOrWhiteSpace(status.ColorHex) ? null : status.ColorHex.Trim();
@@ -572,8 +616,7 @@ public sealed class VehicleService : IVehicleService
         gespeichert.CountsAsOperational = status.CountsAsOperational;
         gespeichert.CountsAsAvailable = status.CountsAsAvailable;
 
-        // Kind und IsSystemStatus bleiben unberuehrt: daran haengt die Logik
-        // (Ausmusterung, Werkstatt, Import), nicht am Namen.
+        // IsSystemStatus bleibt unberuehrt.
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 

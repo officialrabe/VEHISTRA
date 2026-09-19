@@ -1,0 +1,246 @@
+<UserControl x:Class="Vehistra.Client.Views.DriverDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource SurfaceAltBrush}">
+  <UserControl.Resources>
+    <Style x:Key="DetailLabel" TargetType="TextBlock" BasedOn="{StaticResource FieldLabelStyle}" />
+    <Style x:Key="DetailValue" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+      <Setter Property="Margin" Value="0,0,0,10" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+  </UserControl.Resources>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Kopfbereich der Fahrerakte -->
+    <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,0,0,1" Padding="18,12">
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel>
+          <StackPanel Orientation="Horizontal">
+            <TextBlock Text="{Binding Driver.FullName}" FontSize="24" FontWeight="SemiBold" />
+            <Border Style="{StaticResource BadgeStyle}" Margin="12,0,0,0" VerticalAlignment="Center"
+                    Background="{StaticResource InactiveBackgroundBrush}"
+                    Visibility="{Binding Driver.IsActive, Converter={StaticResource BoolToVisibility},
+                                         ConverterParameter=Invert}">
+              <TextBlock Text="STILLGELEGT" FontSize="10" FontWeight="Bold"
+                         Foreground="{StaticResource InactiveBrush}" />
+            </Border>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+            <TextBlock Style="{StaticResource PageSubtitleStyle}">
+              <Run Text="Personalnummer: " /><Run Text="{Binding Driver.PersonnelNumber, Mode=OneWay,
+                TargetNullValue='keine'}" />
+            </TextBlock>
+            <TextBlock Text="·" Margin="8,0" Style="{StaticResource PageSubtitleStyle}" />
+            <TextBlock Text="{Binding CurrentVehicleText}" Style="{StaticResource PageSubtitleStyle}" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+          <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,10,0">
+            <StackPanel>
+              <TextBlock Text="{Binding Assignments.Count}" FontSize="17" FontWeight="SemiBold"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="Fahrzeuge" Style="{StaticResource PageSubtitleStyle}" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,10,0">
+            <StackPanel>
+              <TextBlock Text="{Binding OpenDamageCount}" FontSize="17" FontWeight="SemiBold"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="offene Schäden" Style="{StaticResource PageSubtitleStyle}"
+                         HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+          <Border Style="{StaticResource CardStyle}" Padding="12,8" Margin="0,0,16,0">
+            <StackPanel>
+              <TextBlock Text="{Binding Accidents.Count}" FontSize="17" FontWeight="SemiBold"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="Unfälle" Style="{StaticResource PageSubtitleStyle}" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+
+          <StackPanel>
+            <Button Content="_Bearbeiten" Style="{StaticResource PrimaryButtonStyle}" MinWidth="150"
+                    Command="{Binding EditCommand}"
+                    Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
+            <Button Content="Zur Fahrer_liste" Margin="0,6,0,0" MinWidth="150"
+                    Command="{Binding BackToListCommand}" />
+            <Button Content="_Aktualisieren" Margin="0,6,0,0" MinWidth="150" Command="{Binding RefreshCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Fehleranzeige -->
+    <Border Grid.Row="1" Background="{StaticResource CriticalBackgroundBrush}" Padding="18,8"
+            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
+      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" />
+    </Border>
+
+    <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}" Background="{StaticResource SurfaceBrush}">
+
+      <!-- ÜBERSICHT -->
+      <TabItem Header="ÜBERSICHT">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="18">
+          <UniformGrid Columns="2">
+            <StackPanel Margin="0,0,18,0">
+              <TextBlock Text="KONTAKT" Style="{StaticResource SectionTitleStyle}" />
+              <TextBlock Text="Telefon" Style="{StaticResource DetailLabel}" />
+              <TextBlock Text="{Binding Driver.Phone, TargetNullValue='–'}" Style="{StaticResource DetailValue}" />
+              <TextBlock Text="Mobil" Style="{StaticResource DetailLabel}" />
+              <TextBlock Text="{Binding Driver.Mobile, TargetNullValue='–'}" Style="{StaticResource DetailValue}" />
+              <TextBlock Text="E-Mail" Style="{StaticResource DetailLabel}" />
+              <TextBlock Text="{Binding Driver.Email, TargetNullValue='–'}" Style="{StaticResource DetailValue}" />
+            </StackPanel>
+            <StackPanel>
+              <TextBlock Text="STAMMDATEN" Style="{StaticResource SectionTitleStyle}" />
+              <TextBlock Text="Personalnummer" Style="{StaticResource DetailLabel}" />
+              <TextBlock Text="{Binding Driver.PersonnelNumber, TargetNullValue='–'}"
+                         Style="{StaticResource DetailValue}" />
+              <TextBlock Text="Zustand" Style="{StaticResource DetailLabel}" />
+              <TextBlock Text="{Binding Driver.IsActive, Converter={StaticResource BoolToYesNo}}"
+                         Style="{StaticResource DetailValue}" />
+              <TextBlock Text="Bemerkung" Style="{StaticResource DetailLabel}" />
+              <TextBlock Text="{Binding Driver.Comment, TargetNullValue='–'}" Style="{StaticResource DetailValue}" />
+            </StackPanel>
+          </UniformGrid>
+        </ScrollViewer>
+      </TabItem>
+
+      <!-- FAHRZEUGE -->
+      <TabItem Header="{Binding AssignmentsTabHeader}">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+          </Grid.RowDefinitions>
+          <Border Style="{StaticResource ToolbarStyle}">
+            <TextBlock Text="Ein Doppelklick öffnet die Fahrzeugakte. Eine Zeile ohne Enddatum ist die laufende Zuordnung."
+                       Style="{StaticResource MutedTextStyle}" VerticalAlignment="Center" />
+          </Border>
+          <DataGrid x:Name="AssignmentGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Assignments}">
+            <DataGrid.InputBindings>
+              <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenAssignmentVehicleCommand}"
+                            CommandParameter="{Binding SelectedItem, ElementName=AssignmentGrid}" />
+            </DataGrid.InputBindings>
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Kennzeichen" Binding="{Binding Vehicle.LicensePlate}" Width="140" />
+              <DataGridTextColumn Header="Interne Nr." Binding="{Binding Vehicle.InternalNumber}" Width="120" />
+              <DataGridTextColumn Header="Fahrzeug" Width="*">
+                <DataGridTextColumn.Binding>
+                  <MultiBinding StringFormat="{}{0} {1}">
+                    <Binding Path="Vehicle.Manufacturer" />
+                    <Binding Path="Vehicle.Model" />
+                  </MultiBinding>
+                </DataGridTextColumn.Binding>
+              </DataGridTextColumn>
+              <DataGridTextColumn Header="Von" Binding="{Binding ValidFrom, StringFormat=dd.MM.yyyy}" Width="110" />
+              <DataGridTextColumn Header="Bis" Binding="{Binding ValidTo, StringFormat=dd.MM.yyyy,
+                                                         TargetNullValue='laufend'}" Width="110" />
+              <DataGridTextColumn Header="Zugewiesen durch" Binding="{Binding AssignedByUserName}" Width="170" />
+              <DataGridTextColumn Header="Bemerkung" Binding="{Binding Comment}" Width="2*" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </Grid>
+      </TabItem>
+
+      <!-- SCHÄDEN -->
+      <TabItem Header="{Binding DamagesTabHeader}">
+        <DataGrid x:Name="DamageGrid" Margin="12" ItemsSource="{Binding Damages}">
+          <DataGrid.InputBindings>
+            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
+                          CommandParameter="{Binding SelectedItem.VehicleId, ElementName=DamageGrid}" />
+          </DataGrid.InputBindings>
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Nummer" Binding="{Binding DamageNumber}" Width="130" />
+            <DataGridTextColumn Header="Datum" Binding="{Binding OccurredAt, StringFormat=dd.MM.yyyy}" Width="110" />
+            <DataGridTextColumn Header="Fahrzeug" Binding="{Binding VehicleDisplay}" Width="*" />
+            <DataGridTextColumn Header="Beschreibung" Binding="{Binding Description}" Width="2*" />
+            <DataGridTextColumn Header="Kategorie" Binding="{Binding CategoryName}" Width="130" />
+            <DataGridTemplateColumn Header="Status" Width="150">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <Border Style="{StaticResource BadgeStyle}"
+                          Background="{Binding Status, Converter={StaticResource DamageStatusToBackground}}">
+                    <TextBlock Text="{Binding Status, Converter={StaticResource EnumToText}}" FontSize="11"
+                               Foreground="{Binding Status, Converter={StaticResource DamageStatusToBrush}}" />
+                  </Border>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, StringFormat={}{0:N2} EUR}"
+                                Width="110" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </TabItem>
+
+      <!-- UNFÄLLE -->
+      <TabItem Header="{Binding AccidentsTabHeader}">
+        <DataGrid x:Name="AccidentGrid" Margin="12" ItemsSource="{Binding Accidents}">
+          <DataGrid.InputBindings>
+            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
+                          CommandParameter="{Binding SelectedItem.VehicleId, ElementName=AccidentGrid}" />
+          </DataGrid.InputBindings>
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Nummer" Binding="{Binding AccidentNumber}" Width="130" />
+            <DataGridTextColumn Header="Datum" Binding="{Binding OccurredAt, StringFormat=dd.MM.yyyy}" Width="110" />
+            <DataGridTextColumn Header="Fahrzeug" Binding="{Binding VehicleDisplay}" Width="*" />
+            <DataGridTextColumn Header="Ort" Binding="{Binding Location}" Width="180" />
+            <DataGridTextColumn Header="Art" Binding="{Binding Type, Converter={StaticResource EnumToText}}"
+                                Width="150" />
+            <DataGridTextColumn Header="Polizei"
+                                Binding="{Binding PoliceInvolved, Converter={StaticResource BoolToYesNo}}"
+                                Width="90" />
+            <DataGridTextColumn Header="Personenschaden"
+                                Binding="{Binding PersonalInjury, Converter={StaticResource BoolToYesNo}}"
+                                Width="140" />
+            <DataGridTextColumn Header="Offen" Binding="{Binding IsOpen, Converter={StaticResource BoolToYesNo}}"
+                                Width="80" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </TabItem>
+
+      <!-- WERKSTATT -->
+      <TabItem Header="{Binding WorkshopTabHeader}">
+        <DataGrid x:Name="WorkshopGrid" Margin="12" ItemsSource="{Binding WorkshopOrders}">
+          <DataGrid.InputBindings>
+            <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
+                          CommandParameter="{Binding SelectedItem.VehicleId, ElementName=WorkshopGrid}" />
+          </DataGrid.InputBindings>
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="Nummer" Binding="{Binding OrderNumber}" Width="140" />
+            <DataGridTextColumn Header="Fahrzeug" Binding="{Binding VehicleDisplay}" Width="*" />
+            <DataGridTextColumn Header="Werkstatt" Binding="{Binding WorkshopName}" Width="180" />
+            <DataGridTextColumn Header="Termin" Binding="{Binding AppointmentDate, StringFormat=dd.MM.yyyy,
+                                                          TargetNullValue='–'}" Width="110" />
+            <DataGridTemplateColumn Header="Status" Width="170">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                  <Border Style="{StaticResource BadgeStyle}"
+                          Background="{Binding Status, Converter={StaticResource WorkshopStatusToBackground}}">
+                    <TextBlock Text="{Binding Status, Converter={StaticResource EnumToText}}" FontSize="11"
+                               Foreground="{Binding Status, Converter={StaticResource WorkshopStatusToBrush}}" />
+                  </Border>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="Kosten" Binding="{Binding CostNet, StringFormat={}{0:N2} EUR}" Width="110" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</UserControl>

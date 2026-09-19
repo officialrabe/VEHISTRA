@@ -100,7 +100,8 @@ public sealed class SettingsService : ISettingsService
     {
         var critical = await GetIntAsync(SettingsKeys.InspectionWarnCriticalDays, 14, cancellationToken).ConfigureAwait(false);
         var warning = await GetIntAsync(SettingsKeys.InspectionWarnWarningDays, 30, cancellationToken).ConfigureAwait(false);
-        return new DueDateThresholds(critical, warning);
+        var urgent = await GetIntAsync(SettingsKeys.InspectionWarnUrgentDays, 7, cancellationToken).ConfigureAwait(false);
+        return new DueDateThresholds(critical, warning, urgent);
     }
 
     public void InvalidateCache()

@@ -31,6 +31,59 @@ internal interface IBackupEngine
 
     /// <summary>Beschreibt, was geprueft wurde - fuer die Rueckmeldung an den Anwender.</summary>
     string VerifyDescription { get; }
+
+    /// <summary>
+    /// Erkennt eine Sicherungsdatei, die dieses Programm selbst angelegt hat,
+    /// und liest Zeitpunkt und Art aus dem Namen. Alles andere im Verzeichnis
+    /// bleibt unangetastet - auch fremde Dateien mit derselben Endung.
+    /// </summary>
+    bool TryReadOwnFileName(
+        ServerConnectionSettings settings,
+        string fileName,
+        out DateTime createdAt,
+        out string kind);
+}
+
+/// <summary>Gemeinsames Lesen des Dateinamens: Vorsilbe_yyyyMMdd_HHmmss_Art.Endung.</summary>
+internal static class BackupFileName
+{
+    public static bool TryRead(
+        string fileName,
+        string prefix,
+        string extension,
+        out DateTime createdAt,
+        out string kind)
+    {
+        createdAt = default;
+        kind = string.Empty;
+
+        if (!fileName.StartsWith(prefix + "_", StringComparison.OrdinalIgnoreCase)
+            || !fileName.EndsWith(extension, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var kern = fileName[(prefix.Length + 1)..^extension.Length];
+        var teile = kern.Split('_');
+
+        if (teile.Length != 3)
+        {
+            return false;
+        }
+
+        if (!DateTime.TryParseExact(
+                teile[0] + "_" + teile[1],
+                "yyyyMMdd_HHmmss",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None,
+                out createdAt))
+        {
+            return false;
+        }
+
+        kind = teile[2];
+        return kind.Length > 0;
+    }
 }
 
 /// <summary>
@@ -43,6 +96,13 @@ internal sealed class SqlServerBackupEngine : IBackupEngine
 
     public string BuildFileName(ServerConnectionSettings settings, string kind, DateTime at) =>
         $"{settings.Database}_{at:yyyyMMdd_HHmmss}_{kind}.bak";
+
+    public bool TryReadOwnFileName(
+        ServerConnectionSettings settings,
+        string fileName,
+        out DateTime createdAt,
+        out string kind) =>
+        BackupFileName.TryRead(fileName, settings.Database ?? string.Empty, ".bak", out createdAt, out kind);
 
     /// <summary>Der Pfad gilt auf dem Datenbankserver, daher Windows-Trenner.</summary>
     public string CombinePath(string directory, string fileName) =>
@@ -89,6 +149,13 @@ internal sealed class SqliteBackupEngine : IBackupEngine
 
     public string BuildFileName(ServerConnectionSettings settings, string kind, DateTime at) =>
         $"Vehistra_{at:yyyyMMdd_HHmmss}_{kind}.db";
+
+    public bool TryReadOwnFileName(
+        ServerConnectionSettings settings,
+        string fileName,
+        out DateTime createdAt,
+        out string kind) =>
+        BackupFileName.TryRead(fileName, "Vehistra", ".db", out createdAt, out kind);
 
     public string CombinePath(string directory, string fileName) =>
         Path.Combine(directory, fileName);

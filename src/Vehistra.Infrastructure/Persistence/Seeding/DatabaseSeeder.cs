@@ -350,6 +350,12 @@ public sealed class DatabaseSeeder
 
             (SettingsKeys.InspectionWarnCriticalDays, "14", "Fristen", "int", "TÜV: Warnung 'bald fällig' ab X Tagen"),
             (SettingsKeys.InspectionWarnWarningDays, "30", "Fristen", "int", "TÜV: Hinweis ab X Tagen"),
+            (SettingsKeys.InspectionWarnUrgentDays, "7", "Fristen", "int",
+                "TÜV: kritisch bereits X Tage vor dem Termin"),
+            (SettingsKeys.WorkshopLongStayWarnDays, "7", "Fristen", "int",
+                "Werkstatt: Warnung, wenn ein Fahrzeug länger als X Tage dort steht"),
+            (SettingsKeys.BackupRetentionDays, "0", "Sicherung", "int",
+                "Aufbewahrungsdauer der Sicherungen in Tagen (0 = nichts löschen)"),
             (SettingsKeys.MaintenanceWarnDays, "30", "Fristen", "int", "Wartung: Vorwarnzeit in Tagen"),
             (SettingsKeys.MaintenanceWarnKilometers, "1000", "Fristen", "int", "Wartung: Vorwarnung in Kilometern"),
             (SettingsKeys.PlateReservationWarnDays, "30;14;7;3;1", "Fristen", "string", "Kennzeichenreservierung: Warnungen X Tage vorher"),

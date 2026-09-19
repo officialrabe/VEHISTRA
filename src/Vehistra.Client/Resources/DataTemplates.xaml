@@ -47,6 +47,10 @@
     <views:DriverView />
   </DataTemplate>
 
+  <DataTemplate DataType="{x:Type vm:DriverDetailViewModel}">
+    <views:DriverDetailView />
+  </DataTemplate>
+
   <DataTemplate DataType="{x:Type vm:InspectionViewModel}">
     <views:InspectionView />
   </DataTemplate>
@@ -198,6 +202,10 @@
 
   <DataTemplate DataType="{x:Type dvm:DriverAssignmentViewModel}">
     <dialogs:DriverAssignmentDialog />
+  </DataTemplate>
+
+  <DataTemplate DataType="{x:Type dvm:CatalogEntryEditViewModel}">
+    <dialogs:CatalogEntryDialog />
   </DataTemplate>
 
 </ResourceDictionary>

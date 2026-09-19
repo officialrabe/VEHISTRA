@@ -77,10 +77,10 @@ number.
 
 ## Release status
 
-Version 1.0.0 is released and publicly available at
+Version 1.3.0 is released and publicly available at
 https://github.com/officialrabe/VEHISTRA/releases – in exactly the form that
-should be signed. It is marked as a pre-release (Beta): the application is
-complete and tested, but not yet proven in long-term production use.
+should be signed. Releases from 1.3.0 onwards are regular releases, no longer
+marked as pre-release.
 
 What the application does is described in
 [`README.md`](README.md), on the release page and in the six end-user guides

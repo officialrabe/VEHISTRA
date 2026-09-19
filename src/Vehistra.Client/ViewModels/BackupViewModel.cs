@@ -27,6 +27,9 @@ public sealed partial class BackupViewModel : ViewModelBase
     [ObservableProperty]
     private string? _progressText;
 
+    [ObservableProperty]
+    private int _retentionDays;
+
     public BackupViewModel(
         IBackupService backup,
         ISettingsService settings,
@@ -52,10 +55,19 @@ public sealed partial class BackupViewModel : ViewModelBase
     public string RetentionRecommendation =>
         "Empfohlen: 7 tägliche, 4 wöchentliche und 12 monatliche Sicherungen aufbewahren.";
 
+    /// <summary>Was die eingestellte Aufbewahrungsdauer bedeutet - im Klartext.</summary>
+    public string RetentionState => RetentionDays <= 0
+        ? "Aufbewahrungsdauer: keine. Es wird keine Sicherung automatisch gelöscht."
+        : $"Aufbewahrungsdauer: {RetentionDays} Tage. Nach jeder Sicherung werden ältere entfernt – "
+          + $"außer den {BackupRetention.MinimumKept} neuesten und den Sicherungen vor einer Migration.";
+
     public override async Task LoadAsync(CancellationToken cancellationToken = default)
     {
         await RunAsync(async () =>
         {
+            RetentionDays = await _settings
+                .GetIntAsync(SettingsKeys.BackupRetentionDays, 0, cancellationToken).ConfigureAwait(true);
+
             BackupDirectory = _connectionStore.Load()?.BackupPath
                 ?? await _settings.GetAsync(SettingsKeys.BackupPath, cancellationToken).ConfigureAwait(true);
 
@@ -73,6 +85,65 @@ public sealed partial class BackupViewModel : ViewModelBase
                 : $"{last.StartedAt:dd.MM.yyyy HH:mm} ({last.Kind})";
 
             OnPropertyChanged(nameof(Subtitle));
+            OnPropertyChanged(nameof(RetentionState));
+        }).ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Raeumt alte Sicherungen auf. Erst zeigen, was wegfaellt, dann fragen,
+    /// dann loeschen - eine Sicherung ist im Zweifel das Letzte, was man hat.
+    /// </summary>
+    [RelayCommand]
+    private async Task CleanUpAsync()
+    {
+        await RunAsync(async () =>
+        {
+            var vorschau = await _backup
+                .CleanUpAsync(new BackupCleanupRequest { PreviewOnly = true })
+                .ConfigureAwait(true);
+
+            if (vorschau.RetentionDays <= 0)
+            {
+                _dialogs.ShowInformation(
+                    vorschau.Message + Environment.NewLine + Environment.NewLine +
+                    "Die Aufbewahrungsdauer stellen Sie unter Einstellungen · Sicherungen ein.",
+                    "Keine Aufbewahrungsdauer");
+                return;
+            }
+
+            if (vorschau.Candidates.Count == 0)
+            {
+                _dialogs.ShowInformation(vorschau.Message, "Nichts aufzuräumen");
+                return;
+            }
+
+            var liste = string.Join(Environment.NewLine, vorschau.Candidates
+                .OrderBy(c => c.CreatedAt)
+                .Take(15)
+                .Select(c => $"· {Path.GetFileName(c.FilePath)} ({c.AgeInDays} Tage alt)"));
+
+            if (vorschau.Candidates.Count > 15)
+            {
+                liste += Environment.NewLine + $"· … und {vorschau.Candidates.Count - 15} weitere";
+            }
+
+            if (!_dialogs.Confirm(
+                    $"{vorschau.Candidates.Count} Sicherung(en) sind älter als {vorschau.RetentionDays} Tage " +
+                    "und werden endgültig gelöscht:" + Environment.NewLine + Environment.NewLine + liste +
+                    Environment.NewLine + Environment.NewLine +
+                    $"Die {BackupRetention.MinimumKept} neuesten Sicherungen und alle Sicherungen vor einer " +
+                    "Migration bleiben erhalten. Fortfahren?",
+                    "Alte Sicherungen löschen"))
+            {
+                return;
+            }
+
+            var ergebnis = await _backup
+                .CleanUpAsync(new BackupCleanupRequest { PreviewOnly = false })
+                .ConfigureAwait(true);
+
+            _dialogs.ShowInformation(ergebnis.Message, "Aufgeräumt");
+            await LoadAsync().ConfigureAwait(true);
         }).ConfigureAwait(true);
     }
 
@@ -229,6 +300,8 @@ public sealed partial class BackupViewModel : ViewModelBase
             _dialogs.OpenInShell(BackupDirectory);
         }
     }
+
+    partial void OnRetentionDaysChanged(int value) => OnPropertyChanged(nameof(RetentionState));
 
     [RelayCommand]
     private async Task RefreshAsync() => await LoadAsync().ConfigureAwait(true);

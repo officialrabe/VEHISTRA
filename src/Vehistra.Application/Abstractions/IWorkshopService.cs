@@ -45,11 +45,20 @@ public sealed class WorkshopFilter
 
     public int? WorkshopId { get; set; }
 
+    /// <summary>Vorgaenge, die auf einen bestimmten Fahrer gemeldet sind.</summary>
+    public int? DriverId { get; set; }
+
     public WorkshopOrderStatus? Status { get; set; }
 
     public bool OnlyOpen { get; set; } = true;
 
     public bool OnlyInWorkshop { get; set; }
+
+    /// <summary>
+    /// Nur Vorgaenge, bei denen das Fahrzeug seit mindestens so vielen Tagen in
+    /// der Werkstatt steht. Greift nur bei abgegebenen Fahrzeugen.
+    /// </summary>
+    public int? MinDaysInWorkshop { get; set; }
 
     public DateTime? From { get; set; }
 

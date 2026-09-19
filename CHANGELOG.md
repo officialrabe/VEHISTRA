@@ -6,6 +6,59 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.3.0
+
+Diese Version schließt die letzten fünf Punkte aus dem Abgleich mit der
+bisherigen Web-Version. Damit ist die Windows-Anwendung in allen verglichenen
+Punkten gleichwertig oder weiter.
+
+Ab dieser Version werden Veröffentlichungen nicht mehr als Beta gekennzeichnet.
+
+Neu
+- **Kataloge vollständig bearbeitbar.** Fahrzeugkategorien, Schadenskategorien
+  und Fahrzeugstatus haben jetzt einen richtigen Bearbeitungsdialog: Farbe,
+  Beschreibung, Reihenfolge und Zustand statt nur einer Eingabezeile für den
+  Namen. Beim Fahrzeugstatus kommt die **fachliche Bedeutung** hinzu – sie
+  entscheidet, welchen Status ein Ablauf setzt (Ausmusterung, Werkstatt,
+  Import). Alle neun Bedeutungen sind mitgeliefert und vergeben, deshalb wird
+  eine Bedeutung nicht neu erfunden, sondern **übertragen**: der bisherige
+  Träger gibt sie im selben Schritt ab, sodass sie immer genau ein Status
+  trägt. Der Dialog fragt vorher nach. Entfernen bleibt gesperrt, sonst würde
+  ein Ablauf stillschweigend keinen Status mehr setzen.
+- **Dritte Warnstufe beim TÜV.** Neben „bald fällig" und „Hinweis" ist jetzt
+  einstellbar, ab wie vielen Tagen **vor** dem Termin eine Frist als kritisch
+  gilt (Voreinstellung 7 Tage). Bisher wurde eine Frist erst kritisch, wenn sie
+  abgelaufen war. Die drei Stufen werden beim Speichern in eine sinnvolle
+  Reihenfolge gebracht.
+- **Werkstatt-Langzeitwarnung einstellbar.** Wie lange ein Fahrzeug in der
+  Werkstatt stehen darf, bevor es auffällt, stand mit sieben und vierzehn Tagen
+  fest im Code. Die Frist ist jetzt einstellbar (Voreinstellung 7 Tage, ab dem
+  Doppelten kritisch). Der Überblick zeigt die Zahl, ein Klick darauf öffnet
+  die Werkstattliste mit genau diesem Filter.
+- **Aufbewahrungsdauer der Sicherungen.** Das Programm kann alte Sicherungen
+  selbst entfernen (Einstellungen · Sicherungen). Voreinstellung 0, also aus –
+  Löschen lässt sich nicht zurückholen. Gelöscht wird nur im eingestellten
+  Verzeichnis, nur was dem eigenen Namensschema entspricht; die drei neuesten
+  Sicherungen und alle Sicherungen vor einer Migration bleiben immer erhalten.
+  Jede Löschung steht im Protokoll, und „Alte Sicherungen aufräumen" zeigt
+  vorher, was wegfallen würde.
+- **Fahrerakte.** Alles zu einem Fahrer auf einer Seite: Stammdaten, Kontakt,
+  alle Fahrzeuge mit Historie, Schäden, Unfälle und Werkstattvorgänge. Zu
+  öffnen aus der Fahrerliste, aus der Registerkarte „Fahrer" der Fahrzeugakte
+  und aus der globalen Suche. Jeder Bereich prüft sein eigenes Recht.
+- **Zähler an den Registerkarten der Fahrzeugakte**, etwa „SCHÄDEN (3)". Leere
+  Bereiche bleiben ohne Zahl.
+
+Behoben
+- **Zwei Prüfungen liefen ins Leere.** Sowohl beim Stilllegen des letzten
+  aktiven Fahrzeugstatus als auch beim Umbenennen einer mitgelieferten
+  Schadenskategorie wurde der neue Wert mit dem geladenen Objekt verglichen.
+  Hatte der Aufrufer genau dieses Objekt bearbeitet, waren beide Werte gleich
+  und die Sperre wirkungslos. Die Vergleichswerte kommen jetzt frisch aus der
+  Datenbank.
+- **Benachrichtigung „TÜV abgelaufen"** trug diesen Titel künftig auch bei noch
+  gültigen Fristen, weil er an der Warnstufe hing. Er hängt jetzt am Datum.
+
 ## 1.2.0
 
 Diese Version schließt die Lücken gegenüber der bisherigen Web-Version. Der

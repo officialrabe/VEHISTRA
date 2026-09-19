@@ -18,6 +18,9 @@
                 MinWidth="160" />
         <Button Content="Backup_ordner öffnen" Margin="8,0,0,0" Command="{Binding OpenBackupFolderCommand}"
                 MinWidth="170" />
+        <Button Content="Alte Sicherungen auf_räumen" Margin="8,0,0,0" Command="{Binding CleanUpCommand}"
+                MinWidth="210"
+                ToolTip="Zeigt zuerst, welche Sicherungen die Aufbewahrungsdauer überschritten haben, und fragt vor dem Löschen nach" />
         <Button Content="_Aktualisieren" Margin="8,0,0,0" Command="{Binding RefreshCommand}" />
       </StackPanel>
     </Border>
@@ -40,7 +43,9 @@
       <Border Style="{StaticResource CardStyle}">
         <StackPanel>
           <TextBlock Text="AUFBEWAHRUNG" Style="{StaticResource FieldLabelStyle}" />
-          <TextBlock Text="{Binding RetentionRecommendation}" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding RetentionState}" TextWrapping="Wrap" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding RetentionRecommendation}" TextWrapping="Wrap" Margin="0,6,0,0"
+                     Style="{StaticResource MutedTextStyle}" />
           <TextBlock Text="{Binding ProgressText}" Margin="0,6,0,0" Foreground="{StaticResource AccentBrush}"
                      TextWrapping="Wrap"
                      Visibility="{Binding ProgressText, Converter={StaticResource StringToVisibility}}" />

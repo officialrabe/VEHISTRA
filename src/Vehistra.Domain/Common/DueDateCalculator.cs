@@ -8,8 +8,11 @@ namespace Vehistra.Domain.Common;
 /// </summary>
 public static class DueDateCalculator
 {
-    /// <summary>Standardschwellen: kritisch ab abgelaufen, "bald faellig" ab 14 Tagen, Hinweis ab 30 Tagen.</summary>
-    public static readonly DueDateThresholds DefaultThresholds = new(14, 30);
+    /// <summary>
+    /// Standardschwellen: kritisch ab 7 Tagen vor Ablauf (und natuerlich, wenn
+    /// abgelaufen), "bald faellig" ab 14 Tagen, Hinweis ab 30 Tagen.
+    /// </summary>
+    public static readonly DueDateThresholds DefaultThresholds = new(14, 30, 7);
 
     public static WarningLevel Evaluate(DateTime? dueDate, DateTime today, DueDateThresholds thresholds)
     {
@@ -20,7 +23,7 @@ public static class DueDateCalculator
 
         var days = (dueDate.Value.Date - today.Date).Days;
 
-        if (days < 0)
+        if (days < 0 || days <= thresholds.UrgentDays)
         {
             return WarningLevel.Kritisch;
         }
@@ -56,5 +59,11 @@ public static class DueDateCalculator
     }
 }
 
-/// <summary>Konfigurierbare Warnschwellen in Tagen.</summary>
-public readonly record struct DueDateThresholds(int CriticalDays, int WarningDays);
+/// <summary>
+/// Konfigurierbare Warnschwellen in Tagen. Von innen nach aussen:
+/// <paramref name="UrgentDays"/> macht eine Frist schon vor dem Termin kritisch,
+/// <paramref name="CriticalDays"/> meldet "bald faellig", <paramref name="WarningDays"/>
+/// den Hinweis. <paramref name="UrgentDays"/> kleiner 0 schaltet die innerste
+/// Stufe ab: dann ist nur kritisch, was schon abgelaufen ist.
+/// </summary>
+public readonly record struct DueDateThresholds(int CriticalDays, int WarningDays, int UrgentDays = -1);

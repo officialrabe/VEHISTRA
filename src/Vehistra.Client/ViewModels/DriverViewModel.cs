@@ -121,6 +121,16 @@ public sealed partial class DriverViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Oeffnet die Fahrerakte - alles zu einem Fahrer auf einer Seite.</summary>
+    [RelayCommand]
+    private async Task OpenFileAsync()
+    {
+        if (SelectedDriver is not null)
+        {
+            await _navigation.OpenDriverAsync(SelectedDriver.Id).ConfigureAwait(true);
+        }
+    }
+
     [RelayCommand]
     private async Task EditAsync()
     {

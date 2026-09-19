@@ -50,6 +50,11 @@ public sealed class WorkshopService : IWorkshopService
             query = query.Where(w => w.WorkshopId == workshopId);
         }
 
+        if (filter.DriverId is { } fahrerId)
+        {
+            query = query.Where(w => w.DriverId == fahrerId);
+        }
+
         if (filter.Status is { } status)
         {
             query = query.Where(w => w.Status == status);
@@ -65,6 +70,13 @@ public sealed class WorkshopService : IWorkshopService
         else if (filter.OnlyOpen)
         {
             query = query.Where(w => w.Status != WorkshopOrderStatus.Abgeholt && w.Status != WorkshopOrderStatus.Storniert);
+        }
+
+        if (filter.MinDaysInWorkshop is { } mindestTage)
+        {
+            // Der Stichtag steht fest, damit die Datenbank vergleichen kann.
+            var stichtag = _clock.Today.AddDays(-mindestTage);
+            query = query.Where(w => w.VehicleHandedOverAt != null && w.VehicleHandedOverAt <= stichtag);
         }
 
         if (filter.From is { } from)

@@ -14,10 +14,16 @@ public static class SettingsKeys
     public const string InspectionWarnCriticalDays = "Inspection.WarnCriticalDays";
     public const string InspectionWarnWarningDays = "Inspection.WarnWarningDays";
 
+    /// <summary>TUEV: kritisch bereits X Tage vor dem Termin, nicht erst danach.</summary>
+    public const string InspectionWarnUrgentDays = "Inspection.WarnUrgentDays";
+
     public const string MaintenanceWarnDays = "Maintenance.WarnDays";
     public const string MaintenanceWarnKilometers = "Maintenance.WarnKilometers";
 
     public const string PlateReservationWarnDays = "LicensePlate.ReservationWarnDays";
+
+    /// <summary>Werkstatt: Warnung, wenn ein Fahrzeug laenger als X Tage dort steht.</summary>
+    public const string WorkshopLongStayWarnDays = "Workshop.LongStayWarnDays";
 
     /// <summary>
     /// Groesste erlaubte Dokumentgroesse in Megabyte. Die Ablage selbst begrenzt
@@ -27,6 +33,13 @@ public static class SettingsKeys
 
     public const string DocumentsPath = "Paths.Documents";
     public const string BackupPath = "Paths.Backup";
+
+    /// <summary>
+    /// Aufbewahrungsdauer der Sicherungen in Tagen. 0 bedeutet: nichts wird
+    /// geloescht. Bewusst ausgeschaltet, denn Loeschen laesst sich nicht
+    /// zurueckholen.
+    /// </summary>
+    public const string BackupRetentionDays = "Backup.RetentionDays";
     public const string UpdatePath = "Paths.Update";
 
     public const string DateFormat = "Display.DateFormat";

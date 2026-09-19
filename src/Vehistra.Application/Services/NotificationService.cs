@@ -163,7 +163,10 @@ public sealed class NotificationService : INotificationService
             {
                 Category = NotificationCategory.Tuev,
                 Severity = level == WarningLevel.Kritisch ? NotificationSeverity.Kritisch : NotificationSeverity.Warnung,
-                Title = level == WarningLevel.Kritisch ? "TUEV abgelaufen" : "TUEV wird faellig",
+                // Der Titel haengt am Datum, nicht an der Warnstufe: kritisch ist
+                // eine Frist auch schon kurz vor dem Termin - abgelaufen ist sie
+                // dann aber noch nicht.
+                Title = due.Date < today.Date ? "TUEV abgelaufen" : "TUEV wird faellig",
                 Message = $"TUEV {display} {DueDateCalculator.Describe(due, today)}.",
                 VehicleId = vehicle.Id,
                 DueDate = due,

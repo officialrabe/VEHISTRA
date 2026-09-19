@@ -45,6 +45,9 @@
         <CheckBox Content="nur offene" IsChecked="{Binding OnlyOpen}" Margin="14,0,0,0" VerticalAlignment="Center" />
         <CheckBox Content="Fahrzeug in Werkstatt" IsChecked="{Binding OnlyInWorkshop}" Margin="14,0,0,0"
                   VerticalAlignment="Center" />
+        <CheckBox Content="{Binding LongStayFilterLabel}" IsChecked="{Binding OnlyLongStay}" Margin="14,0,0,0"
+                  VerticalAlignment="Center"
+                  ToolTip="Fahrzeuge, die ungewöhnlich lange in der Werkstatt stehen. Die Frist stellen Sie unter Einstellungen ein." />
       </StackPanel>
     </Border>
 

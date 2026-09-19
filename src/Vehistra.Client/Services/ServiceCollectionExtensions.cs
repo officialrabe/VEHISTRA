@@ -23,6 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<VehicleListViewModel>();
         services.AddScoped<VehicleDetailViewModel>();
         services.AddScoped<DriverViewModel>();
+        services.AddScoped<DriverDetailViewModel>();
         services.AddScoped<InspectionViewModel>();
         services.AddScoped<MaintenanceViewModel>();
         services.AddScoped<DamageViewModel>();
@@ -63,6 +64,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<VehicleKeyEditViewModel>();
         services.AddTransient<DocumentUploadViewModel>();
         services.AddTransient<ImportWizardViewModel>();
+        services.AddTransient<CatalogEntryEditViewModel>();
 
         return services;
     }

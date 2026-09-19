@@ -28,9 +28,9 @@ on:
         default: true
         type: boolean
       vorabversion:
-        description: 'Als Beta kennzeichnen (auch ab Version 1.0.0)'
+        description: 'Als Beta kennzeichnen (nur noch auf ausdruecklichen Wunsch)'
         required: false
-        default: true
+        default: false
         type: boolean
 
 permissions:

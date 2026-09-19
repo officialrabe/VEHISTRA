@@ -210,6 +210,101 @@ public class MasterDataTests
     }
 
     [Fact]
+    public async Task Eine_Bedeutung_kann_an_einen_eigenen_Status_uebergehen()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        database.SignInAsAdministrator();
+
+        var vehicles = database.Service<IVehicleService>();
+        var bisher = (await vehicles.GetStatusesAsync(true, Token))
+            .First(s => s.Kind == VehicleStatusKind.Ausgemustert);
+        var eigener = await vehicles.CreateStatusAsync("Aus dem Bestand genommen", Token);
+
+        eigener.Kind = VehicleStatusKind.Ausgemustert;
+        await vehicles.UpdateStatusAsync(eigener, Token);
+
+        var alle = await vehicles.GetStatusesAsync(true, Token);
+
+        // Genau ein Status traegt die Bedeutung - der bisherige gibt sie ab.
+        alle.Count(s => s.Kind == VehicleStatusKind.Ausgemustert).ShouldBe(1);
+        alle.First(s => s.Id == eigener.Id).Kind.ShouldBe(VehicleStatusKind.Ausgemustert);
+        alle.First(s => s.Id == bisher.Id).Kind.ShouldBeNull();
+
+        // Und der Ablauf setzt ab jetzt den eigenen Status.
+        var fahrzeug = await TestData.AddVehicleAsync(database.Db, cancellationToken: Token);
+
+        await database.Service<IVehicleLifecycleService>().RetireAsync(new VehicleRetirement
+        {
+            VehicleId = fahrzeug.Id,
+            RetiredAt = new DateTime(2026, 4, 2),
+            Reason = RetirementReason.Verkauft
+        }, Token);
+
+        var gespeichert = await database.Db.Vehicles.AsNoTracking()
+            .FirstAsync(v => v.Id == fahrzeug.Id, Token);
+
+        gespeichert.VehicleStatusId.ShouldBe(eigener.Id);
+    }
+
+    [Fact]
+    public async Task Eine_vergebene_Bedeutung_wird_nicht_entfernt()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        database.SignInAsAdministrator();
+
+        var vehicles = database.Service<IVehicleService>();
+        var werkstatt = (await vehicles.GetStatusesAsync(true, Token))
+            .First(s => s.Kind == VehicleStatusKind.Werkstatt);
+
+        var fehler = await Should.ThrowAsync<BusinessRuleException>(() =>
+        {
+            werkstatt.Kind = null;
+            return vehicles.UpdateStatusAsync(werkstatt, Token);
+        });
+
+        // Ohne diese Sperre wuerde eine Werkstattbuchung stillschweigend
+        // keinen Status mehr setzen.
+        fehler.Message.ShouldContain("kann nicht entfernt werden");
+    }
+
+    [Fact]
+    public async Task Farbe_Beschreibung_und_Reihenfolge_eines_Status_lassen_sich_aendern()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        database.SignInAsAdministrator();
+
+        var vehicles = database.Service<IVehicleService>();
+        var status = await vehicles.CreateStatusAsync("Verleih", Token);
+
+        status.ColorHex = "  #6A1B9A  ";
+        status.Description = "Fahrzeug ist an einen Dritten verliehen.";
+        status.SortOrder = 5;
+        await vehicles.UpdateStatusAsync(status, Token);
+
+        var gespeichert = (await vehicles.GetStatusesAsync(true, Token)).First(s => s.Id == status.Id);
+
+        gespeichert.ColorHex.ShouldBe("#6A1B9A");
+        gespeichert.Description.ShouldBe("Fahrzeug ist an einen Dritten verliehen.");
+        gespeichert.SortOrder.ShouldBe(5);
+    }
+
+    [Fact]
+    public async Task Eine_leere_Farbe_wird_als_keine_Farbe_gespeichert()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        database.SignInAsAdministrator();
+
+        var vehicles = database.Service<IVehicleService>();
+        var status = await vehicles.CreateStatusAsync("Verleih", Token);
+
+        status.ColorHex = "   ";
+        await vehicles.UpdateStatusAsync(status, Token);
+
+        (await vehicles.GetStatusesAsync(true, Token)).First(s => s.Id == status.Id)
+            .ColorHex.ShouldBeNull();
+    }
+
+    [Fact]
     public async Task Ein_mitgelieferter_Status_wird_nicht_geloescht()
     {
         await using var database = await TestDatabase.CreateAsync();

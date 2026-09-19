@@ -11,6 +11,11 @@ public interface IAccidentService
         bool onlyOpen = false,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Unfaelle, die auf einen bestimmten Fahrer gemeldet sind.</summary>
+    Task<IReadOnlyList<AccidentListItem>> GetForDriverAsync(
+        int driverId,
+        CancellationToken cancellationToken = default);
+
     Task<AccidentReport?> GetAsync(int id, CancellationToken cancellationToken = default);
 
     Task<int> CreateAsync(AccidentReport accident, CancellationToken cancellationToken = default);
