@@ -352,8 +352,18 @@ public sealed class DamageService : IDamageService
         // Mitgelieferte Kategorien behalten ihren Namen: die Schadensmeldung aus
         // einem Unfall sucht ihre Kategorie ueber den Namen "Unfall". Wird der
         // geaendert, entstehen Unfallschaeden stillschweigend ohne Kategorie.
-        Guard.That(!gespeichert.IsSystemCategory || name == gespeichert.Name,
-            $"Die mitgelieferte Kategorie „{gespeichert.Name}“ kann nicht umbenannt werden, " +
+        // Der alte Name kommt frisch aus der Datenbank: hat der Aufrufer genau
+        // dieses Objekt umbenannt, waere der Vergleich mit gespeichert.Name
+        // immer wahr und die Sperre wirkungslos.
+        var bisherigerName = await _db.DamageCategories
+            .AsNoTracking()
+            .Where(c => c.Id == category.Id)
+            .Select(c => c.Name)
+            .FirstAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        Guard.That(!gespeichert.IsSystemCategory || name == bisherigerName,
+            $"Die mitgelieferte Kategorie „{bisherigerName}“ kann nicht umbenannt werden, " +
             "weil das Programm sie über ihren Namen findet. " +
             "Sie können sie stilllegen und eine eigene anlegen.");
 

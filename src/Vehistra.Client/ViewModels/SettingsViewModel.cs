@@ -304,46 +304,25 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private void BrowseUpdates() => UpdatePath = _dialogs.SelectFolder("Updateablage auswählen") ?? UpdatePath;
 
     [RelayCommand]
-    private async Task CreateCategoryAsync()
-    {
-        var name = _dialogs.Prompt(
-            "Name des Einsatzbereichs, zum Beispiel „Winterdienst“ oder „Werkstattwagen“.",
-            "Neuer Einsatzbereich");
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            await _vehicles.CreateCategoryAsync(name).ConfigureAwait(true);
-            await LoadAsync().ConfigureAwait(true);
-        }, $"Der Einsatzbereich „{name.Trim()}“ wurde angelegt.").ConfigureAwait(true);
-    }
+    private Task CreateCategoryAsync() => BearbeiteKatalogAsync(
+        CatalogKind.Fahrzeugkategorie,
+        dialog => dialog.InitializeForNew(CatalogKind.Fahrzeugkategorie),
+        "Der Einsatzbereich wurde angelegt.");
 
     [RelayCommand]
-    private async Task RenameCategoryAsync()
+    private Task EditCategoryAsync()
     {
         if (SelectedCategory is null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var category = SelectedCategory;
-        var name = _dialogs.Prompt("Neuer Name des Einsatzbereichs", "Umbenennen", category.Name);
 
-        if (string.IsNullOrWhiteSpace(name) || name.Trim() == category.Name)
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            category.Name = name;
-            await _vehicles.UpdateCategoryAsync(category).ConfigureAwait(true);
-            await LoadAsync().ConfigureAwait(true);
-        }, "Der Einsatzbereich wurde umbenannt.").ConfigureAwait(true);
+        return BearbeiteKatalogAsync(
+            CatalogKind.Fahrzeugkategorie,
+            dialog => dialog.InitializeForEdit(category),
+            $"Der Einsatzbereich „{category.Name}“ wurde geändert.");
     }
 
     [RelayCommand]
@@ -395,61 +374,50 @@ public sealed partial class SettingsViewModel : ViewModelBase
         }, $"Der Einsatzbereich „{category.Name}“ wurde gelöscht.").ConfigureAwait(true);
     }
 
-    // ----- Schadenskategorien -------------------------------------------------
-
-    [RelayCommand]
-    private async Task CreateDamageCategoryAsync()
+    /// <summary>
+    /// Oeffnet den gemeinsamen Katalogdialog und laedt die Einstellungen neu,
+    /// wenn gespeichert wurde. Farbe, Reihenfolge und - beim Fahrzeugstatus -
+    /// die fachliche Bedeutung stehen dort in einem Zug zur Verfuegung.
+    /// </summary>
+    private async Task BearbeiteKatalogAsync(
+        CatalogKind katalog,
+        Action<CatalogEntryEditViewModel> vorbereiten,
+        string erfolgsmeldung)
     {
-        var name = _dialogs.Prompt(
-            "Name der Schadenskategorie, zum Beispiel „Hagelschaden“ oder „Vandalismus“.",
-            "Neue Schadenskategorie");
+        var dialog = _services.GetRequiredService<CatalogEntryEditViewModel>();
+        dialog.Catalog = katalog;
+        vorbereiten(dialog);
 
-        if (string.IsNullOrWhiteSpace(name))
+        if (_dialogs.ShowDialog(dialog) != true)
         {
             return;
         }
 
-        await RunAsync(async () =>
-        {
-            await _damages.CreateCategoryAsync(name).ConfigureAwait(true);
-            await LoadAsync().ConfigureAwait(true);
-        }, $"Die Schadenskategorie „{name.Trim()}“ wurde angelegt.").ConfigureAwait(true);
+        await RunAsync(() => LoadAsync(), erfolgsmeldung).ConfigureAwait(true);
     }
 
+    // ----- Schadenskategorien -------------------------------------------------
+
     [RelayCommand]
-    private async Task RenameDamageCategoryAsync()
+    private Task CreateDamageCategoryAsync() => BearbeiteKatalogAsync(
+        CatalogKind.Schadenskategorie,
+        dialog => dialog.InitializeForNew(CatalogKind.Schadenskategorie),
+        "Die Schadenskategorie wurde angelegt.");
+
+    [RelayCommand]
+    private Task EditDamageCategoryAsync()
     {
         if (SelectedDamageCategory is null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var category = SelectedDamageCategory;
 
-        if (category.IsSystemCategory)
-        {
-            // Der Dienst weist das ohnehin ab; hier erklaert es sich ohne Fehlermeldung.
-            _dialogs.ShowInformation(
-                $"Die mitgelieferte Kategorie „{category.Name}“ kann nicht umbenannt werden, " +
-                "weil das Programm sie über ihren Namen findet." + Environment.NewLine + Environment.NewLine +
-                "Sie können sie stilllegen und eine eigene Kategorie anlegen.",
-                "Mitgelieferte Kategorie");
-            return;
-        }
-
-        var name = _dialogs.Prompt("Neuer Name der Schadenskategorie", "Umbenennen", category.Name);
-
-        if (string.IsNullOrWhiteSpace(name) || name.Trim() == category.Name)
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            category.Name = name;
-            await _damages.UpdateCategoryAsync(category).ConfigureAwait(true);
-            await LoadAsync().ConfigureAwait(true);
-        }, "Die Schadenskategorie wurde umbenannt.").ConfigureAwait(true);
+        return BearbeiteKatalogAsync(
+            CatalogKind.Schadenskategorie,
+            dialog => dialog.InitializeForEdit(category),
+            $"Die Schadenskategorie „{category.Name}“ wurde geändert.");
     }
 
     [RelayCommand]
@@ -504,48 +472,25 @@ public sealed partial class SettingsViewModel : ViewModelBase
     // ----- Fahrzeugstatus -----------------------------------------------------
 
     [RelayCommand]
-    private async Task CreateStatusAsync()
-    {
-        var name = _dialogs.Prompt(
-            "Name des Status, zum Beispiel „Verleih“ oder „Saisonpause“." + Environment.NewLine +
-            "Ob Fahrzeuge in diesem Status als einsatzbereit oder verfügbar zählen, " +
-            "legen Sie anschließend über die Schaltflächen fest.",
-            "Neuer Fahrzeugstatus");
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            await _vehicles.CreateStatusAsync(name).ConfigureAwait(true);
-            await LoadAsync().ConfigureAwait(true);
-        }, $"Der Status „{name.Trim()}“ wurde angelegt.").ConfigureAwait(true);
-    }
+    private Task CreateStatusAsync() => BearbeiteKatalogAsync(
+        CatalogKind.Fahrzeugstatus,
+        dialog => dialog.InitializeForNew(CatalogKind.Fahrzeugstatus),
+        "Der Fahrzeugstatus wurde angelegt.");
 
     [RelayCommand]
-    private async Task RenameStatusAsync()
+    private Task EditStatusAsync()
     {
         if (SelectedStatus is null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var status = SelectedStatus;
-        var name = _dialogs.Prompt("Neuer Name des Status", "Umbenennen", status.Name);
 
-        if (string.IsNullOrWhiteSpace(name) || name.Trim() == status.Name)
-        {
-            return;
-        }
-
-        await RunAsync(async () =>
-        {
-            status.Name = name;
-            await _vehicles.UpdateStatusAsync(status).ConfigureAwait(true);
-            await LoadAsync().ConfigureAwait(true);
-        }, "Der Status wurde umbenannt. Die zugehörigen Abläufe bleiben unverändert.").ConfigureAwait(true);
+        return BearbeiteKatalogAsync(
+            CatalogKind.Fahrzeugstatus,
+            dialog => dialog.InitializeForEdit(status),
+            $"Der Status „{status.Name}“ wurde geändert. Die zugehörigen Abläufe bleiben unverändert.");
     }
 
     [RelayCommand]

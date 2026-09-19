@@ -200,4 +200,8 @@
     <dialogs:DriverAssignmentDialog />
   </DataTemplate>
 
+  <DataTemplate DataType="{x:Type dvm:CatalogEntryEditViewModel}">
+    <dialogs:CatalogEntryDialog />
+  </DataTemplate>
+
 </ResourceDictionary>

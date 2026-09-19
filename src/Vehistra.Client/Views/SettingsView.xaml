@@ -241,8 +241,9 @@
                   <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
                     <Button Content="_Neu" MinWidth="70" Command="{Binding CreateCategoryCommand}"
                             ToolTip="Einen eigenen Einsatzbereich anlegen" />
-                    <Button Content="_Umbenennen" Margin="6,0,0,0" MinWidth="110"
-                            Command="{Binding RenameCategoryCommand}" />
+                    <Button Content="_Bearbeiten" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding EditCategoryCommand}"
+                            ToolTip="Bezeichnung, Beschreibung, Farbe und Reihenfolge ändern" />
                     <Button Content="_Stilllegen / Aktivieren" Margin="6,0,0,0" MinWidth="150"
                             Command="{Binding ToggleCategoryCommand}"
                             ToolTip="Stillgelegte Bereiche erscheinen nicht mehr zur Auswahl, bleiben aber an zugeordneten Fahrzeugen erhalten" />
@@ -278,9 +279,9 @@
                   <TextBlock Text="SCHADENSKATEGORIEN" FontWeight="SemiBold" FontSize="11" />
                   <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
                     <Button Content="N_eu" MinWidth="70" Command="{Binding CreateDamageCategoryCommand}" />
-                    <Button Content="U_mbenennen" Margin="6,0,0,0" MinWidth="110"
-                            Command="{Binding RenameDamageCategoryCommand}"
-                            ToolTip="Mitgelieferte Kategorien behalten ihren Namen - das Programm findet sie darüber" />
+                    <Button Content="B_earbeiten" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding EditDamageCategoryCommand}"
+                            ToolTip="Bezeichnung, Beschreibung und Reihenfolge ändern. Mitgelieferte Kategorien behalten ihren Namen - das Programm findet sie darüber" />
                     <Button Content="St_illlegen / Aktivieren" Margin="6,0,0,0" MinWidth="150"
                             Command="{Binding ToggleDamageCategoryCommand}" />
                     <Button Content="Lö_schen" Margin="6,0,0,0" MinWidth="90"
@@ -314,9 +315,9 @@
                   <TextBlock Text="FAHRZEUGSTATUS" FontWeight="SemiBold" FontSize="11" />
                   <StackPanel Orientation="Horizontal" Margin="0,7,0,0">
                     <Button Content="Ne_u" MinWidth="70" Command="{Binding CreateStatusCommand}" />
-                    <Button Content="Umb_enennen" Margin="6,0,0,0" MinWidth="110"
-                            Command="{Binding RenameStatusCommand}"
-                            ToolTip="Auch mitgelieferte Status: die Abläufe hängen an ihrer Systemzuordnung, nicht am Namen" />
+                    <Button Content="Bear_beiten" Margin="6,0,0,0" MinWidth="110"
+                            Command="{Binding EditStatusCommand}"
+                            ToolTip="Bezeichnung, Farbe, Reihenfolge und fachliche Bedeutung ändern. Auch bei mitgelieferten Status: die Abläufe hängen an der Bedeutung, nicht am Namen" />
                     <Button Content="Stillle_gen / Aktivieren" Margin="6,0,0,0" MinWidth="150"
                             Command="{Binding ToggleStatusCommand}" />
                     <Button Content="Einsatz_bereit" Margin="6,0,0,0" MinWidth="120"

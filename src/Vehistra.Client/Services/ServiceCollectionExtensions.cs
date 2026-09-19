@@ -63,6 +63,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<VehicleKeyEditViewModel>();
         services.AddTransient<DocumentUploadViewModel>();
         services.AddTransient<ImportWizardViewModel>();
+        services.AddTransient<CatalogEntryEditViewModel>();
 
         return services;
     }
