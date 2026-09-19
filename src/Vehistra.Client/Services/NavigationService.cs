@@ -16,6 +16,12 @@ public interface INavigationService
 
     Task NavigateToAsync(Type viewModelType);
 
+    /// <summary>
+    /// Oeffnet eine Ansicht mit einer Voreinstellung, etwa aus einer Kennzahl
+    /// des Dashboards heraus.
+    /// </summary>
+    Task NavigateToAsync(Type viewModelType, ListPreset preset);
+
     /// <summary>Oeffnet die Fahrzeugakte eines bestimmten Fahrzeugs.</summary>
     Task OpenVehicleAsync(int vehicleId, string? tabKey = null);
 
@@ -59,13 +65,22 @@ public sealed class NavigationService : ObservableObject, INavigationService, ID
     public Task NavigateToAsync<TViewModel>() where TViewModel : ViewModelBase =>
         NavigateToAsync(typeof(TViewModel));
 
-    public async Task NavigateToAsync(Type viewModelType)
+    public Task NavigateToAsync(Type viewModelType) => NavigateToAsync(viewModelType, ListPreset.Keine);
+
+    public async Task NavigateToAsync(Type viewModelType, ListPreset preset)
     {
         var viewModel = CreateViewModel(viewModelType);
 
         if (viewModel is null)
         {
             return;
+        }
+
+        // Die Voreinstellung wird vor dem Laden gesetzt, damit die Ansicht
+        // gleich gefiltert erscheint und nicht zweimal laedt.
+        if (preset != ListPreset.Keine && viewModel is IAcceptsPreset target)
+        {
+            target.ApplyPreset(preset);
         }
 
         Current = viewModel;

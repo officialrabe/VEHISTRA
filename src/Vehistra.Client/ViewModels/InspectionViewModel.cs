@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Vehistra.Client.ViewModels;
 
 /// <summary>Uebersicht der TUEV-Fristen ueber den gesamten Fuhrpark.</summary>
-public sealed partial class InspectionViewModel : ViewModelBase
+public sealed partial class InspectionViewModel : ViewModelBase, IAcceptsPreset
 {
     private readonly IInspectionService _inspections;
     private readonly IExportService _export;
@@ -152,6 +152,20 @@ public sealed partial class InspectionViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task RefreshAsync() => await LoadAsync().ConfigureAwait(true);
+
+    /// <inheritdoc />
+    public void ApplyPreset(ListPreset preset)
+    {
+        // "Abgelaufen" heisst: Faelligkeit heute oder frueher.
+        WithinDays = preset switch
+        {
+            ListPreset.TuevAbgelaufen => 0,
+            ListPreset.TuevIn14Tagen => 14,
+            ListPreset.TuevIn30Tagen => 30,
+            ListPreset.TuevIn60Tagen => 60,
+            _ => WithinDays
+        };
+    }
 }
 
 /// <summary>Auswahlmoeglichkeit eines Zeitraumfilters.</summary>

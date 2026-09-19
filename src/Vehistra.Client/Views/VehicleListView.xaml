@@ -47,6 +47,10 @@
           <ColumnDefinition Width="*" />
           <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto" />
+          <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
         <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=150}"
                  ToolTip="Suche nach interner Nummer, Kennzeichen, FIN, Hersteller, Modell oder Fahrer" />
@@ -67,6 +71,33 @@
         </StackPanel>
 
         <Button Grid.Column="4" Content="Filter _zurücksetzen" Command="{Binding ResetFilterCommand}" />
+
+        <!-- Zweite Zeile: Hersteller, Fahrerzuordnung, Anmeldung, TÜV-Stufe -->
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Orientation="Horizontal" Margin="0,8,0,0">
+          <TextBlock Text="Hersteller" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"
+                     Margin="0,0,6,0" />
+          <ComboBox Width="150" ItemsSource="{Binding Manufacturers}"
+                    SelectedItem="{Binding SelectedManufacturer}"
+                    ToolTip="Nach Hersteller filtern; leerer Eintrag bedeutet alle" />
+
+          <TextBlock Text="Fahrer" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"
+                     Margin="16,0,6,0" />
+          <ComboBox Width="170" ItemsSource="{Binding DriverOptions}"
+                    SelectedValue="{Binding HasDriver}" SelectedValuePath="Value" DisplayMemberPath="Key"
+                    ToolTip="Fahrzeuge mit oder ohne festen Fahrer" />
+
+          <TextBlock Text="Anmeldung" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"
+                     Margin="16,0,6,0" />
+          <ComboBox Width="140" ItemsSource="{Binding RegistrationOptions}"
+                    SelectedValue="{Binding IsRegistered}" SelectedValuePath="Value" DisplayMemberPath="Key"
+                    ToolTip="Angemeldete oder abgemeldete Fahrzeuge" />
+
+          <TextBlock Text="TÜV" Style="{StaticResource FieldLabelStyle}" VerticalAlignment="Center"
+                     Margin="16,0,6,0" />
+          <ComboBox Width="170" ItemsSource="{Binding InspectionLevels}"
+                    SelectedItem="{Binding InspectionLevel}"
+                    ToolTip="Abgelaufen oder fällig innerhalb der gewählten Frist" />
+        </StackPanel>
       </Grid>
     </Border>
 

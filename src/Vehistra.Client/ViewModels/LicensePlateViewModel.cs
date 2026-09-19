@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Vehistra.Client.ViewModels;
 
 /// <summary>Kennzeichenverwaltung mit Reservierungen und Historie.</summary>
-public sealed partial class LicensePlateViewModel : ViewModelBase
+public sealed partial class LicensePlateViewModel : ViewModelBase, IAcceptsPreset
 {
     private readonly ILicensePlateService _plates;
     private readonly IExportService _export;
@@ -252,4 +252,16 @@ public sealed partial class LicensePlateViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task RefreshAsync() => await LoadAsync().ConfigureAwait(true);
+
+    /// <inheritdoc />
+    public void ApplyPreset(ListPreset preset)
+    {
+        StatusFilter = preset switch
+        {
+            ListPreset.KennzeichenVerfuegbar => LicensePlateStatus.Verfuegbar,
+            ListPreset.KennzeichenReserviert or ListPreset.ReservierungLaeuftAus
+                or ListPreset.ReservierungAbgelaufen => LicensePlateStatus.Reserviert,
+            _ => StatusFilter
+        };
+    }
 }

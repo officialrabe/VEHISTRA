@@ -18,6 +18,42 @@
     <Style x:Key="MetricRowStyle" TargetType="Grid">
       <Setter Property="Margin" Value="0,3" />
     </Style>
+
+    <!-- Anklickbare Zahl: sieht aus wie die Zahl daneben, reagiert aber auf
+         Klick und Tastatur. Der Zeiger und der Hinweistext zeigen, dass es
+         mehr als Text ist - nicht die Farbe allein. -->
+    <Style x:Key="MetricLinkStyle" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="4,0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+              <ContentPresenter x:Name="Inhalt" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource SurfaceAltBrush}" />
+                <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="MetricTileLinkStyle" TargetType="Button" BasedOn="{StaticResource MetricLinkStyle}">
+      <Setter Property="FontSize" Value="26" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
   </UserControl.Resources>
 
   <Grid>
@@ -42,35 +78,41 @@
         <UniformGrid Columns="5" Margin="0,0,0,14">
           <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
             <StackPanel>
-              <TextBlock Text="{Binding Data.Vehicles.Total}" Style="{StaticResource MetricValueStyle}" />
+              <Button Content="{Binding Data.Vehicles.Total}" Style="{StaticResource MetricTileLinkStyle}"
+                      Command="{Binding OpenPresetCommand}" CommandParameter="AlleFahrzeuge"
+                      ToolTip="Alle Fahrzeuge anzeigen" />
               <TextBlock Text="Fahrzeuge insgesamt" Style="{StaticResource MetricLabelStyle}" />
             </StackPanel>
           </Border>
           <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
             <StackPanel>
-              <TextBlock Text="{Binding Data.Vehicles.Active}" Style="{StaticResource MetricValueStyle}"
-                         Foreground="{StaticResource OkBrush}" />
+              <Button Content="{Binding Data.Vehicles.Active}" Style="{StaticResource MetricTileLinkStyle}" Foreground="{StaticResource OkBrush}"
+                      Command="{Binding OpenPresetCommand}" CommandParameter="AktiveFahrzeuge"
+                      ToolTip="Angemeldete Fahrzeuge anzeigen" />
               <TextBlock Text="aktiv" Style="{StaticResource MetricLabelStyle}" />
             </StackPanel>
           </Border>
           <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
             <StackPanel>
-              <TextBlock Text="{Binding Data.Vehicles.InWorkshop}" Style="{StaticResource MetricValueStyle}"
-                         Foreground="{StaticResource WarnBrush}" />
+              <Button Content="{Binding Data.Vehicles.InWorkshop}" Style="{StaticResource MetricTileLinkStyle}" Foreground="{StaticResource WarnBrush}"
+                      Command="{Binding OpenPresetCommand}" CommandParameter="FahrzeugeInWerkstatt"
+                      ToolTip="Fahrzeuge in der Werkstatt anzeigen" />
               <TextBlock Text="in der Werkstatt" Style="{StaticResource MetricLabelStyle}" />
             </StackPanel>
           </Border>
           <Border Style="{StaticResource CardStyle}" Margin="0,0,10,0">
             <StackPanel>
-              <TextBlock Text="{Binding Data.Damages.Open}" Style="{StaticResource MetricValueStyle}"
-                         Foreground="{StaticResource CriticalBrush}" />
+              <Button Content="{Binding Data.Damages.Open}" Style="{StaticResource MetricTileLinkStyle}" Foreground="{StaticResource CriticalBrush}"
+                      Command="{Binding OpenPresetCommand}" CommandParameter="OffeneSchaeden"
+                      ToolTip="Offene Schäden anzeigen" />
               <TextBlock Text="offene Schäden" Style="{StaticResource MetricLabelStyle}" />
             </StackPanel>
           </Border>
           <Border Style="{StaticResource CardStyle}">
             <StackPanel>
-              <TextBlock Text="{Binding Data.Inspections.Expired}" Style="{StaticResource MetricValueStyle}"
-                         Foreground="{StaticResource CriticalBrush}" />
+              <Button Content="{Binding Data.Inspections.Expired}" Style="{StaticResource MetricTileLinkStyle}" Foreground="{StaticResource CriticalBrush}"
+                      Command="{Binding OpenPresetCommand}" CommandParameter="TuevAbgelaufen"
+                      ToolTip="Fahrzeuge mit abgelaufener Hauptuntersuchung anzeigen" />
               <TextBlock Text="TÜV abgelaufen" Style="{StaticResource MetricLabelStyle}" />
             </StackPanel>
           </Border>
@@ -87,11 +129,15 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="insgesamt" />
-                <TextBlock Text="{Binding Data.Vehicles.Total}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Vehicles.Total}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="AlleFahrzeuge"
+                        ToolTip="Alle Fahrzeuge anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="aktiv" />
-                <TextBlock Text="{Binding Data.Vehicles.Active}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Vehicles.Active}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="AktiveFahrzeuge"
+                        ToolTip="Angemeldete Fahrzeuge anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="verfügbar" />
@@ -103,17 +149,21 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="ohne festen Fahrer" />
-                <TextBlock Text="{Binding Data.Vehicles.WithoutDriver}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Vehicles.WithoutDriver}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="OhneFestenFahrer"
+                        ToolTip="Fahrzeuge ohne festen Fahrer anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="Werkstatt" />
-                <TextBlock Text="{Binding Data.Vehicles.InWorkshop}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Vehicles.InWorkshop}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="FahrzeugeInWerkstatt"
+                        ToolTip="Fahrzeuge in der Werkstatt anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="beschädigt" />
-                <TextBlock Text="{Binding Data.Vehicles.Damaged}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Vehicles.Damaged}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="FahrzeugeMitOffenenSchaeden"
+                        ToolTip="Fahrzeuge mit offenen Schäden anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="nicht fahrbereit" />
@@ -122,8 +172,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="abgemeldet" />
-                <TextBlock Text="{Binding Data.Vehicles.Deregistered}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Vehicles.Deregistered}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="Abgemeldet"
+                        ToolTip="Abgemeldete Fahrzeuge anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="ausgemustert" />
@@ -141,8 +192,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="abgelaufen" />
-                <TextBlock Text="{Binding Data.Inspections.Expired}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+                <Button Content="{Binding Data.Inspections.Expired}" Style="{StaticResource MetricLinkStyle}" Foreground="{StaticResource CriticalBrush}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="TuevAbgelaufen"
+                        ToolTip="Fahrzeuge mit abgelaufener Hauptuntersuchung anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="innerhalb 7 Tage" />
@@ -151,18 +203,21 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="innerhalb 14 Tage" />
-                <TextBlock Text="{Binding Data.Inspections.Within14Days}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Inspections.Within14Days}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="TuevIn14Tagen"
+                        ToolTip="Fällig in 14 Tagen anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="innerhalb 30 Tage" />
-                <TextBlock Text="{Binding Data.Inspections.Within30Days}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Inspections.Within30Days}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="TuevIn30Tagen"
+                        ToolTip="Fällig in 30 Tagen anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="innerhalb 60 Tage" />
-                <TextBlock Text="{Binding Data.Inspections.Within60Days}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Inspections.Within60Days}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="TuevIn60Tagen"
+                        ToolTip="Fällig in 60 Tagen anzeigen" />
               </Grid>
 
               <Separator Margin="0,10" />
@@ -174,8 +229,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="Service fällig" />
-                <TextBlock Text="{Binding Data.Maintenance.ServiceDue}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" />
+                <Button Content="{Binding Data.Maintenance.ServiceDue}" Style="{StaticResource MetricLinkStyle}" Foreground="{StaticResource CriticalBrush}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="WartungFaellig"
+                        ToolTip="Fällige Wartungen anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="bald fällig" />
@@ -199,7 +255,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="offen" />
-                <TextBlock Text="{Binding Data.Damages.Open}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Damages.Open}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="OffeneSchaeden"
+                        ToolTip="Offene Schäden anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="neu gemeldet" />
@@ -207,8 +265,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="kritisch" />
-                <TextBlock Text="{Binding Data.Damages.Critical}" HorizontalAlignment="Right" FontWeight="SemiBold"
-                           Foreground="{StaticResource CriticalBrush}" />
+                <Button Content="{Binding Data.Damages.Critical}" Style="{StaticResource MetricLinkStyle}" Foreground="{StaticResource CriticalBrush}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="KritischeSchaeden"
+                        ToolTip="Kritische Schäden anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="nicht fahrbereit" />
@@ -225,8 +284,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="aktuell in Werkstatt" />
-                <TextBlock Text="{Binding Data.Workshop.CurrentlyInWorkshop}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.Workshop.CurrentlyInWorkshop}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="WerkstattHeute"
+                        ToolTip="Fahrzeuge in der Werkstatt anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="Termin heute" />
@@ -240,8 +300,9 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="überfällige Vorgänge" />
-                <TextBlock Text="{Binding Data.Workshop.Overdue}" HorizontalAlignment="Right" FontWeight="SemiBold"
-                           Foreground="{StaticResource WarnBrush}" />
+                <Button Content="{Binding Data.Workshop.Overdue}" Style="{StaticResource MetricLinkStyle}" Foreground="{StaticResource WarnBrush}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="WerkstattUeberfaellig"
+                        ToolTip="Überfällige Werkstattvorgänge anzeigen" />
               </Grid>
 
               <Separator Margin="0,10" />
@@ -253,13 +314,15 @@
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="verfügbar" />
-                <TextBlock Text="{Binding Data.LicensePlates.Available}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.LicensePlates.Available}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="KennzeichenVerfuegbar"
+                        ToolTip="Verfügbare Kennzeichen anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="reserviert" />
-                <TextBlock Text="{Binding Data.LicensePlates.Reserved}" HorizontalAlignment="Right"
-                           FontWeight="SemiBold" />
+                <Button Content="{Binding Data.LicensePlates.Reserved}" Style="{StaticResource MetricLinkStyle}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="KennzeichenReserviert"
+                        ToolTip="Reservierte Kennzeichen anzeigen" />
               </Grid>
               <Grid Style="{StaticResource MetricRowStyle}">
                 <TextBlock Text="Reservierung läuft bald ab" />

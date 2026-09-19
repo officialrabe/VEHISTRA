@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Vehistra.Client.ViewModels;
 
 /// <summary>Werkstattuebersicht inklusive Werkstattbericht und Rueckmeldung.</summary>
-public sealed partial class WorkshopViewModel : ViewModelBase
+public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
 {
     private readonly IWorkshopService _workshop;
     private readonly IExportService _export;
@@ -213,4 +213,20 @@ public sealed partial class WorkshopViewModel : ViewModelBase
 
     [RelayCommand]
     private async Task RefreshAsync() => await LoadAsync().ConfigureAwait(true);
+
+    /// <inheritdoc />
+    public void ApplyPreset(ListPreset preset)
+    {
+        switch (preset)
+        {
+            case ListPreset.WerkstattOffen:
+            case ListPreset.WerkstattUeberfaellig:
+                OnlyOpen = true;
+                break;
+
+            case ListPreset.WerkstattHeute:
+                OnlyInWorkshop = true;
+                break;
+        }
+    }
 }

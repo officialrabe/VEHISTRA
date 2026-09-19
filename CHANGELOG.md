@@ -6,6 +6,54 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.2.0
+
+Diese Version schließt die Lücken gegenüber der bisherigen Web-Version. Der
+Abgleich beider Programme hat neun Unterschiede ergeben; die vier wichtigsten
+sind hier behoben.
+
+Neu
+- **Listen als Excel oder CSV.** Die Berichtsseite exportierte alle neun Listen
+  ausschließlich als PDF. Format ist jetzt wählbar – Excel, CSV oder PDF – mit
+  einem Satz dazu, was die Auswahl bedeutet. Voreinstellung ist Excel.
+- **Kennzahlen im Dashboard sind anklickbar.** Ein Klick auf eine Zahl öffnet
+  die Liste dahinter, bereits gefiltert: „ohne festen Fahrer", „TÜV
+  abgelaufen", „offene Schäden", „in der Werkstatt" und 18 weitere. Bisher
+  musste man die Zahl lesen und den Filter von Hand nachbauen.
+- **Vier neue Filter in der Fahrzeugliste**: Hersteller (aus dem Bestand, nicht
+  aus einer festen Liste), Fahrerzuordnung (mit/ohne festen Fahrer), Anmeldung
+  (angemeldet/abgemeldet) und die Hauptuntersuchung nach Stufe (abgelaufen oder
+  fällig in 14, 30, 60 Tagen) statt nur „fällig ja/nein".
+- **Export „Fahrerzuordnungen"**: vollständige Historie der festen Fahrer je
+  Fahrzeug, mit Von, Bis („laufend", solange offen), zugewiesen durch und
+  Bemerkung.
+- **Maximale Dateigröße für Dokumente einstellbar** (Standard 25 MB). Die
+  Ablage begrenzt weiterhin hart auf 50 MB; die Einstellung wird beim Speichern
+  auf diesen Bereich begrenzt, damit die Oberfläche nichts zusagt, was die
+  Ablage nicht hält.
+
+Behoben
+- **Dokumente werden nach ihrem Inhalt geprüft, nicht nach der Dateiendung.**
+  Was nach einem Programm aussieht (EXE/DLL, ELF, Java, Shebang), wird
+  abgelehnt – auch wenn die Datei „Rechnung.pdf" heißt. Passt der Inhalt nicht
+  zur Endung, etwa ein PNG als `.pdf`, wird ebenfalls abgelehnt. Formate ohne
+  verlässliche Signatur (`.txt`, `.csv`, `.eml`) bleiben erlaubt. Das war die
+  einzige Stelle, an der die Web-Version sicherer war.
+- Der Listenexport verlangt jetzt ausdrücklich das Recht „Daten exportieren".
+- Dateinamen der Exporte sind auf Deutsch, nicht mehr englische interne Namen.
+
+Geprüft
+- Zwölf Modultests gegen die echte Dokumentenablage: umbenannte EXE, ELF,
+  PNG-als-PDF, leere Datei, Pfadanteile im Dateinamen.
+- Sieben Integrationstests für die neuen Filter, einzeln und in Kombination,
+  inklusive der gestaffelten Fristen.
+- 122 Integrations-, 93 Modul- und 7 Ansichtsmodelltests grün.
+
+Nicht geprüft
+- Dass ein Klick auf eine Kennzahl im Programm tatsächlich die gefilterte Liste
+  öffnet. Die Verdrahtung ist übersetzt, aber nur ein Durchlauf auf einem
+  Windows-Rechner zeigt das Verhalten.
+
 ## 1.1.1
 
 Behoben
