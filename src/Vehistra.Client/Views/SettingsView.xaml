@@ -96,8 +96,13 @@
           <StackPanel MaxWidth="700" HorizontalAlignment="Left">
             <GroupBox Header="TÜV / Hauptuntersuchung">
               <StackPanel>
-                <TextBlock Text="Warnstufe „bald fällig“ ab (Tage vor Ablauf)"
+                <TextBlock Text="Warnstufe „kritisch“ ab (Tage vor Ablauf)"
                            Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding InspectionUrgentDays, UpdateSourceTrigger=PropertyChanged}" Width="120"
+                         HorizontalAlignment="Left"
+                         ToolTip="Ab hier gilt die Frist als kritisch, auch wenn der Termin noch nicht erreicht ist" />
+                <TextBlock Text="Warnstufe „bald fällig“ ab (Tage vor Ablauf)"
+                           Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
                 <TextBox Text="{Binding InspectionCriticalDays, UpdateSourceTrigger=PropertyChanged}" Width="120"
                          HorizontalAlignment="Left" />
                 <TextBlock Text="Warnstufe „Hinweis“ ab (Tage vor Ablauf)" Style="{StaticResource FieldLabelStyle}"
@@ -105,7 +110,7 @@
                 <TextBox Text="{Binding InspectionWarningDays, UpdateSourceTrigger=PropertyChanged}" Width="120"
                          HorizontalAlignment="Left" />
                 <TextBlock Style="{StaticResource MutedTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"
-                           Text="Abgelaufene Fristen werden immer rot und zusätzlich mit dem Text „Kritisch“ dargestellt – Farbe ist nie die einzige Information." />
+                           Text="Die drei Stufen liegen ineinander: kritisch vor „bald fällig“ vor Hinweis. Abgelaufene Fristen sind immer kritisch. Jede Stufe steht zusätzlich als Text in der Liste – Farbe ist nie die einzige Information." />
               </StackPanel>
             </GroupBox>
 
@@ -118,6 +123,17 @@
                            Margin="0,12,0,2" />
                 <TextBox Text="{Binding MaintenanceWarnKilometers, UpdateSourceTrigger=PropertyChanged}" Width="120"
                          HorizontalAlignment="Left" />
+              </StackPanel>
+            </GroupBox>
+
+            <GroupBox Header="Werkstatt">
+              <StackPanel>
+                <TextBlock Text="Warnung, wenn ein Fahrzeug länger als (Tage) in der Werkstatt steht"
+                           Style="{StaticResource FieldLabelStyle}" />
+                <TextBox Text="{Binding WorkshopLongStayWarnDays, UpdateSourceTrigger=PropertyChanged}" Width="120"
+                         HorizontalAlignment="Left" />
+                <TextBlock Style="{StaticResource MutedTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"
+                           Text="Gezählt wird ab der Fahrzeugabgabe. Ab der doppelten Frist gilt der Vorgang als kritisch. Der Überblick zeigt die Zahl, ein Klick darauf die betroffenen Vorgänge." />
               </StackPanel>
             </GroupBox>
 

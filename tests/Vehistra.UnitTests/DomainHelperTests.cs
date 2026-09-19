@@ -64,12 +64,14 @@ public class DueDateCalculatorTests
             .ShouldBe(WarningLevel.Kritisch);
 
     [Fact]
-    public void Evaluate_meldet_bald_faellig_am_Tag_der_Faelligkeit() =>
+    public void Evaluate_meldet_kritisch_am_Tag_der_Faelligkeit() =>
         DueDateCalculator.Evaluate(Today, Today, DueDateCalculator.DefaultThresholds)
-            .ShouldBe(WarningLevel.BaldFaellig);
+            .ShouldBe(WarningLevel.Kritisch);
 
     [Theory]
-    [InlineData(1, WarningLevel.BaldFaellig)]
+    [InlineData(1, WarningLevel.Kritisch)]
+    [InlineData(7, WarningLevel.Kritisch)]
+    [InlineData(8, WarningLevel.BaldFaellig)]
     [InlineData(14, WarningLevel.BaldFaellig)]
     [InlineData(15, WarningLevel.Hinweis)]
     [InlineData(30, WarningLevel.Hinweis)]
@@ -92,6 +94,22 @@ public class DueDateCalculatorTests
     [Fact]
     public void Evaluate_ignoriert_die_Uhrzeit() =>
         DueDateCalculator.Evaluate(Today.AddHours(23), Today.AddHours(1), DueDateCalculator.DefaultThresholds)
+            .ShouldBe(WarningLevel.Kritisch);
+
+    [Fact]
+    public void Die_innerste_Stufe_laesst_sich_abschalten() =>
+        // UrgentDays kleiner 0: dann ist kritisch nur, was abgelaufen ist.
+        DueDateCalculator.Evaluate(Today, Today, new DueDateThresholds(14, 30, -1))
+            .ShouldBe(WarningLevel.BaldFaellig);
+
+    [Fact]
+    public void Kritisch_beginnt_an_der_eingestellten_Stufe() =>
+        DueDateCalculator.Evaluate(Today.AddDays(3), Today, new DueDateThresholds(14, 30, 3))
+            .ShouldBe(WarningLevel.Kritisch);
+
+    [Fact]
+    public void Eine_Stufe_vor_der_kritischen_bleibt_bald_faellig() =>
+        DueDateCalculator.Evaluate(Today.AddDays(4), Today, new DueDateThresholds(14, 30, 3))
             .ShouldBe(WarningLevel.BaldFaellig);
 
     [Fact]

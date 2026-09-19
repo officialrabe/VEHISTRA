@@ -46,10 +46,16 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private string? _companyLogoPath;
 
     [ObservableProperty]
+    private int _inspectionUrgentDays = 7;
+
+    [ObservableProperty]
     private int _inspectionCriticalDays = 14;
 
     [ObservableProperty]
     private int _inspectionWarningDays = 30;
+
+    [ObservableProperty]
+    private int _workshopLongStayWarnDays = 7;
 
     [ObservableProperty]
     private int _maintenanceWarnDays = 30;
@@ -150,10 +156,14 @@ public sealed partial class SettingsViewModel : ViewModelBase
             CompanyEmail = company.Email;
             CompanyLogoPath = company.LogoPath;
 
+            InspectionUrgentDays = await _settings
+                .GetIntAsync(SettingsKeys.InspectionWarnUrgentDays, 7, cancellationToken).ConfigureAwait(true);
             InspectionCriticalDays = await _settings
                 .GetIntAsync(SettingsKeys.InspectionWarnCriticalDays, 14, cancellationToken).ConfigureAwait(true);
             InspectionWarningDays = await _settings
                 .GetIntAsync(SettingsKeys.InspectionWarnWarningDays, 30, cancellationToken).ConfigureAwait(true);
+            WorkshopLongStayWarnDays = await _settings
+                .GetIntAsync(SettingsKeys.WorkshopLongStayWarnDays, 7, cancellationToken).ConfigureAwait(true);
             MaintenanceWarnDays = await _settings
                 .GetIntAsync(SettingsKeys.MaintenanceWarnDays, 30, cancellationToken).ConfigureAwait(true);
             MaintenanceWarnKilometers = await _settings
@@ -229,10 +239,19 @@ public sealed partial class SettingsViewModel : ViewModelBase
             await _settings.SetAsync(SettingsKeys.CompanyEmail, CompanyEmail).ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.CompanyLogoPath, CompanyLogoPath).ConfigureAwait(true);
 
+            // Die drei Stufen muessen ineinander liegen: kritisch vor "bald
+            // faellig" vor Hinweis. Sonst waere eine Stufe nie erreichbar und
+            // eine Frist bliebe stillschweigend unauffaellig.
+            OrdneWarnstufen();
+
+            await _settings.SetAsync(SettingsKeys.InspectionWarnUrgentDays, InspectionUrgentDays.ToString())
+                .ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.InspectionWarnCriticalDays, InspectionCriticalDays.ToString())
                 .ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.InspectionWarnWarningDays, InspectionWarningDays.ToString())
                 .ConfigureAwait(true);
+            await _settings.SetAsync(SettingsKeys.WorkshopLongStayWarnDays,
+                Math.Clamp(WorkshopLongStayWarnDays, 1, 365).ToString()).ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.MaintenanceWarnDays, MaintenanceWarnDays.ToString())
                 .ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.MaintenanceWarnKilometers, MaintenanceWarnKilometers.ToString())
@@ -372,6 +391,31 @@ public sealed partial class SettingsViewModel : ViewModelBase
             await _vehicles.DeleteCategoryAsync(category.Id).ConfigureAwait(true);
             await LoadAsync().ConfigureAwait(true);
         }, $"Der Einsatzbereich „{category.Name}“ wurde gelöscht.").ConfigureAwait(true);
+    }
+
+    /// <summary>
+    /// Sortiert die drei TUEV-Warnstufen so, dass sie ineinander liegen, und
+    /// sagt es dem Benutzer, wenn dabei etwas geaendert wurde.
+    /// </summary>
+    private void OrdneWarnstufen()
+    {
+        var kritisch = Math.Clamp(InspectionUrgentDays, 0, 365);
+        var bald = Math.Clamp(InspectionCriticalDays, 0, 3650);
+        var hinweis = Math.Clamp(InspectionWarningDays, 0, 3650);
+
+        bald = Math.Max(bald, kritisch);
+        hinweis = Math.Max(hinweis, bald);
+
+        if (kritisch == InspectionUrgentDays && bald == InspectionCriticalDays && hinweis == InspectionWarningDays)
+        {
+            return;
+        }
+
+        InspectionUrgentDays = kritisch;
+        InspectionCriticalDays = bald;
+        InspectionWarningDays = hinweis;
+        StatusMessage = "Die TÜV-Warnstufen wurden in die richtige Reihenfolge gebracht: " +
+                        $"kritisch ab {kritisch}, bald fällig ab {bald}, Hinweis ab {hinweis} Tagen.";
     }
 
     /// <summary>

@@ -14,10 +14,16 @@ public static class SettingsKeys
     public const string InspectionWarnCriticalDays = "Inspection.WarnCriticalDays";
     public const string InspectionWarnWarningDays = "Inspection.WarnWarningDays";
 
+    /// <summary>TUEV: kritisch bereits X Tage vor dem Termin, nicht erst danach.</summary>
+    public const string InspectionWarnUrgentDays = "Inspection.WarnUrgentDays";
+
     public const string MaintenanceWarnDays = "Maintenance.WarnDays";
     public const string MaintenanceWarnKilometers = "Maintenance.WarnKilometers";
 
     public const string PlateReservationWarnDays = "LicensePlate.ReservationWarnDays";
+
+    /// <summary>Werkstatt: Warnung, wenn ein Fahrzeug laenger als X Tage dort steht.</summary>
+    public const string WorkshopLongStayWarnDays = "Workshop.LongStayWarnDays";
 
     /// <summary>
     /// Groesste erlaubte Dokumentgroesse in Megabyte. Die Ablage selbst begrenzt

@@ -304,6 +304,12 @@
                         Command="{Binding OpenPresetCommand}" CommandParameter="WerkstattUeberfaellig"
                         ToolTip="Überfällige Werkstattvorgänge anzeigen" />
               </Grid>
+              <Grid Style="{StaticResource MetricRowStyle}">
+                <TextBlock Text="{Binding Data.Workshop.LongStayWarnDays, StringFormat='lange dort (ab {0} Tagen)'}" />
+                <Button Content="{Binding Data.Workshop.LongStay}" Style="{StaticResource MetricLinkStyle}" Foreground="{StaticResource WarnBrush}"
+                        Command="{Binding OpenPresetCommand}" CommandParameter="WerkstattLangzeit"
+                        ToolTip="Fahrzeuge anzeigen, die ungewöhnlich lange in der Werkstatt stehen" />
+              </Grid>
 
               <Separator Margin="0,10" />
 

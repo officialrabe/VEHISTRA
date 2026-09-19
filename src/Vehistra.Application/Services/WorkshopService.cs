@@ -67,6 +67,13 @@ public sealed class WorkshopService : IWorkshopService
             query = query.Where(w => w.Status != WorkshopOrderStatus.Abgeholt && w.Status != WorkshopOrderStatus.Storniert);
         }
 
+        if (filter.MinDaysInWorkshop is { } mindestTage)
+        {
+            // Der Stichtag steht fest, damit die Datenbank vergleichen kann.
+            var stichtag = _clock.Today.AddDays(-mindestTage);
+            query = query.Where(w => w.VehicleHandedOverAt != null && w.VehicleHandedOverAt <= stichtag);
+        }
+
         if (filter.From is { } from)
         {
             query = query.Where(w => w.CreatedOn >= from);

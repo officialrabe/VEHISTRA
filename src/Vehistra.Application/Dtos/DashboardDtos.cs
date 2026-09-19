@@ -78,6 +78,12 @@ public sealed class WorkshopCounters
     public int UpcomingAppointments { get; init; }
 
     public int Overdue { get; init; }
+
+    /// <summary>Fahrzeuge, die laenger als die eingestellte Frist in der Werkstatt stehen.</summary>
+    public int LongStay { get; init; }
+
+    /// <summary>Die eingestellte Frist in Tagen - fuer die Beschriftung im Ueberblick.</summary>
+    public int LongStayWarnDays { get; init; }
 }
 
 public sealed class LicensePlateCounters

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Vehistra.Application.Abstractions;
 using Vehistra.Application.Dtos;
+using Vehistra.Application.Services;
 using Vehistra.Client.Services;
 using Vehistra.Client.ViewModels.Dialogs;
 using Vehistra.Domain.Entities;
@@ -16,6 +17,7 @@ namespace Vehistra.Client.ViewModels;
 public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
 {
     private readonly IWorkshopService _workshop;
+    private readonly ISettingsService _settings;
     private readonly IExportService _export;
     private readonly INavigationService _navigation;
     private readonly ICurrentUserService _currentUser;
@@ -39,10 +41,17 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
     private bool _onlyInWorkshop;
 
     [ObservableProperty]
+    private bool _onlyLongStay;
+
+    [ObservableProperty]
+    private int _longStayDays = 7;
+
+    [ObservableProperty]
     private string _searchText = string.Empty;
 
     public WorkshopViewModel(
         IWorkshopService workshop,
+        ISettingsService settings,
         IExportService export,
         INavigationService navigation,
         ICurrentUserService currentUser,
@@ -51,6 +60,7 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
         IServiceProvider services)
     {
         _workshop = workshop;
+        _settings = settings;
         _export = export;
         _navigation = navigation;
         _currentUser = currentUser;
@@ -70,6 +80,9 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
 
     public IReadOnlyList<WorkshopOrderStatus> StatusValues { get; } = Enum.GetValues<WorkshopOrderStatus>();
 
+    /// <summary>Beschriftung des Langzeitfilters - die Frist steht in den Einstellungen.</summary>
+    public string LongStayFilterLabel => $"nur ab {LongStayDays} Tagen in der Werkstatt";
+
     public bool CanManage => _currentUser.HasPermission(Permissions.WorkshopManage);
 
     public bool CanPrint => _currentUser.HasPermission(Permissions.ReportsPrint);
@@ -80,6 +93,11 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
     {
         await RunAsync(async () =>
         {
+            // Dieselbe Frist wie im Ueberblick - sonst zeigte ein Klick auf die
+            // Zahl dort eine andere Menge als die Liste hier.
+            LongStayDays = Math.Max(1, await _settings
+                .GetIntAsync(SettingsKeys.WorkshopLongStayWarnDays, 7, cancellationToken).ConfigureAwait(true));
+
             if (Workshops.Count == 0)
             {
                 foreach (var workshop in await _workshop.GetWorkshopsAsync(true, cancellationToken).ConfigureAwait(true))
@@ -94,6 +112,7 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
                 Status = StatusFilter,
                 OnlyOpen = OnlyOpen,
                 OnlyInWorkshop = OnlyInWorkshop,
+                MinDaysInWorkshop = OnlyLongStay ? LongStayDays : null,
                 SearchText = SearchText
             };
 
@@ -116,6 +135,10 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
     partial void OnOnlyOpenChanged(bool value) => _ = LoadAsync();
 
     partial void OnOnlyInWorkshopChanged(bool value) => _ = LoadAsync();
+
+    partial void OnOnlyLongStayChanged(bool value) => _ = LoadAsync();
+
+    partial void OnLongStayDaysChanged(int value) => OnPropertyChanged(nameof(LongStayFilterLabel));
 
     partial void OnSearchTextChanged(string value) => _ = LoadAsync();
 
@@ -226,6 +249,11 @@ public sealed partial class WorkshopViewModel : ViewModelBase, IAcceptsPreset
 
             case ListPreset.WerkstattHeute:
                 OnlyInWorkshop = true;
+                break;
+
+            case ListPreset.WerkstattLangzeit:
+                OnlyInWorkshop = true;
+                OnlyLongStay = true;
                 break;
         }
     }

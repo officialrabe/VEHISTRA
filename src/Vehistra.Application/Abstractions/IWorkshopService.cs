@@ -51,6 +51,12 @@ public sealed class WorkshopFilter
 
     public bool OnlyInWorkshop { get; set; }
 
+    /// <summary>
+    /// Nur Vorgaenge, bei denen das Fahrzeug seit mindestens so vielen Tagen in
+    /// der Werkstatt steht. Greift nur bei abgegebenen Fahrzeugen.
+    /// </summary>
+    public int? MinDaysInWorkshop { get; set; }
+
     public DateTime? From { get; set; }
 
     public DateTime? To { get; set; }

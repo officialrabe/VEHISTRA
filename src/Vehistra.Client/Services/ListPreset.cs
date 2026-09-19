@@ -33,6 +33,7 @@ public enum ListPreset
     WerkstattOffen,
     WerkstattHeute,
     WerkstattUeberfaellig,
+    WerkstattLangzeit,
 
     // Kennzeichen
     KennzeichenVerfuegbar,

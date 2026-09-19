@@ -130,8 +130,17 @@ public sealed class DashboardService : IDashboardService
             .ToListAsync(cancellationToken)
             .ConfigureAwait(false);
 
+        // Wie lange ein Fahrzeug in der Werkstatt stehen darf, bevor es
+        // auffaellt, entscheidet der Betrieb - eine Woche passt nicht ueberall.
+        var langzeitTage = Math.Max(1, await _settings
+            .GetIntAsync(SettingsKeys.WorkshopLongStayWarnDays, 7, cancellationToken)
+            .ConfigureAwait(false));
+
         var workshopCounters = new WorkshopCounters
         {
+            LongStay = orderRows.Count(w => w.VehicleHandedOverAt is not null
+                && (today - w.VehicleHandedOverAt.Value.Date).Days >= langzeitTage),
+            LongStayWarnDays = langzeitTage,
             CurrentlyInWorkshop = orderRows.Count(w => w.Status is WorkshopOrderStatus.FahrzeugAbgegeben
                 or WorkshopOrderStatus.InBearbeitung or WorkshopOrderStatus.WartetAufTeile or WorkshopOrderStatus.Fertig),
             AppointmentsToday = orderRows.Count(w => w.AppointmentDate?.Date == today),
@@ -235,14 +244,14 @@ public sealed class DashboardService : IDashboardService
         foreach (var order in orderRows.Where(w => w.VehicleHandedOverAt is not null))
         {
             var days = (today - order.VehicleHandedOverAt!.Value.Date).Days;
-            if (days < 7)
+            if (days < langzeitTage)
             {
                 continue;
             }
 
             attention.Add(new AttentionItem(
                 NotificationCategory.Werkstatt,
-                days >= 14 ? WarningLevel.Kritisch : WarningLevel.BaldFaellig,
+                days >= langzeitTage * 2 ? WarningLevel.Kritisch : WarningLevel.BaldFaellig,
                 $"{order.VehicleDisplay} befindet sich seit {days} Tagen in der Werkstatt.",
                 order.VehicleId, $"WorkshopOrder:{order.Id}", order.VehicleHandedOverAt));
         }
