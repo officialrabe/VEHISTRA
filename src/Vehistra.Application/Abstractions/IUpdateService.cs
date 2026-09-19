@@ -10,12 +10,44 @@ public interface IUpdateService
 
     Task<string?> ReadReleaseNotesAsync(UpdateManifest manifest, string updatePath, CancellationToken cancellationToken = default);
 
-    /// <summary>Prueft die SHA-256-Pruefsumme des Installationspakets.</summary>
-    Task<bool> VerifyChecksumAsync(string installerPath, string checksumFilePath, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Prueft die SHA-256-Pruefsumme des Updatepakets. Erwartet wird der Wert aus
+    /// latest.json; fehlt er, wird die Datei checksums.sha256 neben dem Paket
+    /// herangezogen. Ohne beides gilt das Paket als ungeprueft.
+    /// </summary>
+    Task<InstallerVerification> VerifyInstallerAsync(
+        string installerPath,
+        string? expectedChecksum,
+        CancellationToken cancellationToken = default);
 
-    /// <summary>Startet Vehistra.Updater.exe und beendet die Hauptanwendung.</summary>
+    /// <summary>
+    /// Startet Vehistra.Updater.exe und beendet die Hauptanwendung. Die
+    /// Pruefsumme des Pakets wird vorher geprueft; stimmt sie nicht oder fehlt
+    /// sie, wird nichts gestartet.
+    /// </summary>
     Task<bool> LaunchUpdaterAsync(UpdateLaunchRequest request, CancellationToken cancellationToken = default);
 }
+
+/// <summary>Woher die erwartete Pruefsumme stammt.</summary>
+public enum ChecksumSource
+{
+    /// <summary>Keine erwartete Pruefsumme gefunden.</summary>
+    Keine = 0,
+
+    /// <summary>Aus latest.json.</summary>
+    Manifest = 1,
+
+    /// <summary>Aus checksums.sha256 neben dem Paket.</summary>
+    Pruefsummendatei = 2
+}
+
+/// <summary>Ergebnis der Pruefsummenpruefung eines Updatepakets.</summary>
+public sealed record InstallerVerification(
+    bool IsValid,
+    ChecksumSource Source,
+    string? Expected,
+    string? Actual,
+    string Message);
 
 /// <summary>Inhalt der Datei latest.json.</summary>
 public sealed class UpdateManifest
@@ -61,4 +93,10 @@ public sealed class UpdateLaunchRequest
     public bool CreateBackupBeforeMigration { get; set; } = true;
 
     public string? UserName { get; set; }
+
+    /// <summary>
+    /// Erwartete SHA-256-Pruefsumme des Pakets, ueblicherweise aus latest.json.
+    /// Fehlt sie, sucht der Dienst die Datei checksums.sha256 neben dem Paket.
+    /// </summary>
+    public string? ExpectedChecksum { get; set; }
 }

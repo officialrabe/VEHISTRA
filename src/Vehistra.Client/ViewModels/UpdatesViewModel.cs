@@ -53,6 +53,13 @@ public sealed partial class UpdatesViewModel : ViewModelBase
     [ObservableProperty]
     private string? _migrationProgress;
 
+    /// <summary>Ergebnis der Pruefsummenpruefung des gefundenen Pakets.</summary>
+    [ObservableProperty]
+    private string? _checksumMessage;
+
+    [ObservableProperty]
+    private bool _isChecksumValid;
+
     private UpdateCheckResult? _lastCheck;
 
     public UpdatesViewModel(
@@ -149,6 +156,24 @@ public sealed partial class UpdatesViewModel : ViewModelBase
                     .ConfigureAwait(true);
             }
 
+            // Das Ergebnis der Pruefsummenpruefung steht schon hier, nicht erst
+            // beim Klick auf "Installieren" - dann weiss der Anwender vorher,
+            // woran er ist.
+            if (result.IsUpdateAvailable && result.InstallerFullPath is not null)
+            {
+                var pruefung = await _updates
+                    .VerifyInstallerAsync(result.InstallerFullPath, result.Manifest?.Checksum, cancellationToken)
+                    .ConfigureAwait(true);
+
+                IsChecksumValid = pruefung.IsValid;
+                ChecksumMessage = pruefung.Message;
+            }
+            else
+            {
+                IsChecksumValid = false;
+                ChecksumMessage = null;
+            }
+
             OnPropertyChanged(nameof(Subtitle));
         }).ConfigureAwait(true);
     }
@@ -179,7 +204,10 @@ public sealed partial class UpdatesViewModel : ViewModelBase
                 InstallerPath = _lastCheck.InstallerFullPath,
                 TargetVersion = _lastCheck.AvailableVersion ?? string.Empty,
                 CreateBackupBeforeMigration = true,
-                UserName = _currentUser.User?.UserName
+                UserName = _currentUser.User?.UserName,
+                // Der Dienst prueft damit, ob das Paket unverändert ist, und
+                // startet sonst nichts.
+                ExpectedChecksum = _lastCheck.Manifest?.Checksum
             }).ConfigureAwait(true);
 
             if (started)

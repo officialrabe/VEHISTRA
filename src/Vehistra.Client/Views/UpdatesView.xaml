@@ -66,6 +66,41 @@
           </Border>
         </UniformGrid>
 
+        <!-- Ergebnis der Pruefsummenpruefung: Farbe ist nie die einzige Information,
+             der Text nennt das Ergebnis ausdruecklich. -->
+        <Border x:Name="ChecksumCard" Margin="0,0,0,12"
+                Visibility="{Binding ChecksumMessage, Converter={StaticResource StringToVisibility}}">
+          <Border.Style>
+            <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+              <Setter Property="Background" Value="{StaticResource CriticalBackgroundBrush}" />
+              <Setter Property="BorderBrush" Value="{StaticResource CriticalBrush}" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding IsChecksumValid}" Value="True">
+                  <Setter Property="Background" Value="{StaticResource OkBackgroundBrush}" />
+                  <Setter Property="BorderBrush" Value="{StaticResource OkBrush}" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Border.Style>
+          <StackPanel>
+            <TextBlock FontWeight="SemiBold">
+              <TextBlock.Style>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+                  <Setter Property="Text" Value="PRÜFSUMME DES PAKETS: NICHT IN ORDNUNG" />
+                  <Setter Property="Foreground" Value="{StaticResource CriticalBrush}" />
+                  <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsChecksumValid}" Value="True">
+                      <Setter Property="Text" Value="PRÜFSUMME DES PAKETS: IN ORDNUNG" />
+                      <Setter Property="Foreground" Value="{StaticResource OkBrush}" />
+                    </DataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </TextBlock.Style>
+            </TextBlock>
+            <TextBlock Text="{Binding ChecksumMessage}" TextWrapping="Wrap" Margin="0,5,0,0" />
+          </StackPanel>
+        </Border>
+
         <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12"
                 Background="{StaticResource CriticalBackgroundBrush}"
                 BorderBrush="{StaticResource CriticalBrush}"

@@ -104,7 +104,8 @@ Arbeit.
 
 1. Beim Start meldet Vehistra: „Version 1.1.0 steht bereit."
 2. Der Mitarbeiter sieht die Versionshinweise und klickt auf „Jetzt aktualisieren".
-3. Vehistra prüft die Prüfsumme des Updatepakets.
+3. Vehistra prüft die Prüfsumme des Updatepakets. Stimmt sie nicht oder fehlt
+   sie, passiert nichts weiter – das Paket wird nicht ausgeführt.
 4. Vehistra startet `Vehistra.Updater.exe` und beendet sich selbst.
 5. Der Updater arbeitet sechs Schritte ab:
 
@@ -136,7 +137,22 @@ stellt der Updater den vorherigen Stand aus der ZIP-Sicherung wieder her und
 zeigt eine Anleitung zur Wiederherstellung an.
 
 **Prüfsummen.** Vor der Installation wird die SHA-256-Prüfsumme des Pakets
-geprüft. Stimmt sie nicht, wird das Update nicht gestartet.
+geprüft. Stimmt sie nicht, wird das Update nicht gestartet. Erwartet wird der
+Wert aus `latest.json`; fehlt der Eintrag `checksum`, zieht Vehistra die Datei
+`checksums.sha256` neben dem Paket heran.
+
+Gibt es **keinen von beiden**, gilt das Paket als ungeprüft und wird ebenfalls
+nicht gestartet. Die Meldung nennt dann die tatsächliche Prüfsumme des Pakets,
+sodass Sie sie in `latest.json` nachtragen können. Das Ergebnis der Prüfung steht
+im Programm unter „Updates" schon vor dem Klick auf „Installieren".
+
+> Was die Prüfsumme leistet und was nicht: Sie erkennt ein unvollständig
+> kopiertes oder nachträglich verändertes Paket. Sie schützt **nicht** gegen
+> jemanden, der auf die Updateablage schreiben darf – wer das Paket austauschen
+> kann, kann auch `latest.json` anpassen. Dagegen hilft nur die Codesignatur
+> (siehe `SIGNING-POLICY.md`) und ein Updateordner, in den ausschließlich
+> Administratoren schreiben dürfen. Prüfen Sie die Schreibrechte auf die
+> Freigabe.
 
 ---
 
@@ -169,7 +185,8 @@ Das Updateprotokoll finden Sie im Programm unter „Einstellungen" und in
 
 | Meldung | Bedeutung | Was tun |
 | --- | --- | --- |
-| „Die Prüfsumme stimmt nicht" | Die Datei ist unvollständig kopiert | Updateordner neu befüllen |
+| „Die Prüfsumme stimmt nicht" | Die Datei ist unvollständig kopiert oder wurde verändert | Paket erneut aus der Veröffentlichung kopieren; bleibt es dabei, vor dem Ausführen den Support fragen |
+| „Zu diesem Updatepaket gibt es keine Prüfsumme" | In `latest.json` fehlt `checksum`, und neben dem Paket liegt keine `checksums.sha256` | Den Wert aus der Meldung in `latest.json` eintragen oder `checksums.sha256` mitkopieren |
 | „Das Backup konnte nicht erstellt werden" | Kein Platz oder keine Rechte im Backupordner | Backupordner prüfen, dann erneut |
 | „Eine andere Migration läuft" | Ein anderer Arbeitsplatz aktualisiert gerade | Einige Minuten warten |
 | „Der Installer wurde mit Rückgabewert … beendet" | Programmdateien in Benutzung | Alle Vehistra-Fenster schließen, erneut |
