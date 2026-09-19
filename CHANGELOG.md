@@ -6,7 +6,10 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
-## 0.7.0
+## 1.0.0
+
+Erste vollständige Fassung. Sie wird als Beta veröffentlicht: vollständig und
+getestet, aber noch nicht im Dauerbetrieb erprobt.
 
 Neu
 - Der Solo-Platz braucht **keinen Datenbankserver** mehr. Die Datenbank ist

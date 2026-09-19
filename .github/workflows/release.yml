@@ -27,6 +27,11 @@ on:
         required: false
         default: true
         type: boolean
+      vorabversion:
+        description: 'Als Beta kennzeichnen (auch ab Version 1.0.0)'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
@@ -73,23 +78,58 @@ jobs:
             exit 1
           }
 
-          # Alles unterhalb 1.0.0 gilt als Vorabversion und wird von GitHub
-          # entsprechend gekennzeichnet, statt als "neueste Fassung" zu gelten.
+          # Vorabversion ist alles unterhalb 1.0.0 - und alles, was beim Start
+          # von Hand ausdruecklich als Beta gekennzeichnet wird. Auch eine
+          # 1.0.0 kann eine Beta sein; das entscheidet nicht die Zahl.
           $vorab = ([int]($version -split '\.')[0]) -eq 0
+
+          if ('${{ github.event_name }}' -eq 'workflow_dispatch' -and '${{ inputs.vorabversion }}' -eq 'true') {
+            $vorab = $true
+          }
+
           $bezeichnung = if ($vorab) { "Vehistra $version Beta" } else { "Vehistra $version" }
 
           "version=$version"         | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "prerelease=$($vorab.ToString().ToLower())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "vorab=$($vorab.ToString().ToLower())"      | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "name=$bezeichnung"        | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
           Write-Host "Version: $version (Vorabversion: $vorab)"
+
+      # ---------------------------------------------------------------------
+      #  Codesignatur ueber die SignPath Foundation.
+      #
+      #  Laeuft nur, wenn die Zugangsdaten als Secrets hinterlegt sind. Fehlen
+      #  sie, wird unsigniert veroeffentlicht und der Lauf sagt das deutlich -
+      #  statt still etwas Unsigniertes als signiert auszugeben.
+      #
+      #  Ein Zertifikat oder Schluessel liegt niemals im Repository; der
+      #  private Schluessel verlaesst das HSM der Stiftung nicht.
+      # ---------------------------------------------------------------------
+      - name: Prüfen, ob signiert werden kann
+        id: signatur
+        shell: pwsh
+        env:
+          SIGNPATH_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          $moeglich = -not [string]::IsNullOrWhiteSpace($env:SIGNPATH_TOKEN)
+
+          "moeglich=$($moeglich.ToString().ToLower())" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          if ($moeglich) {
+            Write-Host "Zugangsdaten vorhanden - die Pakete werden signiert."
+          } else {
+            Write-Host "::warning::Ohne SIGNPATH_API_TOKEN wird unsigniert veröffentlicht. Windows zeigt dann eine SmartScreen-Warnung."
+          }
 
       - name: Versionshinweise vorbereiten
         shell: pwsh
         run: |
           $version = '${{ steps.version.outputs.version }}'
 
-          $vorab = ([int]($version -split '\.')[0]) -eq 0
+          # Dieselbe Entscheidung wie im Schritt davor - nicht noch einmal geraten.
+          $vorab = '${{ steps.version.outputs.vorab }}' -eq 'true'
 
           # Die Aenderungen dieser Version aus CHANGELOG.md uebernehmen.
           $neuerungen = ''
@@ -121,6 +161,23 @@ jobs:
             Write-Host "::warning::In CHANGELOG.md gibt es keinen Abschnitt '## $version'."
           }
 
+          # Nur behaupten, was zutrifft: ob signiert wird, steht im Schritt davor.
+          $signatur = if ('${{ steps.signatur.outputs.moeglich }}' -eq 'true') {
+            @"
+          HINWEIS ZUR SIGNATUR
+          Die Installationspakete sind von der SignPath Foundation signiert.
+          Windows zeigt als Herausgeber "SignPath Foundation" an - im Auftrag
+          von LSP Virtual Services. Die Pruefsummen stehen in checksums.sha256.
+          "@
+          } else {
+            @"
+          HINWEIS ZUR SIGNATUR
+          Die Pakete sind noch nicht signiert. Windows zeigt daher beim Start
+          eine SmartScreen-Warnung. Pruefen Sie die Pruefsumme aus
+          checksums.sha256, bevor Sie auf "Trotzdem ausfuehren" klicken.
+          "@
+          }
+
           $hinweis = if ($vorab) {
             @"
 
@@ -144,7 +201,7 @@ jobs:
           - Vehistra-Setup.exe        Erstinstallation eines Arbeitsplatzes
           - Vehistra-Update.exe       Updatepaket fuer vorhandene Installationen
           - Serverwerkzeuge\          VehistraServerSetup.exe, VehistraServerCheck.exe
-          - Dokumentation\            die fuenf Anleitungen als Markdown und PDF
+          - Dokumentation\            die sechs Anleitungen als Markdown und PDF
           - latest.json               Beschreibung fuer die Updateablage
           - checksums.sha256          Pruefsummen aller Dateien
 
@@ -156,16 +213,17 @@ jobs:
           VORAUSSETZUNGEN
           - Windows 10 oder neuer (64 Bit)
           - .NET Desktop Runtime 10
-          - Microsoft SQL Server Express auf dem Firmenserver
+          - Im Netzwerkbetrieb zusaetzlich Microsoft SQL Server Express auf dem
+            Firmenserver. Der Solo-Platz braucht nichts davon - dort ist die
+            Datenbank eine Datei auf diesem Computer.
 
           ANFANGEN MIT
-          - Dokumentation\SERVER-EINRICHTUNG-EINFACH.pdf auf dem Server
-          - Dokumentation\NEUEN-PC-IN-5-MINUTEN.pdf an den Arbeitsplaetzen
+          - Ein Computer, kein Server: Dokumentation\EINZELPLATZ-INSTALLATION.pdf
+          - Mehrere Arbeitsplaetze: Dokumentation\SERVER-EINRICHTUNG-EINFACH.pdf
+            auf dem Server, danach Dokumentation\NEUEN-PC-IN-5-MINUTEN.pdf an
+            den Arbeitsplaetzen
 
-          HINWEIS ZUR SIGNATUR
-          Die Pakete sind noch nicht signiert. Windows zeigt daher beim Start
-          eine SmartScreen-Warnung. Pruefen Sie die Pruefsumme aus
-          checksums.sha256, bevor Sie auf "Trotzdem ausfuehren" klicken.
+          $signatur
           $hinweis
           "@ | Set-Content release-notes.txt -Encoding utf8
 
@@ -211,33 +269,6 @@ jobs:
 
           Get-ChildItem $ordner -Recurse -File |
             ForEach-Object { "{0,10:N0} KB  {1}" -f ($_.Length / 1KB), $_.Name }
-
-      # ---------------------------------------------------------------------
-      #  Codesignatur ueber die SignPath Foundation.
-      #
-      #  Laeuft nur, wenn die Zugangsdaten als Secrets hinterlegt sind. Fehlen
-      #  sie, wird unsigniert veroeffentlicht und der Lauf sagt das deutlich -
-      #  statt still etwas Unsigniertes als signiert auszugeben.
-      #
-      #  Ein Zertifikat oder Schluessel liegt niemals im Repository; der
-      #  private Schluessel verlaesst das HSM der Stiftung nicht.
-      # ---------------------------------------------------------------------
-      - name: Prüfen, ob signiert werden kann
-        id: signatur
-        shell: pwsh
-        env:
-          SIGNPATH_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
-        run: |
-          $moeglich = -not [string]::IsNullOrWhiteSpace($env:SIGNPATH_TOKEN)
-
-          "moeglich=$($moeglich.ToString().ToLower())" |
-            Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
-          if ($moeglich) {
-            Write-Host "Zugangsdaten vorhanden - die Pakete werden signiert."
-          } else {
-            Write-Host "::warning::Ohne SIGNPATH_API_TOKEN wird unsigniert veröffentlicht. Windows zeigt dann eine SmartScreen-Warnung."
-          }
 
       - name: Installationspakete signieren
         if: steps.signatur.outputs.moeglich == 'true'
