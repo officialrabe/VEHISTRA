@@ -97,6 +97,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private bool _checkUpdatesOnStart = true;
 
     [ObservableProperty]
+    private string _updateRepository = "officialrabe/VEHISTRA";
+
+    [ObservableProperty]
     private string? _workshopReportNotice;
 
     [ObservableProperty]
@@ -197,6 +200,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 .GetIntAsync(SettingsKeys.LoginLockoutMinutes, 15, cancellationToken).ConfigureAwait(true);
             PasswordMinimumLength = await _settings
                 .GetIntAsync(SettingsKeys.PasswordMinimumLength, 8, cancellationToken).ConfigureAwait(true);
+            UpdateRepository = await _settings
+                .GetOrDefaultAsync(SettingsKeys.UpdateRepository, "officialrabe/VEHISTRA", cancellationToken)
+                .ConfigureAwait(true);
             CheckUpdatesOnStart = await _settings
                 .GetBoolAsync(SettingsKeys.CheckForUpdatesOnStart, true, cancellationToken).ConfigureAwait(true);
 
@@ -291,6 +297,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             await _settings.SetAsync(SettingsKeys.LoginLockoutMinutes, LockoutMinutes.ToString()).ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.PasswordMinimumLength, PasswordMinimumLength.ToString())
                 .ConfigureAwait(true);
+            await _settings.SetAsync(SettingsKeys.UpdateRepository, UpdateRepository?.Trim()).ConfigureAwait(true);
             await _settings.SetAsync(SettingsKeys.CheckForUpdatesOnStart, CheckUpdatesOnStart.ToString())
                 .ConfigureAwait(true);
 

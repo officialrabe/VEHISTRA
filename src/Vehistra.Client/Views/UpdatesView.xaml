@@ -17,8 +17,15 @@
         <Button Content="_Datenbank aktualisieren" Margin="8,0,0,0" MinWidth="190"
                 Command="{Binding MigrateDatabaseCommand}"
                 Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}" />
+        <Button Content="_Herunterladen" Margin="8,0,0,0" MinWidth="150"
+                Command="{Binding DownloadCommand}"
+                Visibility="{Binding UseOnlineSource, Converter={StaticResource BoolToVisibility}}"
+                IsEnabled="{Binding IsUpdateAvailable}"
+                ToolTip="Lädt Updatepaket und Prüfsummendatei von der Veröffentlichungsseite" />
         <Button Content="Update_ablage öffnen" Margin="8,0,0,0" Command="{Binding OpenUpdateFolderCommand}"
-                MinWidth="170" />
+                MinWidth="170"
+                Visibility="{Binding UseOnlineSource, Converter={StaticResource BoolToVisibility},
+                                    ConverterParameter=Invert}" />
       </StackPanel>
     </Border>
 
@@ -58,10 +65,24 @@
           </Border>
           <Border Style="{StaticResource CardStyle}">
             <StackPanel>
-              <TextBlock Text="UPDATEABLAGE" Style="{StaticResource FieldLabelStyle}" />
-              <TextBlock Text="{Binding UpdatePath, TargetNullValue='nicht konfiguriert'}" TextWrapping="Wrap" />
+              <TextBlock Text="QUELLE" Style="{StaticResource FieldLabelStyle}" />
+              <RadioButton Content="Updateablage im Firmennetz" GroupName="Updatequelle" Margin="0,2,0,0"
+                           IsChecked="{Binding UseOnlineSource, Converter={StaticResource InverseBool}}" />
+              <RadioButton Content="Veröffentlichungen im Internet" GroupName="Updatequelle" Margin="0,4,0,0"
+                           IsChecked="{Binding UseOnlineSource}"
+                           ToolTip="Fragt github.com nach der neuesten Version. Es werden keine Fuhrparkdaten übertragen." />
+              <TextBlock Text="{Binding UpdatePath, TargetNullValue='keine Updateablage konfiguriert'}"
+                         Margin="0,6,0,0" TextWrapping="Wrap" Style="{StaticResource PageSubtitleStyle}"
+                         Visibility="{Binding UseOnlineSource, Converter={StaticResource BoolToVisibility},
+                                              ConverterParameter=Invert}" />
+              <TextBlock Text="{Binding UpdateRepository}" Margin="0,6,0,0" TextWrapping="Wrap"
+                         Style="{StaticResource PageSubtitleStyle}"
+                         Visibility="{Binding UseOnlineSource, Converter={StaticResource BoolToVisibility}}" />
               <TextBlock Text="{Binding CheckMessage}" Margin="0,6,0,0" Style="{StaticResource PageSubtitleStyle}"
                          TextWrapping="Wrap" />
+              <TextBlock Text="{Binding DownloadProgress}" Margin="0,6,0,0" TextWrapping="Wrap"
+                         Foreground="{StaticResource AccentBrush}"
+                         Visibility="{Binding DownloadProgress, Converter={StaticResource StringToVisibility}}" />
             </StackPanel>
           </Border>
         </UniformGrid>

@@ -6,6 +6,35 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.4.0
+
+Neu
+- **Updates ohne Updateablage.** Das Programm kann die Updates unmittelbar von
+  der Veröffentlichungsseite des Projekts holen: suchen, herunterladen,
+  Prüfsumme prüfen, installieren – alles aus dem Programm heraus. Gedacht vor
+  allem für den Solo-Platz, auf dem es keine Netzwerkfreigabe gibt.
+  Einzuschalten unter *Updates · Quelle*; im Auslieferungszustand bleibt die
+  Updateablage im Firmennetz eingestellt, und ohne diese Umstellung greift das
+  Programm nie von sich aus ins Internet. Übertragen wird nur die Anfrage
+  selbst – keine Fahrzeug-, Fahrer- oder Betriebsdaten. Angesprochen werden
+  ausschließlich die Adressen von GitHub; jede andere wird abgelehnt. Fehlt zu
+  einer Veröffentlichung die Datei `checksums.sha256`, wird das Update gar
+  nicht erst angeboten.
+- **Blankoformulare dort, wo man sie sucht.** „Blankoformular drucken" gibt es
+  jetzt auch auf der Werkstatt- und der Unfallseite, ohne Umweg über *Berichte
+  & Formulare* und ohne dass ein Vorgang ausgewählt sein muss.
+
+Behoben
+- **Fehler waren unsichtbar.** 14 der 20 Ansichten zeigten eine Fehlermeldung
+  nirgends an, und protokolliert wurde sie auch nicht. Schlug eine Aktion fehl,
+  sah das aus wie eine tote Schaltfläche. Die Fehlerleiste sitzt jetzt im
+  Hauptfenster und gilt damit für jede Ansicht, und jede Ausnahme steht im
+  Protokoll – und damit auch im Supportpaket.
+- **„Werkstattbericht drucken" und „Unfallbericht drucken" brachen wortlos ab**,
+  wenn in der Liste nichts ausgewählt war. Beide sagen jetzt, was fehlt.
+- **Berichte melden, wo die Datei liegt.** Ein Bericht öffnet sich in einem
+  anderen Programm; blieb das aus, stand nirgends, wohin er gespeichert wurde.
+
 ## 1.3.0
 
 Diese Version schließt die letzten fünf Punkte aus dem Abgleich mit der

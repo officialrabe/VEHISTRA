@@ -52,6 +52,15 @@ public static class SettingsKeys
 
     public const string CheckForUpdatesOnStart = "Update.CheckOnStart";
 
+    /// <summary>
+    /// Woher Updates kommen: "Ablage" (Voreinstellung, Freigabe im Firmennetz)
+    /// oder "GitHub" (Veroeffentlichungen des Projekts, braucht Internet).
+    /// </summary>
+    public const string UpdateSource = "Update.Source";
+
+    /// <summary>Repository der Veroeffentlichungen, Form "besitzer/name".</summary>
+    public const string UpdateRepository = "Update.Repository";
+
     public const string WorkshopReportNotice = "Report.WorkshopNotice";
     public const string AccidentReportNotice = "Report.AccidentNotice";
 

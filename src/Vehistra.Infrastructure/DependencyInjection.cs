@@ -1,3 +1,5 @@
+using System.Net.Http;
+using Microsoft.Extensions.Logging;
 using Vehistra.Application.Abstractions;
 using Vehistra.Infrastructure.Diagnostics;
 using Vehistra.Infrastructure.ImportExport;
@@ -98,6 +100,17 @@ public static class DependencyInjection
         services.AddScoped<IBackupService, BackupService>();
         services.AddScoped<IDatabaseAdministrationService, DatabaseAdministrationService>();
         services.AddScoped<IUpdateService, UpdateService>();
+
+        // Der Weg ins Internet - nur fuer Updates, und nur wenn er in den
+        // Einstellungen ausdruecklich gewaehlt ist. Eine eigene HttpClient-
+        // Instanz, damit nichts anderes im Programm sie mitbenutzt.
+        services.AddSingleton(new HttpClient());
+        services.AddScoped<IOnlineUpdateSource>(sp => new GitHubUpdateSource(
+            sp.GetRequiredService<HttpClient>(),
+            sp.GetRequiredService<ISettingsService>(),
+            sp.GetRequiredService<ICurrentUserService>(),
+            sp.GetRequiredService<ApplicationVersionProvider>(),
+            sp.GetRequiredService<ILogger<GitHubUpdateSource>>()));
         services.AddScoped<IDiagnosticsService, DiagnosticsService>();
         services.AddScoped<IImportService, ImportService>();
         services.AddScoped<IExportService, ExportService>();
