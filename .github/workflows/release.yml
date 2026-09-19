@@ -181,6 +181,14 @@ jobs:
             exit $LASTEXITCODE
           }
 
+      - name: Releaseordner für die Signatur bereitstellen
+        id: artefakt
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-unsigniert-${{ steps.version.outputs.version }}
+          path: Release/${{ steps.version.outputs.version }}/
+          retention-days: 1
+
       - name: Ergebnis prüfen
         shell: pwsh
         run: |
@@ -203,6 +211,46 @@ jobs:
 
           Get-ChildItem $ordner -Recurse -File |
             ForEach-Object { "{0,10:N0} KB  {1}" -f ($_.Length / 1KB), $_.Name }
+
+      # ---------------------------------------------------------------------
+      #  Codesignatur ueber die SignPath Foundation.
+      #
+      #  Laeuft nur, wenn die Zugangsdaten als Secrets hinterlegt sind. Fehlen
+      #  sie, wird unsigniert veroeffentlicht und der Lauf sagt das deutlich -
+      #  statt still etwas Unsigniertes als signiert auszugeben.
+      #
+      #  Ein Zertifikat oder Schluessel liegt niemals im Repository; der
+      #  private Schluessel verlaesst das HSM der Stiftung nicht.
+      # ---------------------------------------------------------------------
+      - name: Prüfen, ob signiert werden kann
+        id: signatur
+        shell: pwsh
+        env:
+          SIGNPATH_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          $moeglich = -not [string]::IsNullOrWhiteSpace($env:SIGNPATH_TOKEN)
+
+          "moeglich=$($moeglich.ToString().ToLower())" |
+            Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+          if ($moeglich) {
+            Write-Host "Zugangsdaten vorhanden - die Pakete werden signiert."
+          } else {
+            Write-Host "::warning::Ohne SIGNPATH_API_TOKEN wird unsigniert veröffentlicht. Windows zeigt dann eine SmartScreen-Warnung."
+          }
+
+      - name: Installationspakete signieren
+        if: steps.signatur.outputs.moeglich == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: release-signing
+          artifact-configuration-slug: installer
+          github-artifact-id: ${{ steps.artefakt.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: Release/${{ steps.version.outputs.version }}
 
       - name: Alles als ZIP zusammenfassen
         shell: pwsh

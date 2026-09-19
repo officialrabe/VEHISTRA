@@ -152,9 +152,21 @@ Daten zu laden oder die Änderungen zu vergleichen.
 
 ## Lizenz
 
-Vehistra wird künftig quelloffen über [vehistra.dev](https://vehistra.dev)
-veröffentlicht. Die mitgelieferte Schrift DejaVu Sans Mono steht unter der
-Bitstream-Vera-Lizenz (siehe `assets/fonts/DejaVuSansMono-LICENSE.txt`).
+Vehistra steht unter der **MIT-Lizenz** – siehe [`LICENSE`](LICENSE).
+
+Die mitgelieferte Schrift DejaVu Sans Mono steht unter der Bitstream-Vera-
+Lizenz (siehe `assets/fonts/DejaVuSansMono-LICENSE.txt`) und ist davon nicht
+berührt.
+
+## Signatur der Auslieferungen
+
+Die Installationspakete werden über die [SignPath Foundation](https://signpath.org/)
+signiert, die quelloffenen Projekten kostenlose Codesignatur bereitstellt. Als
+Herausgeber erscheint dort „SignPath Foundation". Wie signiert wird und wer
+eine Auslieferung freigibt, steht in [`SIGNING-POLICY.md`](SIGNING-POLICY.md).
+
+Ein Zertifikat oder ein privater Schlüssel liegt **niemals** im Repository. Ein
+eigener CI-Job prüft das bei jedem Lauf nach.
 
 ---
 
