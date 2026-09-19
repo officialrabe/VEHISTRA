@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERSION: 1.4.0
+  VERSION: 1.4.1
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -110,6 +110,54 @@ jobs:
           }
 
           Write-Host "Alle vier Programme wurden erzeugt."
+
+      # Jede veroeffentlichte Datei muss auch im Installationspaket landen.
+      #
+      # Anlass: der Installer kopierte nur *.exe, *.dll, *.json, runtimes\ und
+      # de\. Das Schriftarchiv der PDF-Bibliothek (QuestPDF.Fonts.Lato.br)
+      # passte in kein Muster und fehlte auf jedem installierten Rechner -
+      # woraufhin dort JEDER Ausdruck fehlschlug, waehrend die CI gruen war.
+      # Diese Pruefung faellt beim naechsten Mal vorher auf.
+      - name: Installationspaket deckt alle Dateien ab
+        shell: pwsh
+        run: |
+          $fehler = $false
+
+          # Beide Pakete: die Erstinstallation und das Update.
+          foreach ($installer in @('tools/Installer/Vehistra-Setup.iss', 'tools/Installer/Vehistra-Update.iss')) {
+            $muster = @()
+
+            foreach ($zeile in Get-Content $installer) {
+              if ($zeile -match '^\s*Source:\s*"\{#SourceDir\}\\([^"]+)"') {
+                $muster += $matches[1]
+              }
+            }
+
+            $nichtAbgedeckt = @()
+
+            foreach ($datei in Get-ChildItem artifacts/publish -File) {
+              # Symbole werden bewusst nicht ausgeliefert.
+              if ($datei.Extension -eq '.pdb') { continue }
+
+              $abgedeckt = $false
+
+              foreach ($m in $muster) {
+                # Muster mit Unterordner ("runtimes\*") betreffen keine Datei hier.
+                if ($m -notlike '*\*' -and $datei.Name -like $m) { $abgedeckt = $true; break }
+              }
+
+              if (-not $abgedeckt) { $nichtAbgedeckt += $datei.Name }
+            }
+
+            if ($nichtAbgedeckt) {
+              Write-Host "::error::$installer nimmt diese veroeffentlichten Dateien nicht mit: $($nichtAbgedeckt -join ', ')"
+              $fehler = $true
+            } else {
+              Write-Host "$installer deckt alle veroeffentlichten Dateien ab."
+            }
+          }
+
+          if ($fehler) { exit 1 }
 
           # Ohne die native SQLite-Bibliothek startet der Solo-Platz auf einem
           # frisch installierten Rechner nicht. Sie muss im Paket liegen.

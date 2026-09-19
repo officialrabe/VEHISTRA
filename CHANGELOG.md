@@ -6,6 +6,29 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.4.1
+
+Behoben
+- **Auf einer installierten Vehistra schlug jeder Ausdruck fehl.** Das
+  Installationspaket kopierte nur `*.exe`, `*.dll`, `*.json` und zwei
+  Unterordner – das Schriftarchiv der PDF-Bibliothek
+  (`QuestPDF.Fonts.Lato.br`) passte in kein Muster und fehlte deshalb auf
+  jedem Arbeitsplatz. Betroffen war alles, was ein PDF erzeugt: Blanko- und
+  gefüllte Werkstatt- und Unfallberichte, die Fahrzeugakte und die
+  PDF-Exporte. Im Bauprozess fiel es nicht auf, weil die Datei dort neben den
+  Programmen liegt.
+  - Beide Installationspakete nehmen die Datei jetzt mit.
+  - Fehlt sie trotzdem einmal, weicht das Programm auf eine Systemschrift aus.
+    Der Ausdruck sieht dann anders aus, entsteht aber – statt mit einer
+    Fehlermeldung abzubrechen.
+  - Die CI prüft ab sofort, dass **jede** veröffentlichte Datei auch in beiden
+    Installationspaketen landet. Genau diese Prüfung hätte den Fehler vor der
+    Auslieferung gefunden.
+
+  Wer 1.4.0 bereits installiert hat, kann bis zum Update auch die Datei
+  `Serverwerkzeuge\QuestPDF.Fonts.Lato.br` aus `Vehistra-1.4.0.zip` in den
+  Programmordner kopieren.
+
 ## 1.4.0
 
 Neu
