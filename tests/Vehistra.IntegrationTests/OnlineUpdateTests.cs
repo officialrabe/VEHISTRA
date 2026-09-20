@@ -31,12 +31,16 @@ public class OnlineUpdateTests
 
         public List<string> Angefragt { get; } = [];
 
+        /// <summary>Der "User-Agent" jeder Anfrage - er muss an der Anfrage haengen, nicht am Client.</summary>
+        public List<string> Kennungen { get; } = [];
+
         protected override Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request,
             CancellationToken cancellationToken)
         {
             var adresse = request.RequestUri!.ToString();
             Angefragt.Add(adresse);
+            Kennungen.Add(request.Headers.UserAgent.ToString());
 
             if (!_antworten.TryGetValue(adresse, out var antwort))
             {
@@ -78,7 +82,10 @@ public class OnlineUpdateTests
     }
 
     private static GitHubUpdateSource Quelle(TestDatabase database, StubHandler handler) =>
-        new(new HttpClient(handler),
+        Quelle(database, new HttpClient(handler));
+
+    private static GitHubUpdateSource Quelle(TestDatabase database, HttpClient client) =>
+        new(client,
             database.Service<ISettingsService>(),
             database.Service<ICurrentUserService>(),
             new ApplicationVersionProvider("1.3.0"),
@@ -281,5 +288,36 @@ public class OnlineUpdateTests
         var fehler = await Should.ThrowAsync<BusinessRuleException>(() => quelle.CheckAsync("1.3.0", Token));
 
         fehler.Message.ShouldContain("nicht gültig");
+    }
+
+    /// <summary>
+    /// Der Dienst entsteht bei jedem Aufruf der Seite "Updates" neu, die
+    /// Verbindung lebt dagegen so lange wie das Programm. Wer in ihr etwas
+    /// einstellt, sobald sie gesendet hat, bekommt eine Ausnahme - und die
+    /// Seite liess sich danach nicht mehr oeffnen. Deshalb hier zweimal
+    /// derselbe Client.
+    /// </summary>
+    [Fact]
+    public async Task Zwei_Aufrufe_teilen_sich_eine_Verbindung()
+    {
+        await using var database = await TestDatabase.CreateAsync();
+        database.SignInAsAdministrator();
+
+        var handler = new StubHandler(new()
+        {
+            [ApiAdresse] = (HttpStatusCode.OK, Encoding.UTF8.GetBytes(Veroeffentlichung("9.9.9")))
+        });
+
+        using var verbindung = new HttpClient(handler);
+
+        var erste = await Quelle(database, verbindung).CheckAsync("1.3.0", Token);
+        erste.IsUpdateAvailable.ShouldBeTrue(erste.Message);
+
+        var zweite = await Quelle(database, verbindung).CheckAsync("1.3.0", Token);
+        zweite.IsUpdateAvailable.ShouldBeTrue(zweite.Message);
+
+        // Die Kennung haengt an der Anfrage, also traegt sie jede Anfrage.
+        handler.Kennungen.Count.ShouldBe(2);
+        handler.Kennungen.ShouldAllBe(k => k == "Vehistra/1.3.0");
     }
 }

@@ -9,6 +9,13 @@ Versionshinweise der Veröffentlichung.
 ## 1.4.3
 
 Behoben
+- **Beim zweiten Öffnen der Seite „Updates" brach das Programm ab** –
+  „This instance has already started one or more requests". Die Verbindung ins
+  Internet lebt so lange wie das Programm, der Updatedienst entsteht dagegen
+  bei jedem Aufruf der Seite neu und stellte dabei etwas an ihr ein; das lässt
+  sie nach der ersten Anfrage nicht mehr zu. Die Kopfzeilen hängen jetzt an der
+  einzelnen Anfrage, die Wartezeit steht bei der Einrichtung. Ein Neustart des
+  Programms half bisher – nötig ist er nicht mehr.
 - **„Update installieren" meldete „Es steht derzeit kein Update zur
   Verfügung"**, obwohl daneben stand, dass eines bereitsteht. Bei der Quelle
   „Internet“ musste man erst auf „Herunterladen“ klicken – ein Zwischenschritt,
