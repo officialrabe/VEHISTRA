@@ -33,11 +33,15 @@ allem für den **Solo-Platz** gedacht.
 ```
    Veroeffentlichung        Arbeitsplatz
    -----------------        ------------
-   github.com/.../releases  Updates  ->  Suchen
-                                         Herunterladen (Paket + Pruefsummen)
-                                         Pruefsumme wird geprueft
-                                         Installieren
+   github.com/.../releases  Updates  ->  Nach Updates suchen
+                                         Update installieren
+                                           laedt Paket + Pruefsummen
+                                           prueft die Pruefsumme
+                                           installiert und startet neu
 ```
+
+Zwei Schaltflächen, mehr nicht: suchen und installieren. Das Herunterladen
+gehört zum Installieren – ein eigener Zwischenschritt hat nur verwirrt.
 
 Einzuschalten unter **Updates · Quelle · „Veröffentlichungen im Internet"**.
 Im Auslieferungszustand steht die Quelle auf **Updateablage im Firmennetz**;
@@ -158,7 +162,11 @@ Arbeit.
 | 5 | Sicherung der Datenbank, danach die Änderungen anwenden |
 | 6 | Das Ergebnis wird im Updateprotokoll festgehalten |
 
-6. Der Updater meldet „Fertig stellen und starten".
+6. Der Updater meldet den Erfolg und **startet Vehistra nach fünf Sekunden von
+   selbst** neu. Wer nicht warten möchte, klickt auf „Jetzt starten"; der
+   Zähler auf der Schaltfläche zeigt die verbleibende Zeit. Schlägt das Update
+   fehl, wird nichts gestartet – dann bleibt das Fenster mit dem Protokoll
+   stehen.
 
 ---
 

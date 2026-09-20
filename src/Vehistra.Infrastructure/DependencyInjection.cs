@@ -105,7 +105,10 @@ public static class DependencyInjection
         // Der Weg ins Internet - nur fuer Updates, und nur wenn er in den
         // Einstellungen ausdruecklich gewaehlt ist. Eine eigene HttpClient-
         // Instanz, damit nichts anderes im Programm sie mitbenutzt.
-        services.AddSingleton(new HttpClient());
+        // Eine eigene, einmal eingestellte Instanz. Die Kopfzeilen setzt der
+        // Dienst je Anfrage: an einem Client, der schon gesendet hat, laesst
+        // sich nichts mehr aendern.
+        services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(30) });
         services.AddScoped<IOnlineUpdateSource>(sp => new GitHubUpdateSource(
             sp.GetRequiredService<HttpClient>(),
             sp.GetRequiredService<ISettingsService>(),

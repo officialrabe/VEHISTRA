@@ -60,9 +60,27 @@ public sealed class GitHubUpdateSource : IOnlineUpdateSource
         _versionProvider = versionProvider;
         _logger = logger;
 
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd($"Vehistra/{versionProvider.Version}");
-        _http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-        _http.Timeout = TimeSpan.FromSeconds(30);
+        // Hier wird am HttpClient nichts eingestellt. Er ist gemeinsam und
+        // langlebig; sobald er die erste Anfrage gesendet hat, wirft jede
+        // Aenderung an Timeout oder Kopfzeilen eine Ausnahme. Genau das ist
+        // passiert: nach der ersten Updateabfrage liess sich die Seite
+        // "Updates" nicht mehr oeffnen, weil dieser Dienst je Aufruf neu
+        // entsteht. Kopfzeilen gehen deshalb an die einzelne Anfrage, die
+        // Wartezeit steht bei der Registrierung.
+    }
+
+    /// <summary>
+    /// Baut eine Anfrage mit den Kopfzeilen, die die Schnittstelle verlangt.
+    /// Der "User-Agent" nennt nur Programm und Version - sonst nichts.
+    /// </summary>
+    private HttpRequestMessage Anfrage(string adresse)
+    {
+        var anfrage = new HttpRequestMessage(HttpMethod.Get, adresse);
+
+        anfrage.Headers.UserAgent.ParseAdd($"Vehistra/{_versionProvider.Version}");
+        anfrage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+
+        return anfrage;
     }
 
     public async Task<OnlineUpdateInfo> CheckAsync(
@@ -76,7 +94,8 @@ public sealed class GitHubUpdateSource : IOnlineUpdateSource
 
         try
         {
-            using var antwort = await _http.GetAsync(adresse, cancellationToken).ConfigureAwait(false);
+            using var anfrage = Anfrage(adresse);
+            using var antwort = await _http.SendAsync(anfrage, cancellationToken).ConfigureAwait(false);
 
             if (!antwort.IsSuccessStatusCode)
             {
@@ -214,8 +233,9 @@ public sealed class GitHubUpdateSource : IOnlineUpdateSource
     {
         PruefeAdresse(adresse);
 
+        using var anfrage = Anfrage(adresse);
         using var antwort = await _http
-            .GetAsync(adresse, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+            .SendAsync(anfrage, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
             .ConfigureAwait(false);
 
         if (!antwort.IsSuccessStatusCode)

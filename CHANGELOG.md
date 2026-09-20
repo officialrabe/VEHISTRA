@@ -6,6 +6,34 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.4.3
+
+Behoben
+- **Beim zweiten Öffnen der Seite „Updates" brach das Programm ab** –
+  „This instance has already started one or more requests". Die Verbindung ins
+  Internet lebt so lange wie das Programm, der Updatedienst entsteht dagegen
+  bei jedem Aufruf der Seite neu und stellte dabei etwas an ihr ein; das lässt
+  sie nach der ersten Anfrage nicht mehr zu. Die Kopfzeilen hängen jetzt an der
+  einzelnen Anfrage, die Wartezeit steht bei der Einrichtung. Ein Neustart des
+  Programms half bisher – nötig ist er nicht mehr.
+- **„Update installieren" meldete „Es steht derzeit kein Update zur
+  Verfügung"**, obwohl daneben stand, dass eines bereitsteht. Bei der Quelle
+  „Internet“ musste man erst auf „Herunterladen“ klicken – ein Zwischenschritt,
+  den niemand erwartet. Die Schaltfläche „Herunterladen“ ist entfallen:
+  **„Update installieren“ lädt das Paket, prüft die Prüfsumme und installiert**
+  – in einem Schritt, mit einer Rückfrage.
+- **„Prüfsumme des Pakets: nicht in Ordnung"** stand rot da, bevor überhaupt
+  etwas geladen war. Es gibt jetzt einen dritten Zustand: „noch nicht geprüft“,
+  in neutraler Farbe.
+
+Geändert
+- **Nach einem Update startet Vehistra von selbst wieder.** Bisher blieb das
+  Fenster der Updatekomponente stehen, bis jemand auf „Fertig stellen und
+  starten" klickte – und niemand wusste, ob das Update fertig war. Jetzt läuft
+  ein Zähler von fünf Sekunden, der Klick auf „Jetzt starten" geht sofort. Nach
+  einem fehlgeschlagenen Update wird nichts gestartet; das Protokoll bleibt
+  stehen.
+
 ## 1.4.2
 
 Behoben

@@ -80,6 +80,10 @@ public sealed partial class UpdatesViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isDownloadReady;
 
+    /// <summary>Noch nichts geladen, also auch nichts zu pruefen - weder gut noch schlecht.</summary>
+    [ObservableProperty]
+    private bool _isChecksumPending;
+
     public UpdatesViewModel(
         IUpdateService updates,
         IOnlineUpdateSource online,
@@ -203,11 +207,13 @@ public sealed partial class UpdatesViewModel : ViewModelBase
                     .VerifyInstallerAsync(result.InstallerFullPath, result.Manifest?.Checksum, cancellationToken)
                     .ConfigureAwait(true);
 
+                IsChecksumPending = false;
                 IsChecksumValid = pruefung.IsValid;
                 ChecksumMessage = pruefung.Message;
             }
             else
             {
+                IsChecksumPending = false;
                 IsChecksumValid = false;
                 ChecksumMessage = null;
             }
@@ -240,27 +246,30 @@ public sealed partial class UpdatesViewModel : ViewModelBase
             // pruefen. Die Pruefsumme kommt nach dem Download.
             IsDownloadReady = false;
             IsChecksumValid = false;
+            IsChecksumPending = ergebnis.IsUpdateAvailable;
             ChecksumMessage = ergebnis.IsUpdateAvailable
-                ? "Das Paket wird nach dem Herunterladen gegen checksums.sha256 geprüft."
+                ? "Das Paket wird beim Installieren geladen und gegen checksums.sha256 geprüft."
                 : null;
 
             OnPropertyChanged(nameof(Subtitle));
         }).ConfigureAwait(true);
     }
 
-    /// <summary>Laedt das Paket herunter und prueft seine Pruefsumme.</summary>
-    [RelayCommand]
-    private async Task DownloadAsync()
+    /// <summary>
+    /// Laedt das Paket und prueft die Pruefsumme. Rueckgabe <c>true</c>, wenn
+    /// danach ein geprueftes Paket bereitliegt.
+    /// </summary>
+    private async Task<bool> HoleUpdateAsync(bool fragen)
     {
         if (_lastOnlineCheck is not { IsUpdateAvailable: true })
         {
             _dialogs.ShowInformation("Es steht derzeit kein Update zum Herunterladen bereit.", "Update");
-            return;
+            return false;
         }
 
         var info = _lastOnlineCheck;
 
-        if (!_dialogs.Confirm(
+        if (fragen && !_dialogs.Confirm(
                 $"Version {info.AvailableVersion} jetzt von der Veröffentlichungsseite herunterladen?" +
                 Environment.NewLine + Environment.NewLine +
                 "Dabei werden zwei Dateien geladen: das Updatepaket und die Prüfsummendatei. " +
@@ -268,10 +277,10 @@ public sealed partial class UpdatesViewModel : ViewModelBase
                 "Installiert wird erst danach, auf einen weiteren Klick.",
                 "Update herunterladen"))
         {
-            return;
+            return false;
         }
 
-        await RunAsync(async () =>
+        return await RunAsync(async () =>
         {
             var fortschritt = new Progress<OnlineUpdateProgress>(stand =>
                 DownloadProgress = stand.Percent is { } prozent
@@ -284,6 +293,7 @@ public sealed partial class UpdatesViewModel : ViewModelBase
             // erwartet wird der Wert aus checksums.sha256 neben dem Paket.
             var pruefung = await _updates.VerifyInstallerAsync(paket, null).ConfigureAwait(true);
 
+            IsChecksumPending = false;
             IsChecksumValid = pruefung.IsValid;
             ChecksumMessage = pruefung.Message;
             IsDownloadReady = pruefung.IsValid;
@@ -291,9 +301,11 @@ public sealed partial class UpdatesViewModel : ViewModelBase
                 ? $"Heruntergeladen und geprüft: {paket}"
                 : "Die Prüfung ist fehlgeschlagen - das Paket wird nicht ausgeführt.";
 
-            _lastCheck = new UpdateCheckResult(
-                true, InstalledVersion, info.AvailableVersion, false, null, paket, info.Message, true);
-        }).ConfigureAwait(true);
+            _lastCheck = pruefung.IsValid
+                ? new UpdateCheckResult(
+                    true, InstalledVersion, info.AvailableVersion, false, null, paket, info.Message, true)
+                : null;
+        }).ConfigureAwait(true) && IsDownloadReady;
     }
 
     /// <summary>Merkt die gewaehlte Quelle - mit einem Wort dazu, was das bedeutet.</summary>
@@ -346,21 +358,68 @@ public sealed partial class UpdatesViewModel : ViewModelBase
     /// <summary>Verhindert die Rueckfrage, waehrend die Einstellung gelesen wird.</summary>
     private bool _quelleWirdGeladen;
 
+    /// <summary>
+    /// Installiert das Update - und holt es bei der Onlinequelle vorher selbst.
+    ///
+    /// Zwei Schaltflaechen waren eine schlechte Idee: wer "Update installieren"
+    /// drueckt, will das Update, nicht erst einen Zwischenschritt. Ohne
+    /// heruntergeladenes Paket kam vorher nur "Es steht derzeit kein Update zur
+    /// Verfuegung" - obwohl daneben stand, dass eines bereitsteht.
+    /// </summary>
     [RelayCommand]
     private async Task InstallAsync()
     {
-        if (_lastCheck?.InstallerFullPath is null)
+        // Onlinequelle und noch nichts geholt: herunterladen gehoert zum Klick.
+        if (UseOnlineSource && _lastCheck?.InstallerFullPath is null)
         {
-            _dialogs.ShowInformation("Es steht derzeit kein Update zur Verfügung.", "Update");
-            return;
+            if (_lastOnlineCheck is not { IsUpdateAvailable: true })
+            {
+                _dialogs.ShowInformation("Es steht derzeit kein Update zur Verfügung.", "Update");
+                return;
+            }
+
+            if (!_dialogs.Confirm(
+                    $"Version {_lastOnlineCheck.AvailableVersion} jetzt herunterladen und installieren?" +
+                    Environment.NewLine + Environment.NewLine +
+                    "Geladen werden zwei Dateien von der Veröffentlichungsseite: das Updatepaket und " +
+                    "die Prüfsummendatei. Es werden keine Daten aus dem Fuhrpark übertragen." +
+                    Environment.NewLine + Environment.NewLine +
+                    "Stimmt die Prüfsumme nicht, wird nichts ausgeführt. Sonst wird Vehistra beendet " +
+                    "und das Update gestartet; vor einer Datenbankänderung wird automatisch gesichert.",
+                    "Update installieren"))
+            {
+                return;
+            }
+
+            if (!await HoleUpdateAsync(fragen: false).ConfigureAwait(true))
+            {
+                _dialogs.ShowError(
+                    ErrorMessage ?? ChecksumMessage ?? "Das Update konnte nicht geladen werden.",
+                    null,
+                    "Update installieren");
+                return;
+            }
+        }
+        else
+        {
+            if (_lastCheck?.InstallerFullPath is null)
+            {
+                _dialogs.ShowInformation("Es steht derzeit kein Update zur Verfügung.", "Update");
+                return;
+            }
+
+            if (!_dialogs.Confirm(
+                    $"Soll die Version {_lastCheck.AvailableVersion} jetzt installiert werden?" +
+                    Environment.NewLine + Environment.NewLine +
+                    "Das Vehistra wird dazu beendet. Vor einer Datenbankänderung wird " +
+                    "automatisch eine Sicherung erstellt.",
+                    "Update installieren"))
+            {
+                return;
+            }
         }
 
-        if (!_dialogs.Confirm(
-                $"Soll die Version {_lastCheck.AvailableVersion} jetzt installiert werden?" +
-                Environment.NewLine + Environment.NewLine +
-                "Das Vehistra wird dazu beendet. Vor einer Datenbankänderung wird " +
-                "automatisch eine Sicherung erstellt.",
-                "Update installieren"))
+        if (_lastCheck?.InstallerFullPath is null)
         {
             return;
         }

@@ -1,5 +1,6 @@
 using System.Text;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace Vehistra.Updater;
 
@@ -11,6 +12,11 @@ public partial class MainWindow : Window
     private readonly StringBuilder _log = new();
 
     private bool _completed;
+
+    /// <summary>Zaehlt nach einem erfolgreichen Update bis zum Neustart herunter.</summary>
+    private DispatcherTimer? _neustart;
+
+    private int _restsekunden;
 
     public MainWindow(UpdateRunner runner, UpdateOptions options)
     {
@@ -69,12 +75,52 @@ public partial class MainWindow : Window
         if (result.IsSuccessful)
         {
             Progress.Value = 6;
-            CloseButton.Content = "_Fertig stellen und starten";
+            StarteNeustartZaehler();
+        }
+        else
+        {
+            CloseButton.Content = "_Schließen";
         }
     }
 
-    private void OnClose(object sender, RoutedEventArgs e)
+    /// <summary>
+    /// Startet Vehistra nach kurzer Frist von selbst. Ohne das endet das Update
+    /// in einem Fenster, das stehen bleibt - und niemand weiss, ob es fertig
+    /// ist. Die Frist laesst trotzdem Zeit, das Protokoll zu lesen, und der
+    /// Klick auf die Schaltflaeche startet sofort.
+    /// </summary>
+    private void StarteNeustartZaehler()
     {
+        _restsekunden = 5;
+        CloseButton.Content = $"_Jetzt starten ({_restsekunden})";
+
+        Append(string.Empty);
+        Append($"Vehistra wird in {_restsekunden} Sekunden neu gestartet.");
+
+        _neustart = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _neustart.Tick += (_, _) =>
+        {
+            _restsekunden--;
+
+            if (_restsekunden <= 0)
+            {
+                BeendeUndStarte();
+                return;
+            }
+
+            CloseButton.Content = $"_Jetzt starten ({_restsekunden})";
+        };
+
+        _neustart.Start();
+    }
+
+    private void OnClose(object sender, RoutedEventArgs e) => BeendeUndStarte();
+
+    private void BeendeUndStarte()
+    {
+        _neustart?.Stop();
+        _neustart = null;
+
         if (_completed)
         {
             _runner.StartApplication(_options);

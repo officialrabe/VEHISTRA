@@ -13,15 +13,11 @@
         <Button Content="Nach Updates _suchen" Command="{Binding CheckCommand}" MinWidth="170" />
         <Button Content="_Update installieren" Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
                 MinWidth="170" Command="{Binding InstallCommand}" IsEnabled="{Binding IsUpdateAvailable}"
-                Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}" />
+                Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}"
+                ToolTip="Bei der Quelle „Internet“ wird das Paket dabei geladen und geprüft" />
         <Button Content="_Datenbank aktualisieren" Margin="8,0,0,0" MinWidth="190"
                 Command="{Binding MigrateDatabaseCommand}"
                 Visibility="{Binding CanInstall, Converter={StaticResource BoolToVisibility}}" />
-        <Button Content="_Herunterladen" Margin="8,0,0,0" MinWidth="150"
-                Command="{Binding DownloadCommand}"
-                Visibility="{Binding UseOnlineSource, Converter={StaticResource BoolToVisibility}}"
-                IsEnabled="{Binding IsUpdateAvailable}"
-                ToolTip="Lädt Updatepaket und Prüfsummendatei von der Veröffentlichungsseite" />
         <Button Content="Update_ablage öffnen" Margin="8,0,0,0" Command="{Binding OpenUpdateFolderCommand}"
                 MinWidth="170"
                 Visibility="{Binding UseOnlineSource, Converter={StaticResource BoolToVisibility},
@@ -100,6 +96,11 @@
                   <Setter Property="Background" Value="{StaticResource OkBackgroundBrush}" />
                   <Setter Property="BorderBrush" Value="{StaticResource OkBrush}" />
                 </DataTrigger>
+                <!-- Noch nichts geladen: da ist nichts in Unordnung. -->
+                <DataTrigger Binding="{Binding IsChecksumPending}" Value="True">
+                  <Setter Property="Background" Value="{StaticResource InfoBackgroundBrush}" />
+                  <Setter Property="BorderBrush" Value="{StaticResource InfoBrush}" />
+                </DataTrigger>
               </Style.Triggers>
             </Style>
           </Border.Style>
@@ -113,6 +114,10 @@
                     <DataTrigger Binding="{Binding IsChecksumValid}" Value="True">
                       <Setter Property="Text" Value="PRÜFSUMME DES PAKETS: IN ORDNUNG" />
                       <Setter Property="Foreground" Value="{StaticResource OkBrush}" />
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding IsChecksumPending}" Value="True">
+                      <Setter Property="Text" Value="PRÜFSUMME DES PAKETS: NOCH NICHT GEPRÜFT" />
+                      <Setter Property="Foreground" Value="{StaticResource InfoBrush}" />
                     </DataTrigger>
                   </Style.Triggers>
                 </Style>
