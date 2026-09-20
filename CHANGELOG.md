@@ -25,6 +25,12 @@ Behoben
   bestehenden Installationen nach. Bis dahin steht dort, dass er noch nicht
   vermerkt ist, statt einer Angabe, die nach einem Fehler aussieht.
 
+Intern
+- **Tests, die die Verbindungsdatei schreiben, laufen nicht mehr gleichzeitig.**
+  Davon gibt es je Rechner nur eine; wer danach die Sicherungsablage suchte,
+  fand die einer anderen Testklasse. Das brachte zwei Aufbewahrungstests zu
+  Fall, sobald eine dritte solche Klasse dazukam.
+
 ## 1.4.3
 
 Behoben

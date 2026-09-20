@@ -17,6 +17,7 @@ namespace Vehistra.IntegrationTests;
 /// Schoenheitsfehler; im Supportfall fehlt damit die Angabe, auf die es
 /// ankommt.
 /// </summary>
+[Collection(VerbindungsdateiCollection.Name)]
 public class SchemaVermerkTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;

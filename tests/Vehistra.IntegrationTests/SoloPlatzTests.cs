@@ -17,6 +17,7 @@ namespace Vehistra.IntegrationTests;
 /// Geprueft wird, dass die Datei wirklich angelegt, migriert, gesichert und
 /// zurueckgelesen werden kann - nicht nur, dass der Code uebersetzt.
 /// </summary>
+[Collection(VerbindungsdateiCollection.Name)]
 public class SoloPlatzTests
 {
     private static CancellationToken Token => TestContext.Current.CancellationToken;
