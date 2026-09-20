@@ -166,8 +166,8 @@ public sealed class NotificationService : INotificationService
                 // Der Titel haengt am Datum, nicht an der Warnstufe: kritisch ist
                 // eine Frist auch schon kurz vor dem Termin - abgelaufen ist sie
                 // dann aber noch nicht.
-                Title = due.Date < today.Date ? "TUEV abgelaufen" : "TUEV wird faellig",
-                Message = $"TUEV {display} {DueDateCalculator.Describe(due, today)}.",
+                Title = due.Date < today.Date ? "TÜV abgelaufen" : "TÜV wird fällig",
+                Message = $"TÜV {display} {DueDateCalculator.Describe(due, today)}.",
                 VehicleId = vehicle.Id,
                 DueDate = due,
                 SourceReference = $"Vehicle:{vehicle.Id}",
@@ -214,7 +214,7 @@ public sealed class NotificationService : INotificationService
                 Title = isExpired ? "Kennzeichenreservierung abgelaufen" : "Kennzeichenreservierung laeuft ab",
                 Message = isExpired
                     ? $"Die Reservierung fuer {reservation.LicensePlate?.Plate} ist seit {Math.Abs(remaining)} Tag(en) abgelaufen."
-                    : $"Kennzeichen {reservation.LicensePlate?.Plate} muss in {remaining} Tag(en) verlaengert werden.",
+                    : $"Kennzeichen {reservation.LicensePlate?.Plate} muss in {remaining} Tag(en) verlängert werden.",
                 DueDate = reservation.ReservedUntil,
                 SourceReference = $"LicensePlateReservation:{reservation.Id}",
                 DeduplicationKey = $"PlateReservation:{reservation.Id}:{remaining}"

@@ -1,14 +1,19 @@
+using System.ComponentModel;
+
 namespace Vehistra.Domain.Enums;
 
 /// <summary>Bekannte Systemstatus eines Fahrzeugs. Zusaetzliche Status sind als Stammdaten pflegbar.</summary>
 public enum VehicleStatusKind
 {
     Aktiv = 1,
+    [Description("Verfügbar")]
     Verfuegbar = 2,
+    [Description("Im Einsatz")]
     ImEinsatz = 3,
     Werkstatt = 4,
     Schaden = 5,
     NichtFahrbereit = 6,
+    [Description("Außer Betrieb")]
     AusserBetrieb = 7,
     Abgemeldet = 8,
     Ausgemustert = 9
@@ -20,8 +25,11 @@ public enum FuelType
     Benzin = 1,
     Diesel = 2,
     Elektro = 3,
+    [Description("Hybrid (Benzin)")]
     HybridBenzin = 4,
+    [Description("Hybrid (Diesel)")]
     HybridDiesel = 5,
+    [Description("Plug-in-Hybrid")]
     PluginHybrid = 6,
     Erdgas = 7,
     Autogas = 8,
@@ -39,6 +47,7 @@ public enum TransmissionType
 
 public enum MileageSource
 {
+    [Description("Manuelle Eingabe")]
     ManuelleEingabe = 0,
     Werkstatt = 1,
     Tanken = 2,
@@ -54,9 +63,13 @@ public enum InspectionType
 {
     Hauptuntersuchung = 1,
     Abgasuntersuchung = 2,
+    [Description("Haupt- und Abgasuntersuchung")]
     HauptUndAbgasuntersuchung = 3,
+    [Description("Sicherheitsprüfung")]
     Sicherheitspruefung = 4,
+    [Description("UVV-Prüfung")]
     UvvPruefung = 5,
+    [Description("Taxameterprüfung")]
     Taxameterpruefung = 6,
     Sonstige = 99
 }
@@ -65,6 +78,7 @@ public enum InspectionResult
 {
     Offen = 0,
     Bestanden = 1,
+    [Description("Bestanden mit Mängeln")]
     BestandenMitMaengeln = 2,
     NichtBestanden = 3
 }
@@ -79,6 +93,7 @@ public enum WarningLevel
     Hinweis = 1,
 
     /// <summary>Bald faellig.</summary>
+    [Description("Bald fällig")]
     BaldFaellig = 2,
 
     /// <summary>Kritisch bzw. abgelaufen.</summary>
@@ -97,6 +112,7 @@ public enum MaintenanceIntervalType
     Kilometer = 2,
 
     /// <summary>Datum oder Kilometerstand - was zuerst eintritt.</summary>
+    [Description("Datum oder Kilometer")]
     DatumOderKilometer = 3
 }
 
@@ -111,6 +127,7 @@ public enum DamagePriority
 public enum DamageStatus
 {
     Gemeldet = 1,
+    [Description("Geprüft")]
     Geprueft = 2,
     ReparaturGeplant = 3,
     Werkstatt = 4,
@@ -138,14 +155,20 @@ public enum DamageArea
 
 public enum AccidentType
 {
+    [Description("Unfall mit Fremdbeteiligung")]
     UnfallMitFremdbeteiligung = 1,
+    [Description("Unfall ohne Fremdbeteiligung")]
     UnfallOhneFremdbeteiligung = 2,
+    [Description("Parkschaden, Verursacher unbekannt")]
     ParkschadenVerursacherUnbekannt = 3,
     Wildschaden = 4,
     Glasbruch = 5,
+    [Description("Diebstahl / Einbruch")]
     DiebstahlEinbruch = 6,
     Vandalismus = 7,
+    [Description("Sturm, Hagel, Unwetter")]
     SturmHagelUnwetter = 8,
+    [Description("Technischer Defekt")]
     TechnischerDefekt = 9,
     Sonstiges = 99
 }
@@ -155,7 +178,9 @@ public enum WorkshopOrderStatus
     Geplant = 1,
     TerminVereinbart = 2,
     FahrzeugAbgegeben = 3,
+    [Description("In Bearbeitung")]
     InBearbeitung = 4,
+    [Description("Wartet auf Teile")]
     WartetAufTeile = 5,
     Fertig = 6,
     Abgeholt = 7,
@@ -164,9 +189,11 @@ public enum WorkshopOrderStatus
 
 public enum LicensePlateStatus
 {
+    [Description("Verfügbar")]
     Verfuegbar = 1,
     Reserviert = 2,
     Vergeben = 3,
+    [Description("Außer Betrieb")]
     AusserBetrieb = 4
 }
 
@@ -174,9 +201,12 @@ public enum RetirementReason
 {
     Verkauft = 1,
     Verschrottet = 2,
+    [Description("Wirtschaftlicher Totalschaden")]
     WirtschaftlicherTotalschaden = 3,
+    [Description("Technischer Defekt")]
     TechnischerDefekt = 4,
     Unfall = 5,
+    [Description("Leasingrückgabe")]
     Leasingrueckgabe = 6,
     Stillgelegt = 7,
     Ersatzteilspender = 8,
@@ -197,6 +227,7 @@ public enum DocumentCategory
     Sonstiges = 0,
     Fahrzeugschein = 1,
     Fahrzeugbrief = 2,
+    [Description("TÜV-Bericht")]
     TuevBericht = 3,
     Werkstattrechnung = 4,
     Werkstattbericht = 5,
@@ -213,6 +244,7 @@ public enum DocumentCategory
 public enum NotificationCategory
 {
     Allgemein = 0,
+    [Description("TÜV")]
     Tuev = 1,
     Wartung = 2,
     Kennzeichenreservierung = 3,
@@ -233,22 +265,39 @@ public enum NotificationSeverity
 
 public enum AuditAction
 {
+    [Description("Angelegt")]
     Created = 1,
+    [Description("Geändert")]
     Updated = 2,
+    [Description("Gelöscht")]
     Deleted = 3,
+    [Description("Archiviert")]
     Archived = 4,
+    [Description("Wiederhergestellt")]
     Restored = 5,
+    [Description("Anmeldung")]
     Login = 6,
+    [Description("Anmeldung fehlgeschlagen")]
     LoginFailed = 7,
+    [Description("Abmeldung")]
     Logout = 8,
+    [Description("Kennwort geändert")]
     PasswordChanged = 9,
+    [Description("Kennwort zurückgesetzt")]
     PasswordReset = 10,
+    [Description("Berechtigung verweigert")]
     PermissionDenied = 11,
+    [Description("Exportiert")]
     Exported = 12,
+    [Description("Importiert")]
     Imported = 13,
+    [Description("Gedruckt")]
     Printed = 14,
+    [Description("Sicherung erstellt")]
     BackupCreated = 15,
+    [Description("Update installiert")]
     UpdateInstalled = 16,
+    [Description("Datenbank aktualisiert")]
     MigrationApplied = 17
 }
 
@@ -257,6 +306,7 @@ public enum InsuranceKind
     Haftpflicht = 1,
     Teilkasko = 2,
     Vollkasko = 3,
+    [Description("Insassenunfall")]
     Insassenunfall = 4,
     Schutzbrief = 5,
     Sonstige = 99
@@ -267,5 +317,6 @@ public enum UpdateOutcome
     Erfolgreich = 1,
     Fehlgeschlagen = 2,
     Abgebrochen = 3,
+    [Description("Rollback durchgeführt")]
     RollbackDurchgefuehrt = 4
 }

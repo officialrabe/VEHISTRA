@@ -390,7 +390,7 @@ public sealed partial class DamageSelection : ObservableObject
 
     public string Display => $"{Damage.DamageNumber}: {Damage.Description}";
 
-    public string PriorityText => Damage.Priority.ToString();
+    public string PriorityText => EnumText.Of(Damage.Priority);
 
     [ObservableProperty]
     private bool _isSelected;

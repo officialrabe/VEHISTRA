@@ -22,6 +22,7 @@ public sealed partial class RetiredVehiclesViewModel : ViewModelBase
     private readonly IDialogService _dialogs;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(UndoRetirementCommand))]
     private Vehicle? _selectedVehicle;
 
     [ObservableProperty]
@@ -82,7 +83,10 @@ public sealed partial class RetiredVehiclesViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedVehicle is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task UndoRetirementAsync()
     {
         if (SelectedVehicle is null)

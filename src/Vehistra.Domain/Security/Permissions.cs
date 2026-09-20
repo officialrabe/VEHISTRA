@@ -75,8 +75,8 @@ public static class Permissions
 
         new(MileageEdit, "Kilometerstaende erfassen", "Fahrzeuge"),
 
-        new(InspectionView, "TUEV/HU anzeigen", "Fristen"),
-        new(InspectionManage, "TUEV/HU verwalten", "Fristen"),
+        new(InspectionView, "TÜV/HU anzeigen", "Fristen"),
+        new(InspectionManage, "TÜV/HU verwalten", "Fristen"),
 
         new(MaintenanceView, "Wartung anzeigen", "Wartung"),
         new(MaintenanceManage, "Wartung verwalten", "Wartung"),

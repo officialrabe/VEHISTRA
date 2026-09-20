@@ -22,6 +22,9 @@ public sealed partial class DriverViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleActiveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenFileCommand))]
     private Driver? _selectedDriver;
 
     [ObservableProperty]
@@ -122,7 +125,7 @@ public sealed partial class DriverViewModel : ViewModelBase
     }
 
     /// <summary>Oeffnet die Fahrerakte - alles zu einem Fahrer auf einer Seite.</summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task OpenFileAsync()
     {
         if (SelectedDriver is not null)
@@ -131,7 +134,10 @@ public sealed partial class DriverViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedDriver is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync()
     {
         if (SelectedDriver is null)
@@ -148,7 +154,7 @@ public sealed partial class DriverViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task ToggleActiveAsync()
     {
         if (SelectedDriver is null)

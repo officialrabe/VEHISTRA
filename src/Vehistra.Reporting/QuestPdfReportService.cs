@@ -16,6 +16,10 @@ public sealed class QuestPdfReportService : IReportService
         // QuestPDF Community-Lizenz (kostenfrei fuer Unternehmen unterhalb der Umsatzgrenze).
         QuestPDF.Settings.License = LicenseType.Community;
         QuestPDF.Settings.ThrowOnMissingTextGlyphs = false;
+
+        // Damit die Ausweichschrift auch gefunden wird, wenn das mitgelieferte
+        // Schriftarchiv fehlt - siehe ReportStyles.FontFamily.
+        QuestPDF.Settings.UseSystemFonts = true;
     }
 
     public Task<byte[]> CreateWorkshopReportAsync(

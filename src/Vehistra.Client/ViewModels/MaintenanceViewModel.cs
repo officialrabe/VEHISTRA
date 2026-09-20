@@ -23,9 +23,12 @@ public sealed partial class MaintenanceViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(RecordMaintenanceCommand))]
     private MaintenanceDueItem? _selectedDueItem;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditRuleCommand))]
+    [NotifyCanExecuteChangedFor(nameof(DeleteRuleCommand))]
     private MaintenanceRule? _selectedRule;
 
     [ObservableProperty]
@@ -95,7 +98,10 @@ public sealed partial class MaintenanceViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatFaelligkeit => SelectedDueItem is not null;
+
+    [RelayCommand(CanExecute = nameof(HatFaelligkeit))]
     private async Task RecordMaintenanceAsync()
     {
         if (SelectedDueItem is null)
@@ -125,7 +131,10 @@ public sealed partial class MaintenanceViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatRegel => SelectedRule is not null;
+
+    [RelayCommand(CanExecute = nameof(HatRegel))]
     private async Task EditRuleAsync()
     {
         if (SelectedRule is null)
@@ -142,7 +151,7 @@ public sealed partial class MaintenanceViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatRegel))]
     private async Task DeleteRuleAsync()
     {
         if (SelectedRule is null)

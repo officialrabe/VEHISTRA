@@ -16,6 +16,7 @@ public sealed partial class BackupViewModel : ViewModelBase
     private readonly IDialogService _dialogs;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(VerifyCommand))]
     private BackupInfo? _selectedBackup;
 
     [ObservableProperty]
@@ -196,7 +197,10 @@ public sealed partial class BackupViewModel : ViewModelBase
         }).ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatSicherung => SelectedBackup?.FilePath is not null;
+
+    [RelayCommand(CanExecute = nameof(HatSicherung))]
     private async Task VerifyAsync()
     {
         if (SelectedBackup?.FilePath is null)

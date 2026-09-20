@@ -33,6 +33,9 @@ public sealed partial class VehicleListViewModel : ViewModelBase, IAcceptsPreset
     private VehicleCategory? _selectedCategory;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ChangeStatusCommand))]
+    [NotifyCanExecuteChangedFor(nameof(AddMileageCommand))]
     private VehicleListItem? _selectedVehicle;
 
     [ObservableProperty]
@@ -326,7 +329,10 @@ public sealed partial class VehicleListViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedVehicle is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync()
     {
         if (SelectedVehicle is null)
@@ -345,7 +351,7 @@ public sealed partial class VehicleListViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task ChangeStatusAsync()
     {
         if (SelectedVehicle is null)
@@ -362,7 +368,7 @@ public sealed partial class VehicleListViewModel : ViewModelBase, IAcceptsPreset
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task AddMileageAsync()
     {
         if (SelectedVehicle is null)

@@ -904,7 +904,7 @@ public sealed class VehicleService : IVehicleService
             .ConfigureAwait(false);
 
         entries.AddRange(inspections.Select(i => new VehicleTimelineEntry(
-            i.InspectionDate, "TUEV", $"{i.Type} eingetragen",
+            i.InspectionDate, "TÜV", $"{i.Type} eingetragen",
             null, $"naechste Faelligkeit {i.NextDueDate:dd.MM.yyyy}", i.CreatedByUserName, i.TestCenter)));
 
         var maintenance = await _db.MaintenanceEntries

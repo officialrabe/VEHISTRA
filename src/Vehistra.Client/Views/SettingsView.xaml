@@ -170,7 +170,15 @@
             </GroupBox>
 
             <GroupBox Header="Updates">
-              <CheckBox Content="Beim Programmstart nach Updates suchen" IsChecked="{Binding CheckUpdatesOnStart}" />
+              <StackPanel>
+                <CheckBox Content="Beim Programmstart nach Updates suchen" IsChecked="{Binding CheckUpdatesOnStart}" />
+                <TextBlock Text="Veröffentlichungen (nur bei der Quelle „Internet“)"
+                           Style="{StaticResource FieldLabelStyle}" Margin="0,12,0,2" />
+                <TextBox Text="{Binding UpdateRepository, UpdateSourceTrigger=PropertyChanged}" Width="260"
+                         HorizontalAlignment="Left" MaxLength="128" />
+                <TextBlock Style="{StaticResource MutedTextStyle}" Margin="0,8,0,0" TextWrapping="Wrap"
+                           Text="Die Quelle der Updates wählen Sie unter „Updates“: Ablage im Firmennetz (Voreinstellung) oder Veröffentlichungen im Internet. Dieser Eintrag gilt nur für die zweite und hat die Form „besitzer/name“." />
+              </StackPanel>
             </GroupBox>
           </StackPanel>
         </ScrollViewer>

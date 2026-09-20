@@ -19,7 +19,12 @@
                 Visibility="{Binding CanManage, Converter={StaticResource BoolToVisibility}}" />
         <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
         <Button Content="Werkstattbericht _drucken" Command="{Binding PrintReportCommand}" MinWidth="180"
-                Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}" />
+                Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}"
+                ToolTip="Bericht zum ausgewählten Vorgang, mit Fahrzeug, Fahrer und Arbeiten" />
+        <Button Content="B_lankoformular drucken" Margin="8,0,0,0" MinWidth="190"
+                Command="{Binding PrintBlankReportCommand}"
+                Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}"
+                ToolTip="Leeres Werkstattformular zum Ausfüllen von Hand – ohne Auswahl eines Vorgangs" />
         <Button Content="_Fahrzeugakte" Margin="8,0,0,0" Command="{Binding OpenVehicleCommand}" />
         <Button Content="Export CSV" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="csv"
                 Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />

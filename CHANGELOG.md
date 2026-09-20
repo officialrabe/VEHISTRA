@@ -6,6 +6,69 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.4.1
+
+Behoben
+- **Auf einer installierten Vehistra schlug jeder Ausdruck fehl.** Das
+  Installationspaket kopierte nur `*.exe`, `*.dll`, `*.json` und zwei
+  Unterordner – das Schriftarchiv der PDF-Bibliothek
+  (`QuestPDF.Fonts.Lato.br`) passte in kein Muster und fehlte deshalb auf
+  jedem Arbeitsplatz. Betroffen war alles, was ein PDF erzeugt: Blanko- und
+  gefüllte Werkstatt- und Unfallberichte, die Fahrzeugakte und die
+  PDF-Exporte. Im Bauprozess fiel es nicht auf, weil die Datei dort neben den
+  Programmen liegt.
+  - Beide Installationspakete nehmen die Datei jetzt mit.
+  - Fehlt sie trotzdem einmal, weicht das Programm auf eine Systemschrift aus.
+    Der Ausdruck sieht dann anders aus, entsteht aber – statt mit einer
+    Fehlermeldung abzubrechen.
+  - Die CI prüft ab sofort, dass **jede** veröffentlichte Datei auch in beiden
+    Installationspaketen landet. Genau diese Prüfung hätte den Fehler vor der
+    Auslieferung gefunden.
+
+  Wer 1.4.0 bereits installiert hat, kann bis zum Update auch die Datei
+  `Serverwerkzeuge\QuestPDF.Fonts.Lato.br` aus `Vehistra-1.4.0.zip` in den
+  Programmordner kopieren.
+
+## 1.4.0
+
+Neu
+- **Updates ohne Updateablage.** Das Programm kann die Updates unmittelbar von
+  der Veröffentlichungsseite des Projekts holen: suchen, herunterladen,
+  Prüfsumme prüfen, installieren – alles aus dem Programm heraus. Gedacht vor
+  allem für den Solo-Platz, auf dem es keine Netzwerkfreigabe gibt.
+  Einzuschalten unter *Updates · Quelle*; im Auslieferungszustand bleibt die
+  Updateablage im Firmennetz eingestellt, und ohne diese Umstellung greift das
+  Programm nie von sich aus ins Internet. Übertragen wird nur die Anfrage
+  selbst – keine Fahrzeug-, Fahrer- oder Betriebsdaten. Angesprochen werden
+  ausschließlich die Adressen von GitHub; jede andere wird abgelehnt. Fehlt zu
+  einer Veröffentlichung die Datei `checksums.sha256`, wird das Update gar
+  nicht erst angeboten.
+- **Blankoformulare dort, wo man sie sucht.** „Blankoformular drucken" gibt es
+  jetzt auch auf der Werkstatt- und der Unfallseite, ohne Umweg über *Berichte
+  & Formulare* und ohne dass ein Vorgang ausgewählt sein muss.
+
+Behoben
+- **Fehler waren unsichtbar.** 14 der 20 Ansichten zeigten eine Fehlermeldung
+  nirgends an, und protokolliert wurde sie auch nicht. Schlug eine Aktion fehl,
+  sah das aus wie eine tote Schaltfläche. Die Fehlerleiste sitzt jetzt im
+  Hauptfenster und gilt damit für jede Ansicht, und jede Ausnahme steht im
+  Protokoll – und damit auch im Supportpaket.
+- **Schaltflächen, die eine Auswahl brauchen, sind jetzt abgeblendet**, solange
+  nichts ausgewählt ist. 45 Befehle in 16 Ansichten kehrten bisher wortlos
+  zurück – für den Anwender nicht von einer kaputten Schaltfläche zu
+  unterscheiden. Betroffen waren unter anderem „Bearbeiten“, „Löschen“,
+  „Status ändern“, „Bericht drucken“, „Kilometerstand erfassen“ und die elf
+  Befehle der Stammdatenkataloge.
+- **Falsches Deutsch bei Aufzählungswerten.** Am Bildschirm stand „Wartet auf
+  teile“, „Verfuegbar“, „Bald faellig“ und im Protokoll „Login failed“ – der
+  Bezeichner wurde maschinell getrennt und kleingeschrieben. Jeder Wert trägt
+  jetzt seine Beschriftung, und dieselbe steht auch in Excel, CSV und PDF: dort
+  stand bisher der blanke Bezeichner. Ebenso in den Hinweisen des Überblicks
+  („TUEV … faellig“) und in der Kopfzeile der Fahrzeugakte („1 offene Schäden“
+  statt „1 offener Schaden“).
+- **Berichte melden, wo die Datei liegt.** Ein Bericht öffnet sich in einem
+  anderen Programm; blieb das aus, stand nirgends, wohin er gespeichert wurde.
+
 ## 1.3.0
 
 Diese Version schließt die letzten fünf Punkte aus dem Abgleich mit der

@@ -23,6 +23,9 @@ public sealed partial class LicensePlateViewModel : ViewModelBase, IAcceptsPrese
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReserveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ReleaseFromVehicleCommand))]
     private LicensePlateListItem? _selectedPlate;
 
     [ObservableProperty]
@@ -125,7 +128,10 @@ public sealed partial class LicensePlateViewModel : ViewModelBase, IAcceptsPrese
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatKennzeichen => SelectedPlate is not null;
+
+    [RelayCommand(CanExecute = nameof(HatKennzeichen))]
     private async Task EditAsync()
     {
         if (SelectedPlate is null)
@@ -142,7 +148,7 @@ public sealed partial class LicensePlateViewModel : ViewModelBase, IAcceptsPrese
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatKennzeichen))]
     private async Task ReserveAsync()
     {
         if (SelectedPlate is null)
@@ -181,7 +187,7 @@ public sealed partial class LicensePlateViewModel : ViewModelBase, IAcceptsPrese
         }, "Die Reservierung wurde aufgehoben.").ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatKennzeichen))]
     private async Task ReleaseFromVehicleAsync()
     {
         if (SelectedPlate?.CurrentVehicleId is null)

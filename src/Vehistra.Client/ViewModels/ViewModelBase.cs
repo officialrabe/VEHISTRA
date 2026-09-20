@@ -2,6 +2,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Vehistra.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace Vehistra.Client.ViewModels;
 
@@ -91,6 +92,12 @@ public abstract partial class ViewModelBase : ObservableObject
         }
         catch (Exception exception)
         {
+            // Erst ins Protokoll, dann in die Oberflaeche. Ohne diese Zeile
+            // stand ein Fehler nirgends: nicht in der Logdatei, nicht im
+            // Supportpaket - und in Ansichten ohne Fehlerleiste sah es aus,
+            // als taete die Schaltflaeche schlicht nichts.
+            Log.Error(exception, "Fehler in {Ansicht}", GetType().Name);
+
             ErrorMessage = Describe(exception);
             return false;
         }

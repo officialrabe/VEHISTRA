@@ -131,10 +131,48 @@ public sealed partial class ReportsViewModel : ViewModelBase
 
     partial void OnVehicleSearchChanged(string value) => _ = LoadAsync();
 
+    /// <summary>
+    /// Erzeugt einen Bericht und sagt hinterher, was passiert ist. Ein Bericht
+    /// oeffnet sich in einem anderen Programm; bleibt das aus, stand bisher
+    /// nirgends etwas - die Schaltflaeche wirkte dann wirkungslos. Deshalb
+    /// nennt die Statuszeile den Pfad, und ein Fehler kommt als Dialog.
+    /// </summary>
+    private async Task ErzeugeAsync(Func<Task<string>> erzeugen, string bezeichnung)
+    {
+        if (!CanPrint)
+        {
+            _dialogs.ShowInformation(
+                "Für das Erstellen von Berichten fehlt die Berechtigung „Berichte drucken“.",
+                bezeichnung);
+            return;
+        }
+
+        string? pfad = null;
+
+        var erfolgreich = await RunAsync(async () =>
+        {
+            pfad = await erzeugen().ConfigureAwait(true);
+        }).ConfigureAwait(true);
+
+        if (erfolgreich)
+        {
+            StatusMessage = $"{bezeichnung} erstellt: {pfad}";
+            return;
+        }
+
+        // ErrorMessage steht jetzt zwar auch in der Leiste des Hauptfensters -
+        // bei einer Druckaktion erwartet man aber eine Rueckmeldung dort, wo
+        // man geklickt hat.
+        _dialogs.ShowError(
+            ErrorMessage ?? "Der Bericht konnte nicht erstellt werden.",
+            null,
+            bezeichnung);
+    }
+
     [RelayCommand]
     private async Task BlankWorkshopReportAsync() =>
-        await RunAsync(async () => await _reports.CreateBlankWorkshopReportAsync().ConfigureAwait(true),
-            "Der Blanko-Werkstattbericht wurde erstellt.").ConfigureAwait(true);
+        await ErzeugeAsync(() => _reports.CreateBlankWorkshopReportAsync(), "Blanko-Werkstattbericht")
+            .ConfigureAwait(true);
 
     [RelayCommand]
     private async Task WorkshopReportForVehicleAsync()
@@ -145,15 +183,16 @@ public sealed partial class ReportsViewModel : ViewModelBase
             return;
         }
 
-        await RunAsync(
-            async () => await _reports.CreateWorkshopReportForVehicleAsync(SelectedVehicle.Id).ConfigureAwait(true),
-            "Der Werkstattbericht wurde erstellt.").ConfigureAwait(true);
+        var fahrzeug = SelectedVehicle;
+
+        await ErzeugeAsync(() => _reports.CreateWorkshopReportForVehicleAsync(fahrzeug.Id), "Werkstattbericht")
+            .ConfigureAwait(true);
     }
 
     [RelayCommand]
     private async Task BlankAccidentReportAsync() =>
-        await RunAsync(async () => await _reports.CreateBlankAccidentReportAsync().ConfigureAwait(true),
-            "Der Blanko-Unfallbericht wurde erstellt.").ConfigureAwait(true);
+        await ErzeugeAsync(() => _reports.CreateBlankAccidentReportAsync(), "Blanko-Unfallbericht")
+            .ConfigureAwait(true);
 
     [RelayCommand]
     private async Task AccidentReportForVehicleAsync()
@@ -164,9 +203,10 @@ public sealed partial class ReportsViewModel : ViewModelBase
             return;
         }
 
-        await RunAsync(
-            async () => await _reports.CreateAccidentReportForVehicleAsync(SelectedVehicle.Id).ConfigureAwait(true),
-            "Der Unfallbericht wurde erstellt.").ConfigureAwait(true);
+        var fahrzeug = SelectedVehicle;
+
+        await ErzeugeAsync(() => _reports.CreateAccidentReportForVehicleAsync(fahrzeug.Id), "Unfallbericht")
+            .ConfigureAwait(true);
     }
 
     [RelayCommand]
@@ -178,9 +218,9 @@ public sealed partial class ReportsViewModel : ViewModelBase
             return;
         }
 
-        await RunAsync(
-            async () => await _reports.CreateVehicleFileAsync(SelectedVehicle.Id).ConfigureAwait(true),
-            "Die Fahrzeugakte wurde erstellt.").ConfigureAwait(true);
+        var fahrzeug = SelectedVehicle;
+
+        await ErzeugeAsync(() => _reports.CreateVehicleFileAsync(fahrzeug.Id), "Fahrzeugakte").ConfigureAwait(true);
     }
 
     [RelayCommand]

@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  VERSION: 1.3.0
+  VERSION: 1.4.1
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -35,6 +35,12 @@ jobs:
     name: Übersetzen und testen
     runs-on: windows-latest
     timeout-minutes: 30
+
+    # Schreibrecht ausschliesslich fuer den Zweig "bildschirmfotos" weiter
+    # unten. Bei einem Pull Request aus einer Fremdkopie gibt GitHub ohnehin
+    # nur ein Lesetoken aus.
+    permissions:
+      contents: write
 
     steps:
       - name: Quellcode auschecken
@@ -105,6 +111,54 @@ jobs:
 
           Write-Host "Alle vier Programme wurden erzeugt."
 
+      # Jede veroeffentlichte Datei muss auch im Installationspaket landen.
+      #
+      # Anlass: der Installer kopierte nur *.exe, *.dll, *.json, runtimes\ und
+      # de\. Das Schriftarchiv der PDF-Bibliothek (QuestPDF.Fonts.Lato.br)
+      # passte in kein Muster und fehlte auf jedem installierten Rechner -
+      # woraufhin dort JEDER Ausdruck fehlschlug, waehrend die CI gruen war.
+      # Diese Pruefung faellt beim naechsten Mal vorher auf.
+      - name: Installationspaket deckt alle Dateien ab
+        shell: pwsh
+        run: |
+          $fehler = $false
+
+          # Beide Pakete: die Erstinstallation und das Update.
+          foreach ($installer in @('tools/Installer/Vehistra-Setup.iss', 'tools/Installer/Vehistra-Update.iss')) {
+            $muster = @()
+
+            foreach ($zeile in Get-Content $installer) {
+              if ($zeile -match '^\s*Source:\s*"\{#SourceDir\}\\([^"]+)"') {
+                $muster += $matches[1]
+              }
+            }
+
+            $nichtAbgedeckt = @()
+
+            foreach ($datei in Get-ChildItem artifacts/publish -File) {
+              # Symbole werden bewusst nicht ausgeliefert.
+              if ($datei.Extension -eq '.pdb') { continue }
+
+              $abgedeckt = $false
+
+              foreach ($m in $muster) {
+                # Muster mit Unterordner ("runtimes\*") betreffen keine Datei hier.
+                if ($m -notlike '*\*' -and $datei.Name -like $m) { $abgedeckt = $true; break }
+              }
+
+              if (-not $abgedeckt) { $nichtAbgedeckt += $datei.Name }
+            }
+
+            if ($nichtAbgedeckt) {
+              Write-Host "::error::$installer nimmt diese veroeffentlichten Dateien nicht mit: $($nichtAbgedeckt -join ', ')"
+              $fehler = $true
+            } else {
+              Write-Host "$installer deckt alle veroeffentlichten Dateien ab."
+            }
+          }
+
+          if ($fehler) { exit 1 }
+
           # Ohne die native SQLite-Bibliothek startet der Solo-Platz auf einem
           # frisch installierten Rechner nicht. Sie muss im Paket liegen.
           $sqlite = Get-ChildItem artifacts/publish -Recurse -Filter 'e_sqlite3.dll' -ErrorAction SilentlyContinue
@@ -158,6 +212,68 @@ jobs:
 
           $zeilen | Set-Content artifacts/installer/checksums.sha256 -Encoding ascii
           $zeilen | ForEach-Object { Write-Host $_ }
+
+      # Bildschirmfotos der echten Ansichten. Das ist zugleich eine Probe aufs
+      # Exempel: das Programm baut seine Datenbank auf, meldet sich an und
+      # zeichnet jede Ansicht - geht dabei etwas schief, faellt es hier auf.
+      - name: Bildschirmfotos erzeugen
+        shell: pwsh
+        run: |
+          dotnet run --project tools/Vehistra.Screenshots/Vehistra.Screenshots.csproj `
+            --configuration Release --no-build -- "$PWD/artifacts/screenshots"
+
+          $bilder = Get-ChildItem artifacts/screenshots -Filter '*.png' -ErrorAction SilentlyContinue
+
+          if (-not $bilder) {
+            Write-Host "::error::Es wurde kein Bildschirmfoto erzeugt."
+            exit 1
+          }
+
+          $bilder | ForEach-Object { "{0,10:N0} KB  {1}" -f ($_.Length / 1KB), $_.Name }
+
+      # Die Bilder zusaetzlich auf einen eigenen Zweig legen. Das Artefakt
+      # laeuft nach 30 Tagen ab und braucht zum Herunterladen eine Anmeldung;
+      # der Zweig gibt feste Adressen, die sich auf einer Webseite einbinden
+      # lassen. Ein eigener Zweig, damit die Bilder nicht in der Geschichte von
+      # main liegen - jeder Lauf ersetzt ihn vollstaendig.
+      - name: Bildschirmfotos auf den Zweig "bildschirmfotos" legen
+        if: github.event_name != 'pull_request'
+        shell: pwsh
+        run: |
+          $ordner = "$env:RUNNER_TEMP/bildschirmfotos"
+          New-Item -ItemType Directory -Path $ordner -Force | Out-Null
+          Copy-Item artifacts/screenshots/*.png $ordner
+
+          @"
+          # Bildschirmfotos
+
+          Erzeugt von der CI aus den echten Ansichten (tools/Vehistra.Screenshots),
+          Stand $(Get-Date -Format 'dd.MM.yyyy'), Version $env:VERSION, 3200x2000.
+
+          Dieser Zweig wird bei jedem Lauf vollstaendig ersetzt.
+          "@ | Set-Content "$ordner/README.md" -Encoding utf8
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git checkout --orphan bildschirmfotos
+          git rm -rf --cached . --quiet
+          Get-ChildItem -Force -Exclude '.git' | Remove-Item -Recurse -Force
+
+          Copy-Item "$ordner/*" . -Recurse
+
+          git add .
+          git commit -m "Bildschirmfotos $env:VERSION ($(Get-Date -Format 'yyyy-MM-dd'))" --quiet
+          git push --force origin bildschirmfotos
+
+          Write-Host "Zweig 'bildschirmfotos' aktualisiert."
+
+      - name: Bildschirmfotos als Artefakt ablegen
+        uses: actions/upload-artifact@v4
+        with:
+          name: vehistra-bildschirmfotos
+          path: artifacts/screenshots/
+          retention-days: 30
 
       - name: Programme als Artefakt ablegen
         uses: actions/upload-artifact@v4

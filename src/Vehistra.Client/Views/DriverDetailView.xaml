@@ -84,12 +84,6 @@
       </Grid>
     </Border>
 
-    <!-- Fehleranzeige -->
-    <Border Grid.Row="1" Background="{StaticResource CriticalBackgroundBrush}" Padding="18,8"
-            Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibility}}">
-      <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CriticalBrush}" TextWrapping="Wrap" />
-    </Border>
-
     <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}" Background="{StaticResource SurfaceBrush}">
 
       <!-- ÜBERSICHT -->

@@ -57,6 +57,7 @@ public sealed class TestDatabase : IAsyncDisposable
         services.AddSingleton<IPasswordHasher, Vehistra.Infrastructure.Security.Pbkdf2PasswordHasher>();
         services.AddSingleton(new ApplicationVersionProvider(applicationVersion));
         services.AddSingleton<IDocumentStorage, InMemoryDocumentStorage>();
+        services.AddSingleton<IReportService, Vehistra.Reporting.QuestPdfReportService>();
         services.AddSingleton<IConnectionSettingsStore, TestConnectionSettingsStore>();
 
         services.AddDbContext<VehistraDbContext>((sp, options) =>

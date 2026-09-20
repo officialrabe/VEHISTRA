@@ -24,6 +24,46 @@ Auf dem Server liegt im Updateordner die Datei `latest.json`. Darin steht,
 welche Version aktuell ist. Jeder Arbeitsplatz liest diese Datei beim Start und
 meldet sich, wenn eine neuere Version bereitsteht.
 
+### Zweiter Weg: unmittelbar aus dem Internet
+
+Ab Version 1.4.0 kann das Programm die Updates auch selbst holen – ohne
+Updateablage, ohne dass jemand ein Paket auf eine Freigabe kopiert. Das ist vor
+allem für den **Solo-Platz** gedacht.
+
+```
+   Veroeffentlichung        Arbeitsplatz
+   -----------------        ------------
+   github.com/.../releases  Updates  ->  Suchen
+                                         Herunterladen (Paket + Pruefsummen)
+                                         Pruefsumme wird geprueft
+                                         Installieren
+```
+
+Einzuschalten unter **Updates · Quelle · „Veröffentlichungen im Internet"**.
+Im Auslieferungszustand steht die Quelle auf **Updateablage im Firmennetz**;
+ohne diese Umstellung greift das Programm nie von sich aus ins Internet.
+
+Was dabei übertragen wird: **die Anfrage selbst, sonst nichts.** Keine
+Fahrzeug-, Fahrer- oder Betriebsdaten, keine Kennung des Arbeitsplatzes, kein
+Name des Betriebs. Angesprochen werden ausschließlich `api.github.com` und die
+Downloadadressen von GitHub; jede andere Adresse wird abgelehnt, auch wenn sie
+in der Veröffentlichung stünde.
+
+Geprüft wird wie bisher: Das Programm lädt neben dem Paket die Datei
+`checksums.sha256` und vergleicht. Stimmt die Prüfsumme nicht oder fehlt die
+Datei, wird nichts ausgeführt – dann bietet das Programm das Update gar nicht
+erst an.
+
+> **Was die Prüfsumme leistet und was nicht.** Sie erkennt einen unvollständigen
+> oder veränderten Download. Sie ersetzt keine Signatur: Paket und Prüfsummen
+> kommen von derselben Stelle. Die Verbindung ist per HTTPS gesichert, und
+> sobald die Pakete signiert sind, prüft Windows zusätzlich den Herausgeber.
+
+Ist zusätzlich „Beim Programmstart nach Updates suchen" eingeschaltet, fragt
+das Programm bei jedem Start nach – das ist der Preis dafür, Updates ohne
+eigenes Zutun angeboten zu bekommen. Wer das nicht möchte, schaltet die
+Startprüfung aus und sucht von Hand.
+
 ---
 
 ## 2 – Aufbau des Updateordners

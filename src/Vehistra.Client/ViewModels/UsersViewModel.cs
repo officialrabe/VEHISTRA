@@ -18,6 +18,9 @@ public sealed partial class UsersViewModel : ViewModelBase
     private readonly IServiceProvider _services;
 
     [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ToggleActiveCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ResetPasswordCommand))]
     private User? _selectedUser;
 
     [ObservableProperty]
@@ -72,7 +75,10 @@ public sealed partial class UsersViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    /// <summary>Ohne Auswahl bleibt die Schaltflaeche abgeblendet statt wirkungslos.</summary>
+    private bool HatAuswahl => SelectedUser is not null;
+
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task EditAsync()
     {
         if (SelectedUser is null)
@@ -89,7 +95,7 @@ public sealed partial class UsersViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task ToggleActiveAsync()
     {
         if (SelectedUser is null)
@@ -116,7 +122,7 @@ public sealed partial class UsersViewModel : ViewModelBase
         }).ConfigureAwait(true);
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(HatAuswahl))]
     private async Task ResetPasswordAsync()
     {
         if (SelectedUser is null)

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Erzeugt Bildschirmfotos der echten Ansichten, ohne dass jemand das Programm
+    von Hand bedienen muss. Gerendert wird ueber RenderTargetBitmap - dafuer
+    braucht es keinen Bildschirm, nur Windows. Laeuft deshalb in der CI.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <IsPublishable>false</IsPublishable>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>Vehistra.Screenshots</RootNamespace>
+    <AssemblyName>Vehistra.Screenshots</AssemblyName>
+    <StartupObject>Vehistra.Screenshots.Program</StartupObject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Vehistra.Client\Vehistra.Client.csproj" />
+  </ItemGroup>
+
+</Project>

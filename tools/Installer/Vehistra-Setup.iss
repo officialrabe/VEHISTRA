@@ -1,4 +1,4 @@
-; ---------------------------------------------------------------------------
+﻿; ---------------------------------------------------------------------------
 ;  Vehistra-Setup.exe - Erstinstallation an einem Arbeitsplatz
 ;  Entwickelt von LSP Virtual Services (vehistra.dev)
 ;
@@ -103,6 +103,9 @@ Source: "{#SourceDir}\VehistraServerSetup.exe"; DestDir: "{app}"; Flags: ignorev
 ; Laufzeitdateien und Bibliotheken
 Source: "{#SourceDir}\*.dll";       DestDir: "{app}"; Flags: ignoreversion; Components: programm
 Source: "{#SourceDir}\*.json";      DestDir: "{app}"; Flags: ignoreversion; Components: programm
+; Schriftarchiv der PDF-Bibliothek (QuestPDF.Fonts.Lato.br). Fehlte es, schlug
+; JEDER Ausdruck fehl - die Datei passt in kein anderes Muster hier.
+Source: "{#SourceDir}\*.br";        DestDir: "{app}"; Flags: ignoreversion; Components: programm
 Source: "{#SourceDir}\runtimes\*";  DestDir: "{app}\runtimes"; Flags: ignoreversion recursesubdirs createallsubdirs skipifsourcedoesntexist; Components: programm
 Source: "{#SourceDir}\de\*";        DestDir: "{app}\de"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist; Components: programm
 

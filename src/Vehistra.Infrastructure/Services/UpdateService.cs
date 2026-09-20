@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Vehistra.Application.Abstractions;
+using Vehistra.Application.Services;
 using Vehistra.Domain.Exceptions;
 using Vehistra.Domain.Security;
 using Microsoft.Extensions.Logging;
@@ -332,30 +333,12 @@ public sealed class UpdateService : IUpdateService
     }
 
     /// <summary>Vergleicht zwei Versionsangaben nach Semantic Versioning.</summary>
-    public static bool TryCompareVersions(string left, string right, out int comparison)
-    {
-        comparison = 0;
+    /// <summary>
+    /// Vergleich der Versionsangaben. Die Regel steht in
+    /// <see cref="UpdateVersions"/>, damit Updateablage und
+    /// Veroeffentlichungsseite dieselbe verwenden.
+    /// </summary>
+    public static bool TryCompareVersions(string left, string right, out int comparison) =>
+        UpdateVersions.TryCompare(left, right, out comparison);
 
-        if (!Version.TryParse(Normalize(left), out var leftVersion)
-            || !Version.TryParse(Normalize(right), out var rightVersion))
-        {
-            return false;
-        }
-
-        comparison = leftVersion.CompareTo(rightVersion);
-        return true;
-    }
-
-    private static string Normalize(string version)
-    {
-        var core = version.Split('-', '+')[0].Trim();
-        var parts = core.Split('.');
-
-        return parts.Length switch
-        {
-            1 => $"{core}.0.0",
-            2 => $"{core}.0",
-            _ => core
-        };
-    }
 }

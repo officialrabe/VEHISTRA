@@ -20,7 +20,12 @@
                   Visibility="{Binding CanEdit, Converter={StaticResource BoolToVisibility}}" />
           <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,2" />
           <Button Content="Unfallbericht _drucken" Command="{Binding PrintReportCommand}" MinWidth="170"
-                  Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}" />
+                  Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}"
+                  ToolTip="Bericht zum ausgewählten Unfall, mit allen erfassten Angaben" />
+          <Button Content="B_lankoformular drucken" Margin="8,0,0,0" MinWidth="190"
+                  Command="{Binding PrintBlankReportCommand}"
+                  Visibility="{Binding CanPrint, Converter={StaticResource BoolToVisibility}}"
+                  ToolTip="Leeres Unfallformular fürs Handschuhfach – ohne Auswahl eines Unfalls" />
           <Button Content="_Fahrzeugakte" Margin="8,0,0,0" Command="{Binding OpenVehicleCommand}" />
           <Button Content="Export CSV" Margin="8,0,0,0" Command="{Binding ExportCommand}" CommandParameter="csv"
                   Visibility="{Binding CanExport, Converter={StaticResource BoolToVisibility}}" />

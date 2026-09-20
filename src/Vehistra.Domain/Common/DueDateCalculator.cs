@@ -52,9 +52,9 @@ public static class DueDateCalculator
         return days switch
         {
             < 0 => $"abgelaufen seit {Math.Abs(days)} Tag(en)",
-            0 => "heute faellig",
-            1 => "morgen faellig",
-            _ => $"faellig in {days} Tagen"
+            0 => "heute fällig",
+            1 => "morgen fällig",
+            _ => $"fällig in {days} Tagen"
         };
     }
 }
