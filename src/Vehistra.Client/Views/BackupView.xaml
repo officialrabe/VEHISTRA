@@ -54,6 +54,9 @@
     </UniformGrid>
 
     <DataGrid Grid.Row="2" Margin="12" ItemsSource="{Binding History}" SelectedItem="{Binding SelectedBackup}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.Columns>
         <DataGridTextColumn Header="Gestartet" Binding="{Binding StartedAt, StringFormat=dd.MM.yyyy HH:mm:ss}"
                             Width="170" />

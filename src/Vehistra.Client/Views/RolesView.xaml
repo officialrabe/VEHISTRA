@@ -26,6 +26,9 @@
       </Grid.ColumnDefinitions>
 
       <DataGrid ItemsSource="{Binding Roles}" SelectedItem="{Binding SelectedRole}">
+        <DataGrid.Resources>
+          <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+        </DataGrid.Resources>
         <DataGrid.InputBindings>
           <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" />
         </DataGrid.InputBindings>

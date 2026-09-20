@@ -137,7 +137,7 @@ public sealed partial class SupportViewModel : ViewModelBase
             "---------------------------------------------",
             "Technische Angaben (automatisch ergänzt):",
             $"Programmversion : {Version}",
-            $"Datenbankschema : {Report?.DatabaseSchemaVersion ?? "unbekannt"}",
+            $"Datenbankschema : {Report?.DatabaseSchemaVersion ?? "nicht vermerkt"}",
             $"Computername    : {Environment.MachineName}",
             $"Windows         : {Environment.OSVersion}",
             "---------------------------------------------");

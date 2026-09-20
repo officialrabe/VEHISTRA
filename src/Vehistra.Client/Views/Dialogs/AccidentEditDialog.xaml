@@ -216,6 +216,9 @@
             </Grid>
 
             <DataGrid ItemsSource="{Binding Participants}" MaxHeight="110" Margin="0,12,0,0">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Kennzeichen" Binding="{Binding LicensePlate}" Width="130" />
                 <DataGridTextColumn Header="Name" Binding="{Binding FullName}" Width="*" />

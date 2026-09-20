@@ -45,6 +45,9 @@
 
       <TextBlock Text="SPALTENZUORDNUNG" Style="{StaticResource FieldLabelStyle}" />
       <DataGrid Grid.Row="1" ItemsSource="{Binding Mappings}" IsReadOnly="False" MaxHeight="200">
+        <DataGrid.Resources>
+          <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+        </DataGrid.Resources>
         <DataGrid.Columns>
           <DataGridTextColumn Header="Spalte in der Datei" Binding="{Binding SourceColumn}" Width="*"
                               IsReadOnly="True" />
@@ -86,9 +89,16 @@
           <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <DataGrid ItemsSource="{Binding Preview}" AutoGenerateColumns="True" IsReadOnly="True" />
+        <DataGrid ItemsSource="{Binding Preview}" AutoGenerateColumns="True" IsReadOnly="True">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
+        </DataGrid>
 
         <DataGrid Grid.Column="2" ItemsSource="{Binding Issues}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.Columns>
             <DataGridTextColumn Header="Zeile" Binding="{Binding RowNumber}" Width="60" />
             <DataGridTextColumn Header="Feld" Binding="{Binding Column}" Width="140" />

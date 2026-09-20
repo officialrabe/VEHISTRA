@@ -44,6 +44,9 @@
         <TextBlock Text="FÄLLIGE WARTUNGEN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
         <DataGrid x:Name="DueGrid" Grid.Row="1" ItemsSource="{Binding DueItems}"
                   SelectedItem="{Binding SelectedDueItem}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.InputBindings>
             <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
                           CommandParameter="{Binding SelectedItem, ElementName=DueGrid}" />
@@ -90,6 +93,9 @@
         </StackPanel>
 
         <DataGrid Grid.Row="2" ItemsSource="{Binding Rules}" SelectedItem="{Binding SelectedRule}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.Columns>
             <DataGridTextColumn Header="Bezeichnung" Binding="{Binding Name}" Width="*" />
             <DataGridTextColumn Header="Intervall"

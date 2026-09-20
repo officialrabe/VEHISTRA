@@ -51,6 +51,14 @@ public sealed partial class UpdatesViewModel : ViewModelBase
     [ObservableProperty]
     private string? _databaseSchemaVersion;
 
+    /// <summary>
+    /// Steht nur da, solange den Stand des Schemas niemand vermerkt hat - eine
+    /// frisch eingerichtete Datenbank hat keine Migration hinter sich, an die
+    /// sich ein Vermerk haengen koennte.
+    /// </summary>
+    [ObservableProperty]
+    private string? _databaseSchemaHint;
+
     [ObservableProperty]
     private int _pendingMigrations;
 
@@ -144,7 +152,10 @@ public sealed partial class UpdatesViewModel : ViewModelBase
                 .FirstOrDefaultAsync(cancellationToken)
                 .ConfigureAwait(true);
 
-            DatabaseSchemaVersion = current?.SchemaVersion ?? "unbekannt";
+            DatabaseSchemaVersion = current?.SchemaVersion ?? "–";
+            DatabaseSchemaHint = current is null
+                ? "Stand noch nicht vermerkt. „Datenbank aktualisieren“ trägt ihn nach."
+                : null;
 
             History.Clear();
             foreach (var entry in await _db.UpdateHistory

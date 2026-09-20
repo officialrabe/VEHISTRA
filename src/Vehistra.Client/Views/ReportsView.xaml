@@ -112,6 +112,9 @@
 
         <DataGrid Grid.Row="2" ItemsSource="{Binding Vehicles}" SelectedItem="{Binding SelectedVehicle}"
                   BorderThickness="0">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.Columns>
             <DataGridTextColumn Header="Kennzeichen" Binding="{Binding LicensePlate}" Width="120" />
             <DataGridTextColumn Header="Interne Nr." Binding="{Binding InternalNumber}" Width="90" />

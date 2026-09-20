@@ -16,6 +16,7 @@ namespace Vehistra.IntegrationTests;
 /// steht hier vor allem, was NICHT geloescht werden darf: fremde Dateien, die
 /// neuesten Sicherungen und alles, was vor einer Migration entstanden ist.
 /// </summary>
+[Collection(VerbindungsdateiCollection.Name)]
 public class BackupRetentionTests
 {
     private static readonly DateTime Heute = new(2026, 3, 14, 9, 0, 0);

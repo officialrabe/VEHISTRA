@@ -466,6 +466,7 @@ public sealed partial class SetupViewModel : ObservableObject
         using var scope = _services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VehistraDbContext>();
         var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+        var administration = scope.ServiceProvider.GetRequiredService<IDatabaseAdministrationService>();
 
         var pending = (await db.Database.GetPendingMigrationsAsync().ConfigureAwait(true)).ToList();
 
@@ -489,6 +490,20 @@ public sealed partial class SetupViewModel : ObservableObject
             .ConfigureAwait(true);
 
         Checks.Add(new SetupCheckResult(true, $"{tableCount} Tabellen in der Datenbank vorhanden."));
+
+        // Den Stand des Schemas festhalten. Ohne diesen Vermerk stuende in
+        // "Updates" und im Supportpaket bis zum ersten Datenbankupdate
+        // "unbekannt" - und niemand wuesste, womit die Datenbank angelegt wurde.
+        var schemaVersion = await administration.EnsureSchemaVersionRecordedAsync(new MigrationOptions
+        {
+            ApplicationVersion = typeof(SetupViewModel).Assembly.GetName().Version?.ToString(3),
+            UserName = Environment.UserName
+        }).ConfigureAwait(true);
+
+        if (schemaVersion is not null)
+        {
+            Checks.Add(new SetupCheckResult(true, $"Datenbankschema vermerkt: Version {schemaVersion}."));
+        }
 
         StatusMessage = "Die Datenbankstruktur wurde eingerichtet.";
         AddLog("Datenbankstruktur eingerichtet.");

@@ -290,6 +290,9 @@
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Categories}"
                         SelectedItem="{Binding SelectedCategory}" BorderThickness="0">
+                <DataGrid.Resources>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" />
                   <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" IsReadOnly="True" />
@@ -326,6 +329,9 @@
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding DamageCategories}"
                         SelectedItem="{Binding SelectedDamageCategory}" BorderThickness="0">
+                <DataGrid.Resources>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" />
                   <DataGridTextColumn Header="Sortierung" Binding="{Binding SortOrder}" Width="100" IsReadOnly="True" />
@@ -368,6 +374,9 @@
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Statuses}"
                         SelectedItem="{Binding SelectedStatus}" BorderThickness="0">
+                <DataGrid.Resources>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True" />
                   <DataGridTextColumn Header="Systemstatus"
@@ -405,6 +414,9 @@
               </Border>
               <DataGrid Grid.Row="1" ItemsSource="{Binding Workshops}" SelectedItem="{Binding SelectedWorkshop}"
                         BorderThickness="0">
+                <DataGrid.Resources>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+                </DataGrid.Resources>
                 <DataGrid.Columns>
                   <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
                   <DataGridTextColumn Header="Ort" Binding="{Binding City}" Width="140" />

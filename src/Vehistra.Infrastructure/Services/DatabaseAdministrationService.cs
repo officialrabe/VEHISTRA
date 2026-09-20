@@ -185,7 +185,13 @@ public sealed class DatabaseAdministrationService : IDatabaseAdministrationServi
 
         if (pending.Count == 0)
         {
-            var currentVersion = await GetSchemaVersionAsync(cancellationToken).ConfigureAwait(false);
+            // Nichts zu tun - aber der Stand gehoert trotzdem vermerkt. Auf
+            // einer frisch eingerichteten Datenbank lief nie eine Migration,
+            // an die sich ein Vermerk haengen koennte; ohne diese Zeile stuende
+            // in "Updates" und im Supportpaket dauerhaft "unbekannt".
+            var currentVersion = await GetSchemaVersionAsync(cancellationToken).ConfigureAwait(false)
+                ?? await RecordSchemaVersionAsync(options, cancellationToken).ConfigureAwait(false);
+
             progress?.Report("Das Datenbankschema ist bereits aktuell.");
             return new MigrationRunResult(true, [], null, currentVersion, null);
         }
@@ -285,6 +291,29 @@ public sealed class DatabaseAdministrationService : IDatabaseAdministrationServi
         progress?.Report("Die Datenbank wurde erfolgreich aktualisiert.");
 
         return new MigrationRunResult(true, pending, backupPath, schemaVersion, null);
+    }
+
+    public async Task<string?> EnsureSchemaVersionRecordedAsync(
+        MigrationOptions options,
+        CancellationToken cancellationToken = default)
+    {
+        var vermerkt = await GetSchemaVersionAsync(cancellationToken).ConfigureAwait(false);
+
+        if (vermerkt is not null)
+        {
+            return vermerkt;
+        }
+
+        // Solange Aenderungen offen sind, entspricht das Schema nicht dieser
+        // Programmversion - dann waere jeder Vermerk gelogen.
+        var offen = await GetPendingMigrationsAsync(cancellationToken).ConfigureAwait(false);
+
+        if (offen.Count > 0)
+        {
+            return null;
+        }
+
+        return await RecordSchemaVersionAsync(options, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<string?> GetSchemaVersionAsync(CancellationToken cancellationToken)

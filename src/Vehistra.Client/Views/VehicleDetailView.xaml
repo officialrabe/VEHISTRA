@@ -180,8 +180,8 @@
                   <TextBlock Style="{StaticResource DetailValue}">
                     <Run Text="{Binding Vehicle.PurchaseDate, Mode=OneWay, StringFormat=dd.MM.yyyy,
                                         TargetNullValue='–'}" /><Run Text=" · " /><Run
-                      Text="{Binding Vehicle.PurchasePrice, Mode=OneWay, StringFormat={}{0:N2} EUR,
-                                     TargetNullValue='–'}" />
+                      Text="{Binding Vehicle.PurchasePrice, Mode=OneWay,
+                                     Converter={StaticResource Waehrung}}" />
                   </TextBlock>
                   <TextBlock Text="Leasing" Style="{StaticResource DetailLabel}" />
                   <TextBlock Style="{StaticResource DetailValue}">
@@ -241,6 +241,9 @@
           </Border>
           <DataGrid x:Name="DriverAssignmentGrid" Grid.Row="1" Margin="12"
                     ItemsSource="{Binding DriverAssignments}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDriverFileCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=DriverAssignmentGrid}" />
@@ -269,6 +272,9 @@
                     Visibility="{Binding CanManageInspections, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" x:Name="InspectionGrid" ItemsSource="{Binding Inspections}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditInspectionCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=InspectionGrid}" />
@@ -321,6 +327,9 @@
           </ItemsControl>
 
           <DataGrid Grid.Row="2" Margin="12" ItemsSource="{Binding MaintenanceEntries}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.Columns>
               <DataGridTextColumn Header="Wartung" Binding="{Binding Rule.Name}" Width="200" />
               <DataGridTextColumn Header="Durchgeführt am" Binding="{Binding PerformedAt, StringFormat=dd.MM.yyyy}"
@@ -330,7 +339,7 @@
                                   Width="140" />
               <DataGridTextColumn Header="Nächste km" Binding="{Binding NextDueMileage, StringFormat=N0}" Width="110" />
               <DataGridTextColumn Header="Werkstatt" Binding="{Binding Workshop.Name}" Width="180" />
-              <DataGridTextColumn Header="Kosten" Binding="{Binding Cost, StringFormat={}{0:N2} EUR}" Width="110" />
+              <DataGridTextColumn Header="Kosten" Binding="{Binding Cost, Converter={StaticResource Waehrung}}" Width="110" />
               <DataGridTextColumn Header="Bemerkung" Binding="{Binding Comment}" Width="*" />
             </DataGrid.Columns>
           </DataGrid>
@@ -349,6 +358,9 @@
                     Visibility="{Binding CanCreateDamage, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid x:Name="DamageGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Damages}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDamageCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=DamageGrid}" />
@@ -382,7 +394,7 @@
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Fahrbereit"
                                   Binding="{Binding IsDriveable, Converter={StaticResource BoolToYesNo}}" Width="100" />
-              <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, StringFormat={}{0:N2} EUR}"
+              <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, Converter={StaticResource Waehrung}}"
                                   Width="110" />
             </DataGrid.Columns>
           </DataGrid>
@@ -401,6 +413,9 @@
                     Visibility="{Binding CanCreateAccident, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" x:Name="AccidentGrid" ItemsSource="{Binding Accidents}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenAccidentCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=AccidentGrid}" />
@@ -436,6 +451,9 @@
                     Visibility="{Binding CanManageWorkshop, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" x:Name="WorkshopGrid" ItemsSource="{Binding WorkshopOrders}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenWorkshopOrderCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=WorkshopGrid}" />
@@ -459,7 +477,7 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Tage in Werkstatt" Binding="{Binding DaysInWorkshop}" Width="130" />
-              <DataGridTextColumn Header="Kosten netto" Binding="{Binding CostNet, StringFormat={}{0:N2} EUR}"
+              <DataGridTextColumn Header="Kosten netto" Binding="{Binding CostNet, Converter={StaticResource Waehrung}}"
                                   Width="120" />
               <DataGridTextColumn Header="Rechnung" Binding="{Binding InvoiceNumber}" Width="*" />
             </DataGrid.Columns>
@@ -479,6 +497,9 @@
                     Visibility="{Binding CanManageDocuments, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" x:Name="DocumentGrid" ItemsSource="{Binding Documents}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenDocumentCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=DocumentGrid}" />
@@ -520,6 +541,9 @@
             </Grid.RowDefinitions>
 
             <DataGrid ItemsSource="{Binding PlateHistory}">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Kennzeichen" Binding="{Binding LicensePlate.Plate}" Width="150"
                                     FontWeight="SemiBold" />
@@ -532,6 +556,9 @@
             </DataGrid>
 
             <DataGrid Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding Registrations}">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Vorgang"
                                     Binding="{Binding EventType, Converter={StaticResource EnumToText}}" Width="160" />
@@ -560,6 +587,9 @@
                     Visibility="{Binding CanEditMileage, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" ItemsSource="{Binding MileageEntries}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.Columns>
               <DataGridTextColumn Header="Datum" Binding="{Binding RecordedAt, StringFormat=dd.MM.yyyy HH:mm}"
                                   Width="150" />
@@ -590,6 +620,9 @@
                     Visibility="{Binding CanManageInsurance, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" x:Name="InsuranceGrid" ItemsSource="{Binding Insurances}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditInsuranceCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=InsuranceGrid}" />
@@ -621,6 +654,9 @@
                     Visibility="{Binding CanManageKeys, Converter={StaticResource BoolToVisibility}}" />
           </Border>
           <DataGrid Grid.Row="1" Margin="12" x:Name="KeyGrid" ItemsSource="{Binding Keys}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditKeyCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=KeyGrid}" />
@@ -643,6 +679,9 @@
       <!-- HISTORIE -->
       <TabItem Header="{Binding TimelineTabHeader}">
         <DataGrid Margin="12" ItemsSource="{Binding Timeline}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.Columns>
             <DataGridTextColumn Header="Zeitpunkt" Binding="{Binding Timestamp, StringFormat=dd.MM.yyyy HH:mm}"
                                 Width="150" />

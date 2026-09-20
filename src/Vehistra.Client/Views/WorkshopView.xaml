@@ -58,6 +58,9 @@
 
     <DataGrid x:Name="OrderGrid" Grid.Row="2" Margin="12" ItemsSource="{Binding Orders}"
               SelectedItem="{Binding SelectedOrder}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}"
                       CommandParameter="{Binding SelectedItem, ElementName=OrderGrid}" />
@@ -100,7 +103,7 @@
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="Tage" Binding="{Binding DaysInWorkshop}" Width="70" />
-        <DataGridTextColumn Header="Kosten netto" Binding="{Binding CostNet, StringFormat={}{0:N2} EUR}" Width="120" />
+        <DataGridTextColumn Header="Kosten netto" Binding="{Binding CostNet, Converter={StaticResource Waehrung}}" Width="120" />
         <DataGridTextColumn Header="Rechnung" Binding="{Binding InvoiceNumber}" Width="140" />
       </DataGrid.Columns>
     </DataGrid>

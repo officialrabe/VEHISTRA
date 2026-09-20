@@ -243,7 +243,7 @@ public sealed class DiagnosticsService : IDiagnosticsService
         builder.AppendLine(new string('=', 60));
         builder.AppendLine($"Erstellt am        : {report.CreatedAt:dd.MM.yyyy HH:mm:ss}");
         builder.AppendLine($"Programmversion    : {report.ApplicationVersion}");
-        builder.AppendLine($"Datenbankschema    : {report.DatabaseSchemaVersion ?? "unbekannt"}");
+        builder.AppendLine($"Datenbankschema    : {report.DatabaseSchemaVersion ?? "nicht vermerkt"}");
         builder.AppendLine($"Computername       : {report.ComputerName}");
         builder.AppendLine($"Betriebssystem     : {report.OperatingSystem}");
         builder.AppendLine($"Laufzeitumgebung   : {report.RuntimeVersion}");

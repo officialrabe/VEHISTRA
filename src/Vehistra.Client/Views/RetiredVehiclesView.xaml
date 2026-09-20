@@ -43,6 +43,9 @@
     </Border>
 
     <DataGrid Grid.Row="2" Margin="12" ItemsSource="{Binding Vehicles}" SelectedItem="{Binding SelectedVehicle}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}" />
       </DataGrid.InputBindings>
