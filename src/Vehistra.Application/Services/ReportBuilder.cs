@@ -4,6 +4,7 @@ using Vehistra.Domain.Enums;
 using Vehistra.Domain.Exceptions;
 using Vehistra.Domain.Security;
 using Microsoft.EntityFrameworkCore;
+using Vehistra.Application.Services;
 
 namespace Vehistra.Application.Services;
 
@@ -17,6 +18,7 @@ public sealed class ReportBuilder : IReportBuilder
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditWriter _audit;
     private readonly IClock _clock;
+    private readonly ApplicationVersionProvider _version;
 
     public ReportBuilder(
         IVehistraDbContext db,
@@ -25,7 +27,8 @@ public sealed class ReportBuilder : IReportBuilder
         IDocumentStorage storage,
         ICurrentUserService currentUser,
         IAuditWriter audit,
-        IClock clock)
+        IClock clock,
+        ApplicationVersionProvider version)
     {
         _db = db;
         _reports = reports;
@@ -34,6 +37,7 @@ public sealed class ReportBuilder : IReportBuilder
         _currentUser = currentUser;
         _audit = audit;
         _clock = clock;
+        _version = version;
     }
 
     public async Task<GeneratedReport> BuildWorkshopReportAsync(
@@ -417,9 +421,11 @@ public sealed class ReportBuilder : IReportBuilder
                 : company.LogoPath,
             PrintedAt = _clock.Now,
             PrintedBy = _currentUser.User?.DisplayName,
-            ApplicationVersion = await _settings
-                .GetOrDefaultAsync(SettingsKeys.DatabaseSchemaVersion, "1.0.0", cancellationToken)
-                .ConfigureAwait(false)
+            // Die Programmversion, nicht die Schemaversion der Datenbank. Vorher
+            // stand hier Database.SchemaVersion: der Wert bleibt ueber viele
+            // Programmversionen gleich, und ohne Eintrag fiel er auf "1.0.0"
+            // zurueck - deshalb stand in jedem Ausdruck dauerhaft "Vehistra 1.0.0".
+            ApplicationVersion = _version.Version
         };
     }
 

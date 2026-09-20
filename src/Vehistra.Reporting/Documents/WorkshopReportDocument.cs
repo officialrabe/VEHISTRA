@@ -49,7 +49,7 @@ internal sealed class WorkshopReportDocument : IDocument
 
             page.Content().PaddingTop(6).Element(Content);
 
-            page.Footer().Element(footer => ReportComponents.Footer(footer, _data.Header));
+            page.Footer().Element(footer => ReportComponents.Footer(footer, _data.Header, _data.IsBlankForm));
         });
     }
 

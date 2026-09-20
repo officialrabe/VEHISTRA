@@ -10,6 +10,7 @@ using Vehistra.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Vehistra.Application.Services;
 
 namespace Vehistra.ServerCheck;
 
