@@ -180,8 +180,8 @@
                   <TextBlock Style="{StaticResource DetailValue}">
                     <Run Text="{Binding Vehicle.PurchaseDate, Mode=OneWay, StringFormat=dd.MM.yyyy,
                                         TargetNullValue='–'}" /><Run Text=" · " /><Run
-                      Text="{Binding Vehicle.PurchasePrice, Mode=OneWay, StringFormat={}{0:N2} EUR,
-                                     TargetNullValue='–'}" />
+                      Text="{Binding Vehicle.PurchasePrice, Mode=OneWay,
+                                     Converter={StaticResource Waehrung}}" />
                   </TextBlock>
                   <TextBlock Text="Leasing" Style="{StaticResource DetailLabel}" />
                   <TextBlock Style="{StaticResource DetailValue}">
@@ -330,7 +330,7 @@
                                   Width="140" />
               <DataGridTextColumn Header="Nächste km" Binding="{Binding NextDueMileage, StringFormat=N0}" Width="110" />
               <DataGridTextColumn Header="Werkstatt" Binding="{Binding Workshop.Name}" Width="180" />
-              <DataGridTextColumn Header="Kosten" Binding="{Binding Cost, StringFormat={}{0:N2} EUR}" Width="110" />
+              <DataGridTextColumn Header="Kosten" Binding="{Binding Cost, Converter={StaticResource Waehrung}}" Width="110" />
               <DataGridTextColumn Header="Bemerkung" Binding="{Binding Comment}" Width="*" />
             </DataGrid.Columns>
           </DataGrid>
@@ -382,7 +382,7 @@
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Fahrbereit"
                                   Binding="{Binding IsDriveable, Converter={StaticResource BoolToYesNo}}" Width="100" />
-              <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, StringFormat={}{0:N2} EUR}"
+              <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, Converter={StaticResource Waehrung}}"
                                   Width="110" />
             </DataGrid.Columns>
           </DataGrid>
@@ -459,7 +459,7 @@
                 </DataGridTemplateColumn.CellTemplate>
               </DataGridTemplateColumn>
               <DataGridTextColumn Header="Tage in Werkstatt" Binding="{Binding DaysInWorkshop}" Width="130" />
-              <DataGridTextColumn Header="Kosten netto" Binding="{Binding CostNet, StringFormat={}{0:N2} EUR}"
+              <DataGridTextColumn Header="Kosten netto" Binding="{Binding CostNet, Converter={StaticResource Waehrung}}"
                                   Width="120" />
               <DataGridTextColumn Header="Rechnung" Binding="{Binding InvoiceNumber}" Width="*" />
             </DataGrid.Columns>

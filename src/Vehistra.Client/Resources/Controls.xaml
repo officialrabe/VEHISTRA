@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:behaviors="clr-namespace:Vehistra.Client.Behaviors">
 
   <!-- Basisstile fuer eine klassische Windows-Businessoberflaeche. -->
 
@@ -211,7 +212,25 @@
   </Style>
 
   <!-- Tabellen -->
+  <!--
+    Text in einer Tabellenzelle endet bei zu wenig Platz mit "…" statt
+    mitten im Wort abgeschnitten zu werden, und der ganze Wert steht dann im
+    Tooltip. Das steckt in den Ressourcen der Tabelle, damit es fuer jede
+    Spalte gilt, ohne dass es an jeder einzelnen wiederholt werden muss.
+  -->
   <Style TargetType="DataGrid">
+    <Setter Property="Resources">
+      <Setter.Value>
+        <ResourceDictionary>
+          <Style TargetType="TextBlock">
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+            <Setter Property="behaviors:GekuerzterText.ZeigeGanzenWert" Value="True" />
+          </Style>
+        </ResourceDictionary>
+      </Setter.Value>
+    </Setter>
     <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}" />
     <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
     <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />

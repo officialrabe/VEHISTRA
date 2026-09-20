@@ -24,6 +24,17 @@ public interface IDatabaseAdministrationService
         MigrationOptions options,
         IProgress<string>? progress = null,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Haelt fest, auf welchem Stand das Schema ist, sofern das noch niemand
+    /// vermerkt hat. Eine frisch eingerichtete Datenbank hat keine Migration
+    /// hinter sich, an die sich ein Vermerk haengen koennte - in "Updates" und
+    /// im Supportpaket stand deshalb dauerhaft "unbekannt". Gibt die
+    /// vermerkte Version zurueck oder null, wenn noch Aenderungen offen sind.
+    /// </summary>
+    Task<string?> EnsureSchemaVersionRecordedAsync(
+        MigrationOptions options,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>Ergebnis eines Verbindungstests mit verstaendlicher Fehlermeldung.</summary>

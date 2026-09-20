@@ -313,3 +313,28 @@ public sealed class InverseBooleanConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         value is not bool flag || !flag;
 }
+
+/// <summary>
+/// Formatiert einen Geldbetrag als "1.234,56 EUR". Ist nichts eingetragen,
+/// steht dort ein Gedankenstrich - nicht ein nacktes "EUR", das aussieht, als
+/// waere der Betrag null Euro oder verloren gegangen.
+/// </summary>
+public sealed class CurrencyConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var betrag = value switch
+        {
+            decimal d => d,
+            double d => (decimal)d,
+            int i => i,
+            long l => l,
+            _ => (decimal?)null
+        };
+
+        return betrag is null ? "–" : $"{betrag.Value.ToString("N2", culture)} EUR";
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}

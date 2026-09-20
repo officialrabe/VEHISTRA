@@ -29,6 +29,7 @@
   <conv:PlateStatusToBrushConverter x:Key="PlateStatusToBackground" Background="True" />
   <conv:BoolToYesNoConverter x:Key="BoolToYesNo" />
   <conv:InverseBooleanConverter x:Key="InverseBool" />
+  <conv:CurrencyConverter x:Key="Waehrung" />
 
   <!-- Zuordnung Ansichtsmodell zu Ansicht -->
   <DataTemplate DataType="{x:Type vm:DashboardViewModel}">

@@ -99,7 +99,7 @@
         </DataGridTemplateColumn>
         <DataGridTextColumn Header="Fahrbereit" Binding="{Binding IsDriveable, Converter={StaticResource BoolToYesNo}}"
                             Width="100" />
-        <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, StringFormat={}{0:N2} EUR}" Width="110" />
+        <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, Converter={StaticResource Waehrung}}" Width="110" />
         <DataGridTextColumn Header="Versicherung"
                             Binding="{Binding IsInsuranceCase, Converter={StaticResource BoolToYesNo}}" Width="110" />
       </DataGrid.Columns>

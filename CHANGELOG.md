@@ -6,6 +6,25 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.4.4
+
+Behoben
+- **Leere Kostenfelder zeigten ein nacktes „EUR"** – als wäre der Betrag null
+  Euro oder verloren gegangen. Ohne Eintrag steht dort jetzt ein
+  Gedankenstrich; ein eingetragener Betrag von 0,00 EUR bleibt davon
+  unberührt, denn das ist etwas anderes als kein Eintrag.
+- **Lange Werte wurden in Tabellen mitten im Wort abgeschnitten**, etwa
+  Modellnamen in der Spalte „Fahrzeug". Der Text endet jetzt mit „…", und der
+  vollständige Wert erscheint als Tooltip – aber nur dann, wenn er wirklich
+  nicht in die Spalte passt.
+- **„Datenbankschema: unbekannt"** stand auf der Seite „Updates" und im
+  Supportpaket, solange die Datenbank noch kein Update erlebt hatte. Der Stand
+  wurde bisher nur nach einer ausgeführten Migration vermerkt – eine frisch
+  eingerichtete Datenbank hat aber keine hinter sich. Die Servereinrichtung
+  vermerkt ihn jetzt sofort, und „Datenbank aktualisieren" trägt ihn auf
+  bestehenden Installationen nach. Bis dahin steht dort, dass er noch nicht
+  vermerkt ist, statt einer Angabe, die nach einem Fehler aussieht.
+
 ## 1.4.3
 
 Behoben

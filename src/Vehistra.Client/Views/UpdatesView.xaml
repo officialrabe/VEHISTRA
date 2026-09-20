@@ -57,6 +57,9 @@
               <TextBlock Margin="0,4,0,0" Style="{StaticResource PageSubtitleStyle}">
                 <Run Text="{Binding PendingMigrations, Mode=OneWay}" /><Run Text=" ausstehende Änderung(en)" />
               </TextBlock>
+              <TextBlock Text="{Binding DatabaseSchemaHint}" Margin="0,2,0,0" TextWrapping="Wrap" MaxWidth="240"
+                         Style="{StaticResource PageSubtitleStyle}"
+                         Visibility="{Binding DatabaseSchemaHint, Converter={StaticResource StringToVisibility}}" />
             </StackPanel>
           </Border>
           <Border Style="{StaticResource CardStyle}">

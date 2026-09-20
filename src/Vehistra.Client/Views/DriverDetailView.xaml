@@ -175,7 +175,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, StringFormat={}{0:N2} EUR}"
+            <DataGridTextColumn Header="Kosten" Binding="{Binding CostActual, Converter={StaticResource Waehrung}}"
                                 Width="110" />
           </DataGrid.Columns>
         </DataGrid>
@@ -231,7 +231,7 @@
                 </DataTemplate>
               </DataGridTemplateColumn.CellTemplate>
             </DataGridTemplateColumn>
-            <DataGridTextColumn Header="Kosten" Binding="{Binding CostNet, StringFormat={}{0:N2} EUR}" Width="110" />
+            <DataGridTextColumn Header="Kosten" Binding="{Binding CostNet, Converter={StaticResource Waehrung}}" Width="110" />
           </DataGrid.Columns>
         </DataGrid>
       </TabItem>
