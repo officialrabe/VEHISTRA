@@ -33,6 +33,9 @@
     </StackPanel>
 
     <DataGrid Grid.Row="2" Margin="18,0,18,0" ItemsSource="{Binding History}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.Columns>
         <DataGridTextColumn Header="Zeitpunkt" Binding="{Binding ChangedAt, StringFormat=dd.MM.yyyy HH:mm}"
                             Width="150" />

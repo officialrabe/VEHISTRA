@@ -40,6 +40,9 @@
 
     <DataGrid x:Name="DocumentGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Documents}"
               SelectedItem="{Binding SelectedDocument}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenCommand}"
                       CommandParameter="{Binding SelectedItem, ElementName=DocumentGrid}" />

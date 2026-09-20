@@ -142,6 +142,9 @@
             </Grid>
 
             <DataGrid x:Name="TaskGrid" ItemsSource="{Binding Tasks}" MaxHeight="180" Margin="0,10,0,0">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="Als erledigt markieren / zurücksetzen"

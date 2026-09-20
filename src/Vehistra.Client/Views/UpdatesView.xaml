@@ -158,6 +158,9 @@
 
         <TextBlock Text="UPDATEVERLAUF" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
         <DataGrid ItemsSource="{Binding History}" MaxHeight="280" Margin="0,0,0,14">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.Columns>
             <DataGridTextColumn Header="Gestartet" Binding="{Binding StartedAt, StringFormat=dd.MM.yyyy HH:mm}"
                                 Width="150" />
@@ -175,6 +178,9 @@
 
         <TextBlock Text="DATENBANKVERSIONEN" Style="{StaticResource SectionTitleStyle}" FontSize="12" />
         <DataGrid ItemsSource="{Binding DatabaseVersions}" MaxHeight="240">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.Columns>
             <DataGridTextColumn Header="Schemaversion" Binding="{Binding SchemaVersion}" Width="140" />
             <DataGridTextColumn Header="Angewendet am" Binding="{Binding AppliedAt, StringFormat=dd.MM.yyyy HH:mm}"

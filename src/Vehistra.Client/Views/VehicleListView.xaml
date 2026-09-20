@@ -104,6 +104,9 @@
     <!-- Tabelle -->
     <DataGrid Grid.Row="2" Margin="12" ItemsSource="{Binding Vehicles}"
               SelectedItem="{Binding SelectedVehicle}" BorderThickness="1">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenCommand}" />
       </DataGrid.InputBindings>

@@ -40,6 +40,9 @@
 
     <DataGrid x:Name="AccidentGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Accidents}"
               SelectedItem="{Binding SelectedAccident}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}"
                       CommandParameter="{Binding SelectedItem, ElementName=AccidentGrid}" />

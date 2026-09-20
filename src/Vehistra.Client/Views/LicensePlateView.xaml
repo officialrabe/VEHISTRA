@@ -52,6 +52,9 @@
       </Grid.ColumnDefinitions>
 
       <DataGrid ItemsSource="{Binding Plates}" SelectedItem="{Binding SelectedPlate}">
+        <DataGrid.Resources>
+          <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+        </DataGrid.Resources>
         <DataGrid.InputBindings>
           <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}" />
         </DataGrid.InputBindings>
@@ -107,6 +110,9 @@
             </Border>
             <DataGrid x:Name="ReservationGrid" Grid.Row="1" ItemsSource="{Binding Reservations}"
                       BorderThickness="0">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.ContextMenu>
                 <ContextMenu>
                   <MenuItem Header="Reservierung aufheben"
@@ -136,6 +142,9 @@
               <TextBlock Text="HISTORIE DES AUSGEWÄHLTEN KENNZEICHENS" FontWeight="SemiBold" FontSize="11" />
             </Border>
             <DataGrid Grid.Row="1" ItemsSource="{Binding History}" BorderThickness="0">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.Columns>
                 <DataGridTextColumn Header="Fahrzeug" Binding="{Binding Vehicle.DisplayName}" Width="*" />
                 <DataGridTextColumn Header="Von" Binding="{Binding ValidFrom, StringFormat=dd.MM.yyyy}" Width="100" />

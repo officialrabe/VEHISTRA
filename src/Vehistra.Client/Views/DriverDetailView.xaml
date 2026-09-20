@@ -126,6 +126,9 @@
                        Style="{StaticResource MutedTextStyle}" VerticalAlignment="Center" />
           </Border>
           <DataGrid x:Name="AssignmentGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Assignments}">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenAssignmentVehicleCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=AssignmentGrid}" />
@@ -154,6 +157,9 @@
       <!-- SCHÄDEN -->
       <TabItem Header="{Binding DamagesTabHeader}">
         <DataGrid x:Name="DamageGrid" Margin="12" ItemsSource="{Binding Damages}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.InputBindings>
             <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
                           CommandParameter="{Binding SelectedItem.VehicleId, ElementName=DamageGrid}" />
@@ -184,6 +190,9 @@
       <!-- UNFÄLLE -->
       <TabItem Header="{Binding AccidentsTabHeader}">
         <DataGrid x:Name="AccidentGrid" Margin="12" ItemsSource="{Binding Accidents}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.InputBindings>
             <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
                           CommandParameter="{Binding SelectedItem.VehicleId, ElementName=AccidentGrid}" />
@@ -210,6 +219,9 @@
       <!-- WERKSTATT -->
       <TabItem Header="{Binding WorkshopTabHeader}">
         <DataGrid x:Name="WorkshopGrid" Margin="12" ItemsSource="{Binding WorkshopOrders}">
+          <DataGrid.Resources>
+            <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+          </DataGrid.Resources>
           <DataGrid.InputBindings>
             <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
                           CommandParameter="{Binding SelectedItem.VehicleId, ElementName=WorkshopGrid}" />

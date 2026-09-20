@@ -37,6 +37,9 @@
 
     <DataGrid x:Name="InspectionGrid" Grid.Row="1" Margin="12" ItemsSource="{Binding Items}"
               SelectedItem="{Binding SelectedItem}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
                       CommandParameter="{Binding SelectedItem, ElementName=InspectionGrid}" />

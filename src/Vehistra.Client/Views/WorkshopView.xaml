@@ -58,6 +58,9 @@
 
     <DataGrid x:Name="OrderGrid" Grid.Row="2" Margin="12" ItemsSource="{Binding Orders}"
               SelectedItem="{Binding SelectedOrder}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.InputBindings>
         <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding EditCommand}"
                       CommandParameter="{Binding SelectedItem, ElementName=OrderGrid}" />

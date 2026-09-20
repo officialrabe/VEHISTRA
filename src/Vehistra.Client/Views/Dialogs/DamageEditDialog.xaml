@@ -151,6 +151,9 @@
             <Button Content="_Fotos / Dokumente hinzufügen" HorizontalAlignment="Left" MinWidth="220"
                     Command="{Binding AddPhotoCommand}" />
             <DataGrid x:Name="AttachmentGrid" ItemsSource="{Binding Attachments}" MaxHeight="140" Margin="0,10,0,0">
+              <DataGrid.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+              </DataGrid.Resources>
               <DataGrid.InputBindings>
                 <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenAttachmentCommand}"
                               CommandParameter="{Binding SelectedItem, ElementName=AttachmentGrid}" />

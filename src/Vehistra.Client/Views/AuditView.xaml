@@ -40,6 +40,9 @@
     </Border>
 
     <DataGrid Grid.Row="1" Margin="12" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}">
+      <DataGrid.Resources>
+        <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+      </DataGrid.Resources>
       <DataGrid.Columns>
         <DataGridTextColumn Header="Zeitpunkt" Binding="{Binding Timestamp, StringFormat=dd.MM.yyyy HH:mm:ss}"
                             Width="160" />

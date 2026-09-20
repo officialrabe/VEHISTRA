@@ -213,24 +213,20 @@
 
   <!-- Tabellen -->
   <!--
-    Text in einer Tabellenzelle endet bei zu wenig Platz mit "…" statt
-    mitten im Wort abgeschnitten zu werden, und der ganze Wert steht dann im
-    Tooltip. Das steckt in den Ressourcen der Tabelle, damit es fuer jede
-    Spalte gilt, ohne dass es an jeder einzelnen wiederholt werden muss.
+    Text in einer Tabellenzelle endet bei zu wenig Platz mit "…" statt mitten
+    im Wort abgeschnitten zu werden; der ganze Wert steht dann im Tooltip.
+    Jede Tabelle nimmt diesen Stil in ihre Ressourcen auf (siehe die Ansichten),
+    damit er fuer alle Spalten gilt - "Resources" laesst sich nicht ueber einen
+    Setter setzen, es ist keine Abhaengigkeitseigenschaft.
   -->
+  <Style TargetType="TextBlock" x:Key="TabellenZellenText">
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
+    <Setter Property="behaviors:GekuerzterText.ZeigeGanzenWert" Value="True" />
+  </Style>
+
   <Style TargetType="DataGrid">
-    <Setter Property="Resources">
-      <Setter.Value>
-        <ResourceDictionary>
-          <Style TargetType="TextBlock">
-            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Text}" />
-            <Setter Property="behaviors:GekuerzterText.ZeigeGanzenWert" Value="True" />
-          </Style>
-        </ResourceDictionary>
-      </Setter.Value>
-    </Setter>
     <Setter Property="FontFamily" Value="{StaticResource UiFontFamily}" />
     <Setter Property="FontSize" Value="{StaticResource FontSizeNormal}" />
     <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />

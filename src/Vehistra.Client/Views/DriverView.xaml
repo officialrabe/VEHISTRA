@@ -48,6 +48,9 @@
       </Grid.ColumnDefinitions>
 
       <DataGrid ItemsSource="{Binding Drivers}" SelectedItem="{Binding SelectedDriver}">
+        <DataGrid.Resources>
+          <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+        </DataGrid.Resources>
         <DataGrid.InputBindings>
           <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenFileCommand}" />
         </DataGrid.InputBindings>
@@ -92,6 +95,9 @@
           </Border>
 
           <DataGrid x:Name="AssignmentGrid" Grid.Row="1" ItemsSource="{Binding Assignments}" BorderThickness="0">
+            <DataGrid.Resources>
+              <Style TargetType="TextBlock" BasedOn="{StaticResource TabellenZellenText}" />
+            </DataGrid.Resources>
             <DataGrid.InputBindings>
               <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding OpenVehicleCommand}"
                             CommandParameter="{Binding SelectedItem, ElementName=AssignmentGrid}" />
