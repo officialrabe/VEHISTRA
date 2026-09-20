@@ -108,7 +108,10 @@ public static class Program
         dienste.AddLogging(b => b.SetMinimumLevel(LogLevel.Warning));
         Vehistra.Application.DependencyInjection.AddVehistraApplication(dienste);
         dienste.AddSingleton<IReportService, QuestPdfReportService>();
-        dienste.AddVehistraInfrastructure(_ => verbindung, "1.4.0");
+        // Version aus dem Programm selbst - eine Zahl von Hand veraltet.
+        var version = typeof(Vehistra.Client.App).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+
+        dienste.AddVehistraInfrastructure(_ => verbindung, version);
         dienste.AddSingleton<IDialogService, StummerDialogdienst>();
         dienste.AddSingleton<INavigationService, NavigationService>();
         dienste.AddSingleton<IReportLauncher, ReportLauncher>();

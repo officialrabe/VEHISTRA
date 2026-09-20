@@ -299,6 +299,55 @@ public class ReportServiceTests
 
     /// <summary>
     /// Liest die im PDF sichtbaren Zeichenketten. Ausgewertet werden die
+    // ---------------------------------------------------------------- Fusszeile
+
+    [Fact]
+    public async Task Der_Vordruck_nennt_sich_in_der_Fusszeile_Vordruck()
+    {
+        // "Erstellt von" klingt am leeren Formular, als staemmten die spaeter
+        // eingetragenen Angaben von dieser Person.
+        var text = ExtractText(await Workshop(
+            new WorkshopReportData { Header = Header(), IsBlankForm = true }));
+
+        text.ShouldContain("Vordruck erstellt von M. Mustermann");
+    }
+
+    [Fact]
+    public async Task Der_gefuellte_Bericht_nennt_weiterhin_den_Ersteller()
+    {
+        var text = ExtractText(await Workshop(new WorkshopReportData
+        {
+            Header = Header(),
+            LicensePlate = "FDS-AB 123",
+            InternalNumber = "T-07"
+        }));
+
+        text.ShouldContain("erstellt von M. Mustermann");
+        text.ShouldNotContain("Vordruck erstellt von");
+    }
+
+    [Fact]
+    public async Task Auch_der_Blanko_Unfallbericht_nennt_sich_Vordruck()
+    {
+        var text = ExtractText(await Accident(
+            new AccidentReportData { Header = Header(), IsBlankForm = true }));
+
+        text.ShouldContain("Vordruck erstellt von");
+    }
+
+    [Fact]
+    public async Task Die_Fusszeile_nennt_die_uebergebene_Programmversion()
+    {
+        // Sie stand dauerhaft auf 1.0.0, weil dort die Schemaversion der
+        // Datenbank landete statt der Programmversion.
+        var kopf = Header();
+        kopf.ApplicationVersion = "4.2.1";
+
+        var text = ExtractText(await Workshop(new WorkshopReportData { Header = kopf }));
+
+        text.ShouldContain("Vehistra 4.2.1");
+    }
+
     /// Textanweisungen der unkomprimierten Inhaltsstroeme.
     /// </summary>
     private static string ExtractText(byte[] pdf) => PdfTextReader.Extract(pdf);

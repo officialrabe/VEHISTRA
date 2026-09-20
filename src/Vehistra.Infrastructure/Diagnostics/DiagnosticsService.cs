@@ -6,6 +6,7 @@ using Vehistra.Infrastructure.Persistence;
 using Vehistra.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Vehistra.Application.Services;
 
 namespace Vehistra.Infrastructure.Diagnostics;
 

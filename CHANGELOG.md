@@ -6,6 +6,19 @@ Alle bemerkenswerten Änderungen an Vehistra. Die Versionsnummern folgen
 Der Release-Workflow liest die Abschnitte dieser Datei und übernimmt sie in die
 Versionshinweise der Veröffentlichung.
 
+## 1.4.2
+
+Behoben
+- **In der Fußzeile jedes Ausdrucks stand dauerhaft „Vehistra 1.0.0".** Dort
+  landete die Schemaversion der Datenbank statt der Programmversion – und weil
+  die Datenbank diesen Eintrag oft gar nicht hat, fiel der Wert auf „1.0.0“
+  zurück. Die Fußzeile nennt jetzt die laufende Programmversion und wandert
+  damit mit jedem Update mit.
+- **„Erstellt von …“ am leeren Formular.** Ein Vordruck ist noch von niemandem
+  ausgefüllt; die Angabe klang, als stammten die später eingetragenen Daten
+  von dieser Person. Auf Blankoformularen steht jetzt **„Vordruck erstellt
+  von …“**, auf gefüllten Berichten bleibt es bei „erstellt von“.
+
 ## 1.4.1
 
 Behoben

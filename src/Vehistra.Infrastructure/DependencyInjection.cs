@@ -11,6 +11,7 @@ using Vehistra.Infrastructure.Services;
 using Vehistra.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vehistra.Application.Services;
 
 namespace Vehistra.Infrastructure;
 

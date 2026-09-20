@@ -7,6 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!--
+      Derselbe PDF-Leser wie in den Einheitstests, eingebunden statt kopiert:
+      hier wird geprueft, was der Berichtsaufbau in die Fusszeile stellt.
+    -->
+    <Compile Include="..\Vehistra.UnitTests\PdfTextReader.cs" Link="PdfTextReader.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Vehistra.Domain\Vehistra.Domain.csproj" />
     <ProjectReference Include="..\..\src\Vehistra.Application\Vehistra.Application.csproj" />
     <ProjectReference Include="..\..\src\Vehistra.Infrastructure\Vehistra.Infrastructure.csproj" />

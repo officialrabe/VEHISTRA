@@ -10,6 +10,7 @@ using Vehistra.Infrastructure;
 using Vehistra.Infrastructure.Persistence;
 using Vehistra.Infrastructure.Persistence.Seeding;
 using Vehistra.Infrastructure.Services;
+using Vehistra.Application.Services;
 
 namespace Vehistra.IntegrationTests;
 

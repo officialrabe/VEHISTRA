@@ -57,8 +57,14 @@ internal static class ReportComponents
         });
     }
 
-    /// <summary>Fusszeile mit Erstellungsangaben - ohne URL, ohne localhost.</summary>
-    public static void Footer(IContainer container, ReportHeaderData header)
+    /// <summary>
+    /// Fusszeile mit Erstellungsangaben - ohne URL, ohne localhost.
+    ///
+    /// Beim Vordruck steht bewusst "Vordruck erstellt von": das Formular ist
+    /// leer, ausgefuellt hat es niemand. "Erstellt von" wuerde dort so klingen,
+    /// als stammten die spaeter eingetragenen Angaben von dieser Person.
+    /// </summary>
+    public static void Footer(IContainer container, ReportHeaderData header, bool istVordruck = false)
     {
         container.BorderTop(0.8f).BorderColor(Colors.Grey.Darken1).PaddingTop(3).Row(row =>
         {
@@ -69,7 +75,9 @@ internal static class ReportComponents
 
                 if (!string.IsNullOrWhiteSpace(header.PrintedBy))
                 {
-                    text.Span($" · erstellt von {header.PrintedBy}");
+                    text.Span(istVordruck
+                        ? $" · Vordruck erstellt von {header.PrintedBy}"
+                        : $" · erstellt von {header.PrintedBy}");
                 }
 
                 text.Span($" · {header.PrintedAt:dd.MM.yyyy HH:mm}");

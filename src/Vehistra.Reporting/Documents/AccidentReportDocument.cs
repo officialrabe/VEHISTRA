@@ -63,7 +63,7 @@ internal sealed class AccidentReportDocument : IDocument
                 "Vom Fahrer auszufüllen", "Seite 1 von 2"));
 
             page.Content().PaddingTop(5).Element(FirstPage);
-            page.Footer().Element(footer => ReportComponents.Footer(footer, _data.Header));
+            page.Footer().Element(footer => ReportComponents.Footer(footer, _data.Header, _data.IsBlankForm));
         });
 
         container.Page(page =>
@@ -75,7 +75,7 @@ internal sealed class AccidentReportDocument : IDocument
                 "Gehört zum Unfall- / Schadensbericht", "Seite 2 von 2"));
 
             page.Content().PaddingTop(5).Element(SecondPage);
-            page.Footer().Element(footer => ReportComponents.Footer(footer, _data.Header));
+            page.Footer().Element(footer => ReportComponents.Footer(footer, _data.Header, _data.IsBlankForm));
         });
     }
 

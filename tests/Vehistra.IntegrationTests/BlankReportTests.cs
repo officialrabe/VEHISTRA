@@ -44,6 +44,20 @@ public class BlankReportTests
     }
 
     [Fact]
+    public async Task Die_Fusszeile_nennt_die_laufende_Programmversion()
+    {
+        // Sie stand in jedem Ausdruck dauerhaft auf "1.0.0": dort landete die
+        // Schemaversion der Datenbank, nicht die Version des Programms.
+        await using var database = await TestDatabase.CreateAsync(applicationVersion: "4.2.1");
+        database.SignInAsAdministrator();
+
+        var bericht = await database.Service<IReportBuilder>()
+            .BuildWorkshopReportAsync(cancellationToken: Token);
+
+        Vehistra.UnitTests.PdfTextReader.Extract(bericht.Content).ShouldContain("Vehistra 4.2.1");
+    }
+
+    [Fact]
     public async Task Ohne_Druckrecht_entsteht_kein_Bericht()
     {
         await using var database = await TestDatabase.CreateAsync();
